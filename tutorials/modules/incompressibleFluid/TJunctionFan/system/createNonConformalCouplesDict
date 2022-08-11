@@ -14,15 +14,42 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-fields true;
+fields      yes;
 
 nonConformalCouples
 {
-    NCC
+    fan
     {
-        patches         (nonCouple1 nonCouple2);
+        owner
+        {
+            patch       fan0;
+
+            patchFields
+            {
+                p
+                {
+                    type        fanPressureJump;
+                    patchType   nonConformalCyclic;
+                    jump        uniform 0;
+                    value       uniform 0;
+                    jumpTable   polynomial 1((100 0));
+                }
+            }
+        }
+
+        neighbour
+        {
+            patch       fan1;
+
+            patchFields
+            {
+                $../../owner/patchFields;
+            }
+        }
+
         transform       none;
     }
 }
+
 
 // ************************************************************************* //
