@@ -65,10 +65,6 @@ Description
     Note: if offsetMode is \c normal it uses outwards pointing normals. So
     supply a negative distance if sampling inside the domain.
 
-    Note:
-        Storage is not optimal. It temporary collects all (patch)face centres
-        on all processors to keep the addressing calculation simple.
-
 SourceFiles
     mappedPatchBase.C
 
@@ -78,8 +74,6 @@ SourceFiles
 #define mappedPatchBase_H
 
 #include "pointField.H"
-#include "Tuple2.H"
-#include "pointIndexHit.H"
 #include "AMIInterpolation.H"
 #include "coupleGroupIdentifier.H"
 
@@ -109,8 +103,7 @@ public:
             NEARESTCELL,         // nearest cell containing sample
             NEARESTPATCHFACE,    // nearest face on selected patch
             NEARESTPATCHFACEAMI, // nearest patch face + AMI interpolation
-            NEARESTFACE,         // nearest face
-            NEARESTONLYCELL      // nearest cell (even if not containing cell)
+            NEARESTFACE          // nearest face
         };
 
         //- How to project face centres
@@ -121,35 +114,9 @@ public:
             NORMAL              // use face normal + distance
         };
 
-        static const NamedEnum<sampleMode, 5> sampleModeNames_;
+        static const NamedEnum<sampleMode, 4> sampleModeNames_;
 
         static const NamedEnum<offsetMode, 3> offsetModeNames_;
-
-
-    //- Helper class for finding nearest. Point and local index, squared
-    //  distance, and processor index.
-    typedef Tuple2<pointIndexHit, Tuple2<scalar, label>> nearInfo;
-
-    //- Equality operator for nearest info
-    class nearestEqOp
-    {
-    public:
-
-        void operator()(nearInfo& x, const nearInfo& y) const
-        {
-            if (y.first().hit())
-            {
-                if (!x.first().hit())
-                {
-                    x = y;
-                }
-                else if (y.second().first() < x.second().first())
-                {
-                    x = y;
-                }
-            }
-        }
-    };
 
 
 protected:
@@ -161,6 +128,9 @@ protected:
 
         //- Region to sample
         mutable word sampleRegion_;
+
+        //- Same region
+        mutable bool sameRegion_;
 
         //- What to sample
         const sampleMode mode_;
@@ -183,14 +153,14 @@ protected:
         //- Offset distance (normal)
         scalar distance_;
 
-        //- Same region
-        mutable bool sameRegion_;
-
 
         // Derived information
 
             //- Distributor
             mutable autoPtr<distributionMap> mapPtr_;
+
+            //- Map pre-addressing
+            mutable labelList mapIndices_;
 
 
         // AMI interpolator (only for NEARESTPATCHFACEAMI)
@@ -210,44 +180,12 @@ protected:
 
     // Protected Member Functions
 
-        //- Get a point on the face given a face decomposition method:
-        //  face-centre-tet : face centre. Returns index of face.
-        //  face-planes     : face centre. Returns index of face.
-        //  face-diagonal   : intersection of ray from cellcentre to
-        //                    facecentre with any of the triangles.
-        //                    Returns index (0..size-2) of triangle.
-        static pointIndexHit facePoint
-        (
-            const polyMesh&,
-            const label facei,
-            const polyMesh::cellDecomposition
-        );
-
-        //- Get the points from face-centre-decomposition face centres
-        //  and project them onto the face-diagonal-decomposition triangles.
-        tmp<pointField> facePoints(const polyPatch&) const;
-
-        //- Get the sample points given the face points
-        tmp<pointField> samplePoints(const pointField&) const;
-
-        //- Collect single list of samples and originating processor+face.
-        void collectSamples
-        (
-            const pointField& facePoints,
-            pointField&,
-            labelList& patchFaceProcs,
-            labelList& patchFaces,
-            pointField& patchFc
-        ) const;
-
         //- Find cells/faces containing samples
         void findSamples
         (
-            const sampleMode mode,      // search mode
-            const pointField&,
-            labelList& sampleProcs,     // processor containing sample
-            labelList& sampleIndices,   // local index of cell/face
-            pointField& sampleLocations // actual representative location
+            const globalIndex& patchGlobalIndex,
+            labelList& sampleGlobalPatchFaces,
+            labelList& sampleIndices
         ) const;
 
         //- Return size of mapped mesh/patch/boundary
@@ -347,6 +285,10 @@ public:
             //- Return reference to the parallel distribution map
             inline const distributionMap& map() const;
 
+            //- Return reference to the indices that have to be supplied to the
+            //  parallel distribution map
+            inline const labelList& mapIndices() const;
+
             //- Get the region mesh
             const polyMesh& sampleMesh() const;
 
@@ -368,19 +310,38 @@ public:
 
             //- Wrapper around map/interpolate data distribution
             template<class Type>
-            void distribute(List<Type>& lst) const;
-
-            //- Wrapper around map/interpolate data distribution with operation
-            template<class Type, class CombineOp>
-            void distribute(List<Type>& lst, const CombineOp& cop) const;
+            tmp<Field<Type>> distribute(const Field<Type>& fld) const;
 
             //- Wrapper around map/interpolate data distribution
             template<class Type>
-            void reverseDistribute(List<Type>& lst) const;
+            tmp<Field<Type>> distribute(const tmp<Field<Type>>& fld) const;
+
+            //- Wrapper around map/interpolate data distribution
+            template<class Type>
+            tmp<Field<Type>> reverseDistribute(const Field<Type>& fld) const;
+
+            //- Wrapper around map/interpolate data distribution
+            template<class Type>
+            tmp<Field<Type>> reverseDistribute
+            (
+                const tmp<Field<Type>>& fld
+            ) const;
 
             //- Wrapper around map/interpolate data distribution with operation
             template<class Type, class CombineOp>
-            void reverseDistribute(List<Type>& lst, const CombineOp& cop) const;
+            tmp<Field<Type>> reverseDistribute
+            (
+                const Field<Type>& fld,
+                const CombineOp& cop
+            ) const;
+
+            //- Wrapper around map/interpolate data distribution with operation
+            template<class Type, class CombineOp>
+            tmp<Field<Type>> reverseDistribute
+            (
+                const tmp<Field<Type>>& fld,
+                const CombineOp& cop
+            ) const;
 
 
         // I/O
