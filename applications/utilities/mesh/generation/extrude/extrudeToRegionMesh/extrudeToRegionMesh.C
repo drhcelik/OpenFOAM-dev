@@ -283,51 +283,116 @@ void deleteEmptyPatches(fvMesh& mesh)
 }
 
 
-// Check zone either all internal or all external faces
-void checkZoneInside
-(
-    const polyMesh& mesh,
-    const wordList& zoneNames,
-    const labelList& zoneID,
-    const labelList& extrudeMeshFaces,
-    const boolList& isInternal
-)
+enum class connectivity
 {
-    forAll(zoneNames, i)
+    unset,
+    boundary,
+    internal,
+    error
+};
+
+
+struct isInternalEqOp
+{
+    void operator()(connectivity& x, const connectivity& y) const
     {
-        if (isInternal[i])
+        if (x == connectivity::unset)
         {
-            Info<< "Zone " << zoneNames[i] << " has internal faces" << endl;
+            // Set x if not yet set
+            x = y;
+        }
+        else if (y == connectivity::unset)
+        {
+            // Do not set x if y is not yet set
+        }
+        else if (x == y)
+        {
+            // Do nothing if x and y are equal
         }
         else
         {
-            Info<< "Zone " << zoneNames[i] << " has boundary faces" << endl;
+            // Set an error value if x and y are both set and unequal
+            x = connectivity::error;
+        }
+    }
+};
+
+
+Ostream& operator<<(Ostream& os, const connectivity& p)
+{
+    return os << static_cast<label>(p);
+}
+
+
+Istream& operator>>(Istream& is, connectivity& p)
+{
+    label l;
+    is >> l;
+    p = static_cast<connectivity>(l);
+    return is;
+}
+
+
+// Return a bool list indicating whether or not the zone contains internal or
+// boundary faces
+boolList calcZoneIsInternal
+(
+    const polyMesh& mesh,
+    const wordList& zoneNames,
+    const labelList& extrudeFaces,
+    const labelList& extrudeFaceZoneIDs
+)
+{
+    List<connectivity> zoneConnectivity(zoneNames.size(), connectivity::unset);
+
+    forAll(extrudeFaces, i)
+    {
+        const label facei = extrudeFaces[i];
+        const label zonei = extrudeFaceZoneIDs[i];
+        isInternalEqOp()
+        (
+            zoneConnectivity[zonei],
+            mesh.isInternalFace(facei)
+          ? connectivity::internal
+          : connectivity::boundary
+        );
+    }
+
+    Pstream::listCombineGather(zoneConnectivity, isInternalEqOp());
+    Pstream::listCombineScatter(zoneConnectivity);
+
+    boolList zoneIsInternal(zoneNames.size());
+    forAll(zoneConnectivity, zonei)
+    {
+        switch (zoneConnectivity[zonei])
+        {
+            case connectivity::unset:
+                // This zone doesn't contain any faces, so it doesn't matter
+                // what we do here
+                zoneIsInternal[zonei] = false;
+                break;
+            case connectivity::boundary:
+                zoneIsInternal[zonei] = false;
+                break;
+            case connectivity::internal:
+                zoneIsInternal[zonei] = true;
+                break;
+            case connectivity::error:
+                FatalErrorInFunction
+                    << "Zone " << zoneNames[zonei]
+                    << " contains both internal and boundary faces."
+                    << " This is not allowed." << exit(FatalError);
+                break;
         }
     }
 
-    forAll(extrudeMeshFaces, i)
-    {
-        label facei = extrudeMeshFaces[i];
-        label zoneI = zoneID[i];
-        if (isInternal[zoneI] != mesh.isInternalFace(facei))
-        {
-            FatalErrorInFunction
-                << "Zone " << zoneNames[zoneI]
-                << " is not consistently all internal or all boundary faces."
-                << " Face " << facei << " at " << mesh.faceCentres()[facei]
-                << " is the first occurrence."
-                << exit(FatalError);
-        }
-    }
+    return zoneIsInternal;
 }
 
 
 // To combineReduce a labelList. Filters out duplicates.
-class uniqueEqOp
+struct uniqueEqOp
 {
-
-public:
-
     void operator()(labelList& x, const labelList& y) const
     {
         if (x.empty())
@@ -398,15 +463,15 @@ labelListList globalEdgeFaces
 label findUncoveredPatchFace
 (
     const fvMesh& mesh,
-    const UIndirectList<label>& extrudeMeshFaces,// mesh faces that are extruded
-    const label meshEdgeI                       // mesh edge
+    const UIndirectList<label>& extrudeFaces, // mesh faces that are extruded
+    const label meshEdgeI                     // mesh edge
 )
 {
     // Make set of extruded faces.
-    labelHashSet extrudeFaceSet(extrudeMeshFaces.size());
-    forAll(extrudeMeshFaces, i)
+    labelHashSet extrudeFaceSet(extrudeFaces.size());
+    forAll(extrudeFaces, i)
     {
-        extrudeFaceSet.insert(extrudeMeshFaces[i]);
+        extrudeFaceSet.insert(extrudeFaces[i]);
     }
 
     const polyBoundaryMesh& pbm = mesh.boundaryMesh();
@@ -434,15 +499,15 @@ label findUncoveredPatchFace
 label findUncoveredCyclicPatchFace
 (
     const fvMesh& mesh,
-    const UIndirectList<label>& extrudeMeshFaces,// mesh faces that are extruded
-    const label meshEdgeI                       // mesh edge
+    const UIndirectList<label>& extrudeFaces, // mesh faces that are extruded
+    const label meshEdgeI                     // mesh edge
 )
 {
     // Make set of extruded faces.
-    labelHashSet extrudeFaceSet(extrudeMeshFaces.size());
-    forAll(extrudeMeshFaces, i)
+    labelHashSet extrudeFaceSet(extrudeFaces.size());
+    forAll(extrudeFaces, i)
     {
-        extrudeFaceSet.insert(extrudeMeshFaces[i]);
+        extrudeFaceSet.insert(extrudeFaces[i]);
     }
 
     const polyBoundaryMesh& pbm = mesh.boundaryMesh();
@@ -466,45 +531,69 @@ label findUncoveredCyclicPatchFace
 }
 
 
-static label edgeNoZoneID = labelMin;
-
-
-static label edgeMultipleZoneID = labelMax;
-
-
-// Calculate per edge the zone
-labelList calcEdgeZone
+// Calculate per extruded edge the zoneID. Set a dummy value if the edge is in
+// multiple zones. Also check that no edge is extruded between an internal face
+// zone and a boundary face zone.
+labelList calcExtrudeEdgeZoneID
 (
     const fvMesh& mesh,
     const primitiveFacePatch& extrudePatch,
-    const labelList& extrudeMeshEdges,
-    const labelList& zoneID,
+    const labelList& extrudeFaces,
+    const labelList& extrudeFaceZoneIDs,
+    const labelList& extrudeEdgeMeshEdges,
     const distributionMap& extrudeEdgeFacesMap,
     const labelListList& extrudeEdgeGlobalFaces
 )
 {
-    // Get zoneIDs in extrudeEdgeGlobalFaces order
-    labelList mappedZoneID(zoneID);
+    static label noZoneID = labelMin;
+    static label multipleZoneID = labelMax;
+
+    // Get zoneIDs and isInternal in extrudeEdgeGlobalFaces order
+    labelList mappedZoneID(extrudeFaceZoneIDs);
     extrudeEdgeFacesMap.distribute(mappedZoneID);
 
-    // Zone ID per edge
-    labelList edgeZoneID(extrudeEdgeGlobalFaces.size(), edgeNoZoneID);
+    boolList mappedIsInternalFace(extrudePatch.size());
+    forAll(extrudeFaces, facei)
+    {
+        mappedIsInternalFace[facei] = mesh.isInternalFace(extrudeFaces[facei]);
+    }
+    extrudeEdgeFacesMap.distribute(mappedIsInternalFace);
+
+    // Zone ID and connectivity per edge
+    labelList extrudeEdgeZoneID
+    (
+        extrudeEdgeGlobalFaces.size(),
+        noZoneID
+    );
+    List<connectivity> extrudeEdgeConnectivity
+    (
+        extrudeEdgeGlobalFaces.size(),
+        connectivity::unset
+    );
 
     // Set operator. Set the zone if the same or unset. Set the multiple zone
     // ID if the edge already has a different zone.
     auto eqOp = [](label& x, const label y)
     {
-        x = x == y || x == edgeNoZoneID ? y : edgeMultipleZoneID;
+        x = x == y || x == noZoneID ? y : multipleZoneID;
     };
 
-    forAll(extrudeEdgeGlobalFaces, edgeI)
+    forAll(extrudeEdgeGlobalFaces, edgei)
     {
-        const labelList& eFaces = extrudeEdgeGlobalFaces[edgeI];
+        const labelList& eFaces = extrudeEdgeGlobalFaces[edgei];
         if (eFaces.size())
         {
             forAll(eFaces, i)
             {
-                eqOp(edgeZoneID[edgeI], mappedZoneID[eFaces[i]]);
+                eqOp(extrudeEdgeZoneID[edgei], mappedZoneID[eFaces[i]]);
+
+                isInternalEqOp()
+                (
+                    extrudeEdgeConnectivity[edgei],
+                    mappedIsInternalFace[eFaces[i]]
+                  ? connectivity::internal
+                  : connectivity::boundary
+                );
             }
         }
     }
@@ -512,16 +601,46 @@ labelList calcEdgeZone
     syncTools::syncEdgeList
     (
         mesh,
-        extrudeMeshEdges,
-        edgeZoneID,
+        extrudeEdgeMeshEdges,
+        extrudeEdgeZoneID,
         eqOp,
-        edgeNoZoneID
+        noZoneID
     );
 
-    return edgeZoneID;
+    syncTools::syncEdgeList
+    (
+        mesh,
+        extrudeEdgeMeshEdges,
+        extrudeEdgeConnectivity,
+        isInternalEqOp(),
+        connectivity::unset,
+        []
+        (
+            const transformer& vt,
+            const bool forward,
+            List<connectivity>& fld
+        )
+        {}
+    );
+
+    forAll(extrudeEdgeConnectivity, edgei)
+    {
+        if (extrudeEdgeConnectivity[edgei] == connectivity::error)
+        {
+            FatalErrorInFunction
+                << "Extruded edge "
+                << extrudePatch.edges()[edgei].line(extrudePatch.localPoints())
+                << " is connected to both internal and boundary faces."
+                << " This is not allowed."
+                << exit(FatalError);
+        }
+    }
+
+    return extrudeEdgeZoneID;
 }
 
 
+// Add coupled patches into the mesh
 void addCouplingPatches
 (
     const fvMesh& mesh,
@@ -530,11 +649,10 @@ void addCouplingPatches
     const word& sampleRegionName,
     const wordList& zoneNames,
     const wordList& zoneShadowNames,
-    const boolList& isInternal,
-    const labelList& zoneIDs,
+    const boolList& zoneIsInternal,
     DynamicList<polyPatch*>& newPatches,
-    labelList& interRegionTopPatch,
-    labelList& interRegionBottomPatch
+    labelList& zoneTopPatch,
+    labelList& zoneBottomPatch
 )
 {
     Pout<< "Adding coupling patches:" << nl << nl
@@ -542,8 +660,8 @@ void addCouplingPatches
         << "-------\t-----\t----"
         << endl;
 
-    interRegionTopPatch.setSize(zoneNames.size(), -1);
-    interRegionBottomPatch.setSize(zoneNames.size(), -1);
+    zoneTopPatch.setSize(zoneNames.size(), -1);
+    zoneBottomPatch.setSize(zoneNames.size(), -1);
 
     dictionary patchDict;
     patchDict.add
@@ -554,7 +672,7 @@ void addCouplingPatches
     patchDict.add("sampleRegion", sampleRegionName);
 
     label nOldPatches = newPatches.size();
-    forAll(zoneNames, zoneI)
+    forAll(zoneNames, zonei)
     {
         const word patchNamePrefix =
             regionName + "_to_" + sampleRegionName + '_';
@@ -563,33 +681,33 @@ void addCouplingPatches
 
         word bottomPatchName, bottomSamplePatchName;
         word topPatchName, topSamplePatchName;
-        if (isInternal[zoneI])
+        if (zoneIsInternal[zonei])
         {
-            bottomPatchName = patchNamePrefix + zoneNames[zoneI] + "_bottom";
+            bottomPatchName = patchNamePrefix + zoneNames[zonei] + "_bottom";
             bottomSamplePatchName =
-                samplePatchNamePrefix + zoneNames[zoneI] + "_bottom";
-            topPatchName = patchNamePrefix + zoneNames[zoneI] + "_top";
+                samplePatchNamePrefix + zoneNames[zonei] + "_bottom";
+            topPatchName = patchNamePrefix + zoneNames[zonei] + "_top";
             topSamplePatchName =
-                samplePatchNamePrefix + zoneNames[zoneI] + "_top";
+                samplePatchNamePrefix + zoneNames[zonei] + "_top";
         }
-        else if (!zoneShadowNames.empty())
+        else if (!zoneShadowNames[zonei].empty())
         {
-            bottomPatchName = patchNamePrefix + zoneNames[zoneI];
-            bottomSamplePatchName = samplePatchNamePrefix + zoneNames[zoneI];
-            topPatchName = patchNamePrefix + zoneShadowNames[zoneI];
-            topSamplePatchName = samplePatchNamePrefix + zoneShadowNames[zoneI];
+            bottomPatchName = patchNamePrefix + zoneNames[zonei];
+            bottomSamplePatchName = samplePatchNamePrefix + zoneNames[zonei];
+            topPatchName = patchNamePrefix + zoneShadowNames[zonei];
+            topSamplePatchName = samplePatchNamePrefix + zoneShadowNames[zonei];
         }
         else
         {
-            bottomPatchName = patchNamePrefix + zoneNames[zoneI];
-            bottomSamplePatchName = samplePatchNamePrefix + zoneNames[zoneI];
-            topPatchName = zoneNames[zoneI] + "_top";
+            bottomPatchName = patchNamePrefix + zoneNames[zonei];
+            bottomSamplePatchName = samplePatchNamePrefix + zoneNames[zonei];
+            topPatchName = zoneNames[zonei] + "_top";
         }
 
         dictionary bottomPatchDict(patchDict);
         bottomPatchDict.add("samplePatch", bottomSamplePatchName);
 
-        interRegionBottomPatch[zoneI] =
+        zoneBottomPatch[zonei] =
             addPatch<mappedWallPolyPatch>
             (
                 mesh.boundaryMesh(),
@@ -598,12 +716,12 @@ void addCouplingPatches
                 newPatches
             );
 
-        Pout<< interRegionBottomPatch[zoneI]
-            << '\t' << newPatches[interRegionBottomPatch[zoneI]]->name()
-            << '\t' << newPatches[interRegionBottomPatch[zoneI]]->type()
+        Pout<< zoneBottomPatch[zonei]
+            << '\t' << newPatches[zoneBottomPatch[zonei]]->name()
+            << '\t' << newPatches[zoneBottomPatch[zonei]]->type()
             << nl;
 
-        if (isInternal[zoneI] || !zoneShadowNames.empty())
+        if (zoneIsInternal[zonei] || !zoneShadowNames[zonei].empty())
         {
             dictionary topPatchDict(patchDict);
             topPatchDict.add("samplePatch", topSamplePatchName);
@@ -612,7 +730,7 @@ void addCouplingPatches
                 topPatchDict.add("bottomPatch", bottomPatchName);
             }
 
-            interRegionTopPatch[zoneI] =
+            zoneTopPatch[zonei] =
                 addPatch<mappedExtrudedWallPolyPatch>
                 (
                     mesh.boundaryMesh(),
@@ -623,7 +741,7 @@ void addCouplingPatches
         }
         else
         {
-            interRegionTopPatch[zoneI] =
+            zoneTopPatch[zonei] =
                 addPatch<polyPatch>
                 (
                     mesh.boundaryMesh(),
@@ -633,9 +751,9 @@ void addCouplingPatches
                 );
         }
 
-        Pout<< interRegionTopPatch[zoneI]
-            << '\t' << newPatches[interRegionTopPatch[zoneI]]->name()
-            << '\t' << newPatches[interRegionTopPatch[zoneI]]->type()
+        Pout<< zoneTopPatch[zonei]
+            << '\t' << newPatches[zoneTopPatch[zonei]]->name()
+            << '\t' << newPatches[zoneTopPatch[zonei]]->type()
             << nl;
     }
 
@@ -651,10 +769,10 @@ labelList countExtrudePatches
     const fvMesh& mesh,
     const label nZones,
     const primitiveFacePatch& extrudePatch,
-    const labelList& extrudeMeshFaces,
-    const labelList& extrudeMeshEdges,
+    const labelList& extrudeFaces,
+    const labelList& extrudeEdgeMeshEdges,
     const labelListList& extrudeEdgeGlobalFaces,
-    const labelList& edgeZoneID
+    const labelList& extrudeEdgeZoneID
 )
 {
     labelList zoneSideNFaces(nZones, 0);
@@ -683,13 +801,13 @@ labelList countExtrudePatches
             const label facei = findUncoveredPatchFace
             (
                 mesh,
-                UIndirectList<label>(extrudeMeshFaces, eFaces),
-                extrudeMeshEdges[edgeI]
+                UIndirectList<label>(extrudeFaces, eFaces),
+                extrudeEdgeMeshEdges[edgeI]
             );
 
             if (facei == -1)
             {
-                zoneSideNFaces[edgeZoneID[edgeI]]++;
+                zoneSideNFaces[extrudeEdgeZoneID[edgeI]]++;
             }
         }
     }
@@ -701,18 +819,20 @@ labelList countExtrudePatches
 }
 
 
-void addZoneSidePatches
+// Add side patches into the mesh
+labelList addZoneSidePatches
 (
     const fvMesh& mesh,
     const wordList& zoneNames,
     const labelList& zoneSideNFaces,
     const word& oneDPolyPatchType,
-    DynamicList<polyPatch*>& newPatches,
-    labelList& zoneSidePatch
+    DynamicList<polyPatch*>& newPatches
 )
 {
     Pout<< "Adding patches for sides on zones:" << nl << nl
         << "patchID\tpatch" << nl << "-------\t-----" << endl;
+
+    labelList zoneSidePatches(zoneNames.size(), -labelMax);
 
     const label nOldPatches = newPatches.size();
 
@@ -725,7 +845,7 @@ void addZoneSidePatches
             if (oneDPolyPatchType == "empty")
             {
                 patchName = "oneDEmptyPatch";
-                zoneSidePatch[zoneI] = addPatch<emptyPolyPatch>
+                zoneSidePatches[zoneI] = addPatch<emptyPolyPatch>
                 (
                     mesh.boundaryMesh(),
                     patchName,
@@ -736,7 +856,7 @@ void addZoneSidePatches
             else if (oneDPolyPatchType == "wedge")
             {
                 patchName = "oneDWedgePatch";
-                zoneSidePatch[zoneI] = addPatch<wedgePolyPatch>
+                zoneSidePatches[zoneI] = addPatch<wedgePolyPatch>
                 (
                     mesh.boundaryMesh(),
                     patchName,
@@ -751,7 +871,7 @@ void addZoneSidePatches
                     << exit(FatalError);
             }
 
-            Pout<< zoneSidePatch[zoneI] << '\t' << patchName << nl;
+            Pout<< zoneSidePatches[zoneI] << '\t' << patchName << nl;
         }
     }
     else
@@ -762,7 +882,7 @@ void addZoneSidePatches
             {
                 word patchName = zoneNames[zoneI] + "_" + "side";
 
-                zoneSidePatch[zoneI] = addPatch<polyPatch>
+                zoneSidePatches[zoneI] = addPatch<polyPatch>
                 (
                     mesh.boundaryMesh(),
                     patchName,
@@ -770,27 +890,28 @@ void addZoneSidePatches
                     newPatches
                 );
 
-                Pout<< zoneSidePatch[zoneI] << '\t' << patchName << nl;
+                Pout<< zoneSidePatches[zoneI] << '\t' << patchName << nl;
             }
         }
     }
 
     Pout<< "Added " << newPatches.size() - nOldPatches << " zone-side patches."
         << nl << endl;
+
+    return zoneSidePatches;
 }
 
 
-// Sets edgeSidePatchID[edgeI] to interprocessor or cyclic patch. Adds any
-// coupled patches if necessary. Note: Does not support processor cyclics.
-void addCoupledPatches
+// Add any additional coupled side patches that might be necessary. Return
+// correspondence between extruded edges and their side patches.
+labelList addExtrudeEdgeSidePatches
 (
     const fvMesh& mesh,
     const primitiveFacePatch& extrudePatch,
-    const labelList& extrudeMeshFaces,
-    const labelList& extrudeMeshEdges,
+    const labelList& extrudeFaces,
+    const labelList& extrudeEdgeMeshEdges,
     const distributionMap& extrudeEdgeFacesMap,
     const labelListList& extrudeEdgeGlobalFaces,
-    labelList& edgeSidePatchID,
     DynamicList<polyPatch*>& newPatches
 )
 {
@@ -818,7 +939,7 @@ void addCoupledPatches
     syncTools::syncEdgeList
     (
         mesh,
-        extrudeMeshEdges,
+        extrudeEdgeMeshEdges,
         minProcID,
         minEqOp<label>(),
         labelMax        // null value
@@ -826,7 +947,7 @@ void addCoupledPatches
     syncTools::syncEdgeList
     (
         mesh,
-        extrudeMeshEdges,
+        extrudeEdgeMeshEdges,
         maxProcID,
         maxEqOp<label>(),
         labelMin        // null value
@@ -837,7 +958,7 @@ void addCoupledPatches
 
     const label nOldPatches = newPatches.size();
 
-    edgeSidePatchID.setSize(extrudePatch.edgeFaces().size(), -1);
+    labelList extrudeEdgeSidePatches(extrudePatch.edgeFaces().size(), -1);
     forAll(extrudePatch.edgeFaces(), edgeI)
     {
         const labelList& eFaces = extrudePatch.edgeFaces()[edgeI];
@@ -863,8 +984,8 @@ void addCoupledPatches
                 const label facei = findUncoveredCyclicPatchFace
                 (
                     mesh,
-                    UIndirectList<label>(extrudeMeshFaces, eFaces),
-                    extrudeMeshEdges[edgeI]
+                    UIndirectList<label>(extrudeFaces, eFaces),
+                    extrudeEdgeMeshEdges[edgeI]
                 );
 
                 if (facei != -1)
@@ -877,7 +998,7 @@ void addCoupledPatches
                         patches[patches.whichPatch(facei)].name()
                     );
 
-                    edgeSidePatchID[edgeI] = newPatchi;
+                    extrudeEdgeSidePatches[edgeI] = newPatchi;
                 }
                 else
                 {
@@ -892,15 +1013,15 @@ void addCoupledPatches
                 const word name =
                     processorPolyPatch::newName(Pstream::myProcNo(), nbrProci);
 
-                edgeSidePatchID[edgeI] = findPatchID(newPatches, name);
+                extrudeEdgeSidePatches[edgeI] = findPatchID(newPatches, name);
 
-                if (edgeSidePatchID[edgeI] == -1)
+                if (extrudeEdgeSidePatches[edgeI] == -1)
                 {
                     dictionary patchDict;
                     patchDict.add("myProcNo", Pstream::myProcNo());
                     patchDict.add("neighbProcNo", nbrProci);
 
-                    edgeSidePatchID[edgeI] = addPatch<processorPolyPatch>
+                    extrudeEdgeSidePatches[edgeI] = addPatch<processorPolyPatch>
                     (
                         mesh.boundaryMesh(),
                         name,
@@ -908,7 +1029,7 @@ void addCoupledPatches
                         newPatches
                     );
 
-                    Pout<< edgeSidePatchID[edgeI] << '\t' << name << nl;
+                    Pout<< extrudeEdgeSidePatches[edgeI] << '\t' << name << nl;
                 }
             }
         }
@@ -916,6 +1037,8 @@ void addCoupledPatches
 
     Pout<< "Added " << newPatches.size() - nOldPatches
         << " coupled patches." << nl << endl;
+
+    return extrudeEdgeSidePatches;
 }
 
 
@@ -945,38 +1068,75 @@ int main(int argc, char *argv[])
 
     bool overwrite = args.optionFound("overwrite");
 
-    const word oldInstance = mesh.pointsInstance();
-
     const dictionary dict(systemDict("extrudeToRegionMeshDict", args, mesh));
 
-    // Point generator
-    autoPtr<extrudeModel> model(extrudeModel::New(dict));
-
-    // Region
+    // Region to extrude from
     const word shellRegionName(dict.lookup("region"));
 
-    // Faces to extrude - either faceZones or faceSets (boundary faces only)
+    if (shellRegionName == regionName)
+    {
+        FatalIOErrorIn(args.executable().c_str(), dict)
+            << "Cannot extrude into same region as mesh." << endl
+            << "Mesh region : " << regionName << endl
+            << "Shell region : " << shellRegionName
+            << exit(FatalIOError);
+    }
+
+    // Select faces to extrude
+    enum class zoneSourceType { zone, set, patch };
+    static const wordList zoneSourceTypeNames =
+        {"faceZone", "faceSet", "patch" };
+    static const wordList zoneSourcesTypeNames =
+        {"faceZones", "faceSets", "patches" };
     wordList zoneNames;
     wordList zoneShadowNames;
-    bool hasZones = dict.found("faceZones");
-    if (hasZones)
+    List<zoneSourceType> zoneSourceTypes;
+    auto lookupZones = [&](const zoneSourceType& type)
     {
-        dict.lookup("faceZones") >> zoneNames;
-        dict.readIfPresent("faceZonesShadow", zoneShadowNames);
+        const word& keyword = zoneSourcesTypeNames[unsigned(type)];
 
-        if (dict.found("faceSets"))
+        if (dict.found(keyword))
         {
-            FatalIOErrorIn(args.executable().c_str(), dict)
-                << "Please supply faces to extrude either through 'faceZones'"
-                << " or 'faceSets' entry. Found both."
-                << exit(FatalIOError);
+            zoneNames.append(dict.lookup<wordList>(keyword));
+
+            zoneShadowNames.append
+            (
+                dict.lookupOrDefault<wordList>
+                (
+                    keyword + "Shadow",
+                    wordList
+                    (
+                        zoneNames.size() - zoneShadowNames.size(),
+                        word::null
+                    )
+                )
+            );
+
+            zoneSourceTypes.setSize(zoneNames.size(), type);
+        }
+    };
+    lookupZones(zoneSourceType::zone);
+    lookupZones(zoneSourceType::set);
+    lookupZones(zoneSourceType::patch);
+
+    Info<< nl << "Extruding:" << nl << incrIndent;
+    forAll(zoneNames, zonei)
+    {
+        const unsigned typei = unsigned(zoneSourceTypes[zonei]);
+
+        if (zoneShadowNames[zonei].empty())
+        {
+            Info<< indent << "From " << zoneSourceTypeNames[typei] << " \""
+                << zoneNames[zonei] << "\"" << nl;
+        }
+        else
+        {
+            Info<< indent << "Between " << zoneSourcesTypeNames[typei] << " \""
+                << zoneNames[zonei] << "\" and \"" << zoneShadowNames[zonei]
+                << "\"" << nl;
         }
     }
-    else
-    {
-        dict.lookup("faceSets") >> zoneNames;
-        dict.readIfPresent("faceSetsShadow", zoneShadowNames);
-    }
+    Info<< endl << decrIndent;
 
     // One-dimensional extrusion settings
     const Switch oneD(dict.lookupOrDefault("oneD", false));
@@ -986,33 +1146,6 @@ int main(int argc, char *argv[])
     {
         oneDNonManifoldEdges = dict.lookupOrDefault("nonManifold", false);
         dict.lookup("oneDPolyPatchType") >> oneDPatchType;
-    }
-
-    // Change the primary mesh?
-    const Switch adaptMesh(dict.lookup("adaptMesh"));
-
-    if (hasZones)
-    {
-        Info<< "Extruding zones " << zoneNames
-            << " on mesh " << regionName
-            << " into shell mesh " << shellRegionName
-            << endl;
-    }
-    else
-    {
-        Info<< "Extruding faceSets " << zoneNames
-            << " on mesh " << regionName
-            << " into shell mesh " << shellRegionName
-            << endl;
-    }
-
-    if (shellRegionName == regionName)
-    {
-        FatalIOErrorIn(args.executable().c_str(), dict)
-            << "Cannot extrude into same region as mesh." << endl
-            << "Mesh region : " << regionName << endl
-            << "Shell region : " << shellRegionName
-            << exit(FatalIOError);
     }
 
     if (oneD)
@@ -1033,7 +1166,14 @@ int main(int argc, char *argv[])
         }
     }
 
+    // Construct the point generator
+    autoPtr<extrudeModel> model(extrudeModel::New(dict));
 
+    // Change the primary mesh?
+    const Switch adaptMesh(dict.lookup("adaptMesh"));
+
+
+    // Determine output instance
     word meshInstance;
     if (!overwrite)
     {
@@ -1042,255 +1182,203 @@ int main(int argc, char *argv[])
     }
     else
     {
-        meshInstance = oldInstance;
+        meshInstance = mesh.pointsInstance();
     }
     Info<< "Writing meshes to " << meshInstance << nl << endl;
 
 
-    const polyBoundaryMesh& patches = mesh.boundaryMesh();
+    // Map from extrude zone to mesh zone, or -1 if not a mesh zone
+    labelList zoneMeshZoneID(zoneNames.size(), -1);
+    labelList shadowZoneMeshZoneID(zoneNames.size(), -1);
+    forAll(zoneNames, zonei)
+    {
+        if (zoneSourceTypes[zonei] != zoneSourceType::zone) continue;
+
+        zoneMeshZoneID[zonei] =
+            mesh.faceZones().findZoneID(zoneNames[zonei]);
+
+        if (zoneMeshZoneID[zonei] == -1)
+        {
+            FatalIOErrorIn(args.executable().c_str(), dict)
+                << "Cannot find zone " << zoneNames[zonei]
+                << endl << "Valid zones are " << mesh.faceZones().names()
+                << exit(FatalIOError);
+        }
+
+        if (!zoneShadowNames[zonei].empty())
+        {
+            shadowZoneMeshZoneID[zonei] =
+                mesh.faceZones().findZoneID(zoneShadowNames[zonei]);
+
+            if (shadowZoneMeshZoneID[zonei] == -1)
+            {
+                FatalIOErrorIn(args.executable().c_str(), dict)
+                    << "Cannot find shadow zone " << zoneShadowNames[zonei]
+                    << endl << "Valid zones are " << mesh.faceZones().names()
+                    << exit(FatalIOError);
+            }
+        }
+    }
 
 
     // Extract faces to extrude
-    // ~~~~~~~~~~~~~~~~~~~~~~~~
-
-    // Per extrude zone whether contains internal or external faces
-    boolList isInternal(zoneNames.size(), false);
-
-    // From extrude zone to mesh zone (or -1 if extruding faceSets)
-    labelList meshZoneID;
-    labelList shadowMeshZoneID;
-
-    // Primary
-    labelList extrudeMeshFaces;
-    labelList zoneID;
-    boolList zoneFlipMap;
-
-    // Shadow
-    labelList extrudeMeshShadowFaces;
-    labelList zoneShadowID;
-    boolList zoneShadowFlipMap;
-
-    if (hasZones)
+    labelList extrudeFaces, shadowExtrudeFaces;
+    labelList extrudeFaceZoneIDs, shadowExtrudeFaceZoneIDs;
+    boolList extrudeFaceFlips, shadowExtrudeFaceFlips;
     {
-        const meshFaceZones& faceZones = mesh.faceZones();
-
-        meshZoneID.setSize(zoneNames.size());
-        forAll(zoneNames, i)
+        // Load any faceSets that we need
+        PtrList<faceSet> zoneSets(zoneNames.size());
+        PtrList<faceSet> zoneShadowSets(zoneNames.size());
+        forAll(zoneNames, zonei)
         {
-            meshZoneID[i] = faceZones.findZoneID(zoneNames[i]);
-            if (meshZoneID[i] == -1)
+            if (zoneSourceTypes[zonei] == zoneSourceType::set)
             {
-                FatalIOErrorIn(args.executable().c_str(), dict)
-                    << "Cannot find zone " << zoneNames[i] << endl
-                    << "Valid zones are " << faceZones.names()
-                    << exit(FatalIOError);
-            }
-        }
-
-        label nExtrudeFaces = 0;
-        forAll(meshZoneID, i)
-        {
-            nExtrudeFaces += faceZones[meshZoneID[i]].size();
-        }
-
-        extrudeMeshFaces.setSize(nExtrudeFaces);
-        zoneID.setSize(nExtrudeFaces);
-        zoneFlipMap.setSize(nExtrudeFaces);
-
-        nExtrudeFaces = 0;
-        forAll(meshZoneID, i)
-        {
-            const faceZone& fz = faceZones[meshZoneID[i]];
-            forAll(fz, j)
-            {
-                extrudeMeshFaces[nExtrudeFaces] = fz[j];
-                zoneID[nExtrudeFaces] = i;
-                zoneFlipMap[nExtrudeFaces] = fz.flipMap()[j];
-                nExtrudeFaces++;
-
-                if (mesh.isInternalFace(fz[j]))
+                zoneSets.set(zonei, new faceSet(mesh, zoneNames[zonei]));
+                if (!zoneShadowNames.empty())
                 {
-                    isInternal[i] = true;
+                    zoneShadowSets.set
+                    (
+                       zonei,
+                       new faceSet(mesh, zoneShadowNames[zonei])
+                    );
                 }
             }
         }
 
-        // Shadow zones
-        if (zoneShadowNames.size())
+        // Create dynamic face lists
+        DynamicList<label> facesDyn, sdwFacesDyn;
+        DynamicList<label> zoneIDsDyn, sdwZoneIDsDyn;
+        DynamicList<bool> flipsDyn, sdwFlipsDyn;
+        forAll(zoneNames, zonei)
         {
-            shadowMeshZoneID.setSize(zoneShadowNames.size());
-            forAll(zoneShadowNames, i)
+            switch (zoneSourceTypes[zonei])
             {
-                shadowMeshZoneID[i] = faceZones.findZoneID(zoneShadowNames[i]);
-                if (shadowMeshZoneID[i] == -1)
+                case zoneSourceType::zone:
                 {
-                    FatalIOErrorIn(args.executable().c_str(), dict)
-                        << "Cannot find zone " << zoneShadowNames[i] << endl
-                        << "Valid zones are " << faceZones.names()
-                        << exit(FatalIOError);
-                }
-            }
+                    const faceZone& fz =
+                        mesh.faceZones()[zoneMeshZoneID[zonei]];
+                    facesDyn.append(fz);
+                    zoneIDsDyn.append(labelList(fz.size(), zonei));
+                    flipsDyn.append(fz.flipMap());
 
-            label nShadowFaces = 0;
-            forAll(shadowMeshZoneID, i)
-            {
-                nShadowFaces += faceZones[shadowMeshZoneID[i]].size();
-            }
-
-            if (nExtrudeFaces != nShadowFaces)
-            {
-                FatalIOErrorIn(args.executable().c_str(), dict)
-                    << "Extruded faces " << nExtrudeFaces << endl
-                    << "is different from shadow faces. " << nShadowFaces
-                    << "This is not permitted " << endl
-                    << exit(FatalIOError);
-            }
-
-            extrudeMeshShadowFaces.setSize(nShadowFaces);
-            zoneShadowID.setSize(nShadowFaces);
-            zoneShadowFlipMap.setSize(nShadowFaces);
-
-            nShadowFaces = 0;
-            forAll(shadowMeshZoneID, i)
-            {
-                const faceZone& fz = faceZones[shadowMeshZoneID[i]];
-                forAll(fz, j)
-                {
-                    extrudeMeshShadowFaces[nShadowFaces] = fz[j];
-                    zoneShadowID[nShadowFaces] = i;
-                    zoneShadowFlipMap[nShadowFaces] = fz.flipMap()[j];
-                    nShadowFaces++;
-                }
-            }
-        }
-    }
-    else
-    {
-        meshZoneID.setSize(zoneNames.size(), -1);
-
-        // Load faceSets
-        PtrList<faceSet> zones(zoneNames.size());
-        forAll(zoneNames, i)
-        {
-            Info<< "Loading faceSet " << zoneNames[i] << endl;
-            zones.set(i, new faceSet(mesh, zoneNames[i]));
-        }
-
-        label nExtrudeFaces = 0;
-        forAll(zones, i)
-        {
-            nExtrudeFaces += zones[i].size();
-        }
-
-        extrudeMeshFaces.setSize(nExtrudeFaces);
-        zoneID.setSize(nExtrudeFaces);
-        zoneFlipMap.setSize(nExtrudeFaces);
-
-        nExtrudeFaces = 0;
-        forAll(zones, i)
-        {
-            const faceSet& fz = zones[i];
-            forAllConstIter(faceSet, fz, iter)
-            {
-                label facei = iter.key();
-                if (mesh.isInternalFace(facei))
-                {
-                    FatalIOErrorIn(args.executable().c_str(), dict)
-                        << "faceSet " << fz.name()
-                        << "contains internal faces."
-                        << " This is not permitted."
-                        << exit(FatalIOError);
-                }
-                extrudeMeshFaces[nExtrudeFaces] = facei;
-                zoneID[nExtrudeFaces] = i;
-                zoneFlipMap[nExtrudeFaces] = false;
-                nExtrudeFaces++;
-
-                if (mesh.isInternalFace(facei))
-                {
-                    isInternal[i] = true;
-                }
-            }
-        }
-
-        // Shadow sets
-        if (zoneShadowNames.size())
-        {
-            shadowMeshZoneID.setSize(zoneShadowNames.size(), -1);
-
-            // Load faceSets
-            PtrList<faceSet> shadowZones(zoneShadowNames.size());
-            forAll(zoneShadowNames, i)
-            {
-                shadowZones.set(i, new faceSet(mesh, zoneShadowNames[i]));
-            }
-
-            label nShadowFaces = 0;
-            forAll(shadowZones, i)
-            {
-                nShadowFaces += shadowZones[i].size();
-            }
-
-            if (nExtrudeFaces != nShadowFaces)
-            {
-                FatalIOErrorIn(args.executable().c_str(), dict)
-                    << "Extruded faces " << nExtrudeFaces << endl
-                    << "is different from shadow faces. " << nShadowFaces
-                    << "This is not permitted " << endl
-                    << exit(FatalIOError);
-            }
-
-            extrudeMeshShadowFaces.setSize(nShadowFaces);
-            zoneShadowFlipMap.setSize(nShadowFaces);
-            zoneShadowID.setSize(nShadowFaces);
-
-            nShadowFaces = 0;
-            forAll(shadowZones, i)
-            {
-                const faceSet& fz = shadowZones[i];
-                forAllConstIter(faceSet, fz, iter)
-                {
-                    label facei = iter.key();
-                    if (mesh.isInternalFace(facei))
+                    if (!zoneShadowNames[zonei].empty())
                     {
-                        FatalIOErrorIn(args.executable().c_str(), dict)
-                            << "faceSet " << fz.name()
-                            << "contains internal faces."
-                            << " This is not permitted."
-                            << exit(FatalIOError);
+                        const faceZone& sfz =
+                            mesh.faceZones()[shadowZoneMeshZoneID[zonei]];
+                        if (sfz.size() != fz.size())
+                        {
+                            FatalIOErrorIn(args.executable().c_str(), dict)
+                                << "Shadow zone " << zoneShadowNames[zonei]
+                                << "is a different size from it's "
+                                << "corresponding zone " << zoneNames[zonei]
+                                << exit(FatalIOError);
+                        }
+                        sdwFacesDyn.append(sfz);
+                        sdwZoneIDsDyn.append(labelList(sfz.size(), zonei));
+                        sdwFlipsDyn.append(sfz.flipMap());
                     }
-                    extrudeMeshShadowFaces[nShadowFaces] = facei;
-                    zoneShadowFlipMap[nShadowFaces] = false;
-                    zoneShadowID[nShadowFaces] = i;
-                    nShadowFaces++;
+                    else
+                    {
+                        sdwFacesDyn.append(labelList(fz.size(), -1));
+                        sdwZoneIDsDyn.append(labelList(fz.size(), -1));
+                        sdwFlipsDyn.append(boolList(fz.size(), false));
+                    }
+                    break;
+                }
+                case zoneSourceType::set:
+                {
+                    const faceSet& fs = zoneSets[zonei];
+                    facesDyn.append(fs.toc());
+                    zoneIDsDyn.append(labelList(fs.size(), zonei));
+                    flipsDyn.append(boolList(fs.size(), false));
+
+                    if (!zoneShadowNames[zonei].empty())
+                    {
+                        const faceSet& sfs = zoneShadowSets[zonei];
+                        if (sfs.size() != fs.size())
+                        {
+                            FatalIOErrorIn(args.executable().c_str(), dict)
+                                << "Shadow set " << zoneShadowNames[zonei]
+                                << "is a different size from it's "
+                                << "corresponding zone " << zoneNames[zonei]
+                                << exit(FatalIOError);
+                        }
+                        sdwFacesDyn.append(sfs.toc());
+                        sdwZoneIDsDyn.append(labelList(sfs.size(), zonei));
+                        sdwFlipsDyn.append(boolList(sfs.size(), false));
+                    }
+                    else
+                    {
+                        sdwFacesDyn.append(labelList(fs.size(), -1));
+                        sdwZoneIDsDyn.append(labelList(fs.size(), -1));
+                        sdwFlipsDyn.append(boolList(fs.size(), false));
+                    }
+                    break;
+                }
+                case zoneSourceType::patch:
+                {
+                    const polyPatch& pp =
+                        mesh.boundaryMesh()[zoneNames[zonei]];
+                    facesDyn.append(pp.start() + identity(pp.size()));
+                    zoneIDsDyn.append(labelList(pp.size(), zonei));
+                    flipsDyn.append(boolList(pp.size(), false));
+
+                    if (!zoneShadowNames[zonei].empty())
+                    {
+                        const polyPatch& spp =
+                            mesh.boundaryMesh()[zoneShadowNames[zonei]];
+                        if (spp.size() != pp.size())
+                        {
+                            FatalIOErrorIn(args.executable().c_str(), dict)
+                                << "Shadow patch " << zoneShadowNames[zonei]
+                                << "is a different size from it's "
+                                << "corresponding zone " << zoneNames[zonei]
+                                << exit(FatalIOError);
+                        }
+                        sdwFacesDyn.append(spp.start() + identity(spp.size()));
+                        sdwZoneIDsDyn.append(labelList(spp.size(), zonei));
+                        sdwFlipsDyn.append(boolList(spp.size(), false));
+                    }
+                    else
+                    {
+                        sdwFacesDyn.append(labelList(pp.size(), -1));
+                        sdwZoneIDsDyn.append(labelList(pp.size(), -1));
+                        sdwFlipsDyn.append(boolList(pp.size(), false));
+                    }
+                    break;
                 }
             }
         }
+
+        // Transfer to non-dynamic storage
+        extrudeFaces.transfer(facesDyn);
+        extrudeFaceZoneIDs.transfer(zoneIDsDyn);
+        extrudeFaceFlips.transfer(flipsDyn);
+        shadowExtrudeFaces.transfer(sdwFacesDyn);
+        shadowExtrudeFaceZoneIDs.transfer(sdwZoneIDsDyn);
+        shadowExtrudeFaceFlips.transfer(sdwFlipsDyn);
     }
 
 
+    // Create a primitive patch of the extruded faces
     const primitiveFacePatch extrudePatch
     (
-        faceList(UIndirectList<face>(mesh.faces(), extrudeMeshFaces)),
+        faceList(UIndirectList<face>(mesh.faces(), extrudeFaces)),
         mesh.points()
     );
 
 
     // Check zone either all internal or all external faces
-    Pstream::listCombineGather(isInternal, orEqOp<bool>());
-    Pstream::listCombineScatter(isInternal);
-    checkZoneInside(mesh, zoneNames, zoneID, extrudeMeshFaces, isInternal);
-
-
-    const pointField& extrudePoints = extrudePatch.localPoints();
-    const faceList& extrudeFaces = extrudePatch.localFaces();
-    const labelListList& edgeFaces = extrudePatch.edgeFaces();
+    const boolList zoneIsInternal
+    (
+        calcZoneIsInternal(mesh, zoneNames, extrudeFaces, extrudeFaceZoneIDs)
+    );
 
 
     Info<< "extrudePatch :"
-        << " faces:" << extrudePatch.size()
-        << " points:" << extrudePatch.nPoints()
-        << " edges:" << extrudePatch.nEdges()
+        << " faces:" << returnReduce(extrudePatch.size(), sumOp<label>())
+        << " points:" << returnReduce(extrudePatch.nPoints(), sumOp<label>())
+        << " edges:" << returnReduce(extrudePatch.nEdges(), sumOp<label>())
         << nl << endl;
 
 
@@ -1298,7 +1386,7 @@ int main(int argc, char *argv[])
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     // Corresponding mesh edges
-    const labelList extrudeMeshEdges
+    const labelList extrudeEdgeMeshEdges
     (
         extrudePatch.meshEdges
         (
@@ -1317,7 +1405,7 @@ int main(int argc, char *argv[])
             mesh,
             globalExtrudeFaces,
             extrudePatch,
-            extrudeMeshEdges
+            extrudeEdgeMeshEdges
         )
     );
     List<Map<label>> compactMap;
@@ -1329,14 +1417,15 @@ int main(int argc, char *argv[])
     );
 
     // Determine zone for each extruded edge
-    labelList edgeZoneID
+    const labelList extrudeEdgeZoneID
     (
-        calcEdgeZone
+        calcExtrudeEdgeZoneID
         (
             mesh,
             extrudePatch,
-            extrudeMeshEdges,
-            zoneID,
+            extrudeFaces,
+            extrudeFaceZoneIDs,
+            extrudeEdgeMeshEdges,
             extrudeEdgeFacesMap,
             extrudeEdgeGlobalFaces
         )
@@ -1345,16 +1434,16 @@ int main(int argc, char *argv[])
 
     // Copy all non-local patches since these are used on boundary edges of
     // the extrusion
-    DynamicList<polyPatch*> regionPatches(patches.size());
-    forAll(patches, patchi)
+    DynamicList<polyPatch*> regionPatches(mesh.boundaryMesh().size());
+    forAll(mesh.boundaryMesh(), patchi)
     {
-        if (!isA<processorPolyPatch>(patches[patchi]))
+        if (!isA<processorPolyPatch>(mesh.boundaryMesh()[patchi]))
         {
             regionPatches.append
             (
-                patches[patchi].clone
+                mesh.boundaryMesh()[patchi].clone
                 (
-                    patches,
+                    mesh.boundaryMesh(),
                     regionPatches.size(),
                     0,              // size
                     0               // start
@@ -1368,8 +1457,7 @@ int main(int argc, char *argv[])
     // ~~~~~~~~~~~~~~~~~~~~~
 
     // From zone to interface patch (region side)
-    labelList interRegionTopPatch;
-    labelList interRegionBottomPatch;
+    labelList zoneTopPatch, zoneBottomPatch;
     addCouplingPatches
     (
         mesh,
@@ -1378,11 +1466,10 @@ int main(int argc, char *argv[])
         regionName,
         zoneNames,
         zoneShadowNames,
-        isInternal,
-        meshZoneID,
+        zoneIsInternal,
         regionPatches,
-        interRegionTopPatch,
-        interRegionBottomPatch
+        zoneTopPatch,
+        zoneBottomPatch
     );
 
     // From zone to interface patch (mesh side)
@@ -1390,6 +1477,8 @@ int main(int argc, char *argv[])
     labelList interMeshBottomPatch;
     if (adaptMesh)
     {
+        const polyBoundaryMesh& patches = mesh.boundaryMesh();
+
         // Clone existing non-processor patches
         DynamicList<polyPatch*> newPatches(patches.size());
         forAll(patches, patchi)
@@ -1409,8 +1498,7 @@ int main(int argc, char *argv[])
             shellRegionName,
             zoneNames,
             zoneShadowNames,
-            isInternal,
-            meshZoneID,
+            zoneIsInternal,
             newPatches,
             interMeshTopPatch,
             interMeshBottomPatch
@@ -1444,57 +1532,61 @@ int main(int argc, char *argv[])
 
 
     // Patch per extruded face
-    labelList extrudeTopPatchID(extrudePatch.size());
-    labelList extrudeBottomPatchID(extrudePatch.size());
-    forAll(zoneID, facei)
+    labelList extrudeFaceTopPatchID(extrudePatch.size());
+    labelList extrudeFaceBottomPatchID(extrudePatch.size());
+    forAll(extrudeFaceZoneIDs, facei)
     {
-        extrudeTopPatchID[facei] = interRegionTopPatch[zoneID[facei]];
-        extrudeBottomPatchID[facei] = interRegionBottomPatch[zoneID[facei]];
+        extrudeFaceTopPatchID[facei] =
+            zoneTopPatch[extrudeFaceZoneIDs[facei]];
+        extrudeFaceBottomPatchID[facei] =
+            zoneBottomPatch[extrudeFaceZoneIDs[facei]];
     }
 
 
     // Count how many patches on special edges of extrudePatch are necessary
-    labelList zoneSideNFaces
+    const labelList zoneSideNFaces
     (
         countExtrudePatches
         (
             mesh,
             zoneNames.size(),
             extrudePatch,           // patch
-            extrudeMeshFaces,       // mesh face per patch face
-            extrudeMeshEdges,       // mesh edge per patch edge
+            extrudeFaces,           // mesh face per patch face
+            extrudeEdgeMeshEdges,   // mesh edge per patch edge
             extrudeEdgeGlobalFaces, // global indexing per patch edge
-            edgeZoneID              // zone per patch edge
+            extrudeEdgeZoneID       // zone per patch edge
         )
     );
 
 
     // Add the zone-side patches.
-    labelList zoneSidePatch(zoneNames.size(), -labelMax);
-    addZoneSidePatches
+    const labelList zoneSidePatches
     (
-        mesh,
-        zoneNames,
-        zoneSideNFaces,
-        (oneD ? oneDPatchType : word::null),
-        regionPatches,
-        zoneSidePatch
+        addZoneSidePatches
+        (
+            mesh,
+            zoneNames,
+            zoneSideNFaces,
+            (oneD ? oneDPatchType : word::null),
+            regionPatches
+        )
     );
 
 
-    // Sets edgeSidePatchID[edgeI] to interprocessor patch. Adds any
+    // Sets extrudeEdgeSidePatches[edgei] to interprocessor patch. Adds any
     // interprocessor or cyclic patches if necessary.
-    labelList edgeSidePatchID;
-    addCoupledPatches
+    const labelList extrudeEdgeSidePatches
     (
-        mesh,
-        extrudePatch,
-        extrudeMeshFaces,
-        extrudeMeshEdges,
-        extrudeEdgeFacesMap,
-        extrudeEdgeGlobalFaces,
-        edgeSidePatchID,
-        regionPatches
+        addExtrudeEdgeSidePatches
+        (
+            mesh,
+            extrudePatch,
+            extrudeFaces,
+            extrudeEdgeMeshEdges,
+            extrudeEdgeFacesMap,
+            extrudeEdgeGlobalFaces,
+            regionPatches
+        )
     );
 
 
@@ -1509,9 +1601,9 @@ int main(int argc, char *argv[])
     PackedBoolList nonManifoldEdge(extrudePatch.nEdges(), false);
 
     // Note: logic has to be same as in countExtrudePatches.
-    forAll(edgeFaces, edgeI)
+    forAll(extrudePatch.edgeFaces(), edgeI)
     {
-        const labelList& eFaces = edgeFaces[edgeI];
+        const labelList& eFaces = extrudePatch.edgeFaces()[edgeI];
         labelList& ePatches = extrudeEdgePatches[edgeI];
 
         if (oneD)
@@ -1519,7 +1611,8 @@ int main(int argc, char *argv[])
             ePatches.setSize(eFaces.size());
             forAll(eFaces, i)
             {
-                ePatches[i] = zoneSidePatch[zoneID[eFaces[i]]];
+                ePatches[i] =
+                    zoneSidePatches[extrudeFaceZoneIDs[eFaces[i]]];
             }
 
             if (oneDNonManifoldEdges)
@@ -1538,13 +1631,13 @@ int main(int argc, char *argv[])
         {
             // Internal edge
         }
-        else if (edgeSidePatchID[edgeI] != -1)
+        else if (extrudeEdgeSidePatches[edgeI] != -1)
         {
             // Coupled edge
             ePatches.setSize(eFaces.size());
             forAll(eFaces, i)
             {
-                ePatches[i] = edgeSidePatchID[edgeI];
+                ePatches[i] = extrudeEdgeSidePatches[edgeI];
             }
         }
         else
@@ -1553,17 +1646,21 @@ int main(int argc, char *argv[])
             const label facei = findUncoveredPatchFace
             (
                 mesh,
-                UIndirectList<label>(extrudeMeshFaces, eFaces),
-                extrudeMeshEdges[edgeI]
+                UIndirectList<label>(extrudeFaces, eFaces),
+                extrudeEdgeMeshEdges[edgeI]
             );
 
             if (facei != -1)
             {
-                label newPatchi = findPatchID
-                (
-                    regionPatches,
-                    patches[patches.whichPatch(facei)].name()
-                );
+                const label newPatchi =
+                    findPatchID
+                    (
+                        regionPatches,
+                        mesh.boundaryMesh()
+                        [
+                            mesh.boundaryMesh().whichPatch(facei)
+                        ].name()
+                    );
                 ePatches.setSize(eFaces.size(), newPatchi);
             }
             else
@@ -1571,7 +1668,8 @@ int main(int argc, char *argv[])
                 ePatches.setSize(eFaces.size());
                 forAll(eFaces, i)
                 {
-                    ePatches[i] = zoneSidePatch[zoneID[eFaces[i]]];
+                    ePatches[i] =
+                        zoneSidePatches[extrudeFaceZoneIDs[eFaces[i]]];
                 }
             }
             nonManifoldEdge[edgeI] = true;
@@ -1647,42 +1745,10 @@ int main(int argc, char *argv[])
     }
 
 
-    // For debugging: dump hedgehog plot of normals
-    if (false)
-    {
-        OFstream str(runTime.path()/"localRegionNormals.obj");
-        label vertI = 0;
-
-        scalar thickness = model().sumThickness(1);
-
-        forAll(pointLocalRegions, facei)
-        {
-            const face& f = extrudeFaces[facei];
-
-            forAll(f, fp)
-            {
-                label region = pointLocalRegions[facei][fp];
-                const point& pt = extrudePoints[f[fp]];
-
-                meshTools::writeOBJ(str, pt);
-                vertI++;
-                meshTools::writeOBJ
-                (
-                    str,
-                    pt+thickness*localRegionNormals[region]
-                );
-                vertI++;
-                str << "l " << vertI-1 << ' ' << vertI << nl;
-            }
-        }
-    }
-
-
     // Use model to create displacements of first layer
     vectorField firstDisp(localRegionNormals.size());
     forAll(firstDisp, regionI)
     {
-        // const point& regionPt = regionCentres[regionI];
         const point& regionPt = extrudePatch.points()
         [
             extrudePatch.meshPoints()
@@ -1698,15 +1764,6 @@ int main(int argc, char *argv[])
     // Create a new mesh
     // ~~~~~~~~~~~~~~~~~
 
-    createShellMesh extruder
-    (
-        extrudePatch,
-        pointLocalRegions,
-        localRegionPoints
-    );
-
-
-    autoPtr<polyTopoChangeMap> shellMap;
     fvMesh regionMesh
     (
         IOobject
@@ -1736,56 +1793,51 @@ int main(int argc, char *argv[])
     regionMesh.removeFvBoundary();
     regionMesh.addFvPatches(regionPatches, true);
 
+    // Extrude
     {
         polyTopoChange meshMod(regionPatches.size());
+
+        createShellMesh extruder
+        (
+            extrudePatch,
+            pointLocalRegions,
+            localRegionPoints
+        );
 
         extruder.setRefinement
         (
             firstDisp,                              // first displacement
             model().expansionRatio(),
             model().nLayers(),                      // nLayers
-            extrudeTopPatchID,
-            extrudeBottomPatchID,
+            extrudeFaceTopPatchID,
+            extrudeFaceBottomPatchID,
             extrudeEdgePatches,
             meshMod
         );
 
-        // Enforce actual point positions according to extrudeModel (model)
-        // (extruder.setRefinement only does fixed expansionRatio)
-        // The regionPoints and nLayers are looped in the same way as in
-        // createShellMesh
-        DynamicList<point>& newPoints = const_cast<DynamicList<point>&>
-        (
-            meshMod.points()
-        );
+        // Enforce actual point positions according to extrudeModel (model), as
+        // the extruder only does a fixed expansionRatio. The regionPoints and
+        // nLayers are looped in the same way as in createShellMesh.
+        DynamicList<point>& newPoints =
+            const_cast<DynamicList<point>&>(meshMod.points());
         label meshPointi = extrudePatch.localPoints().size();
-        forAll(localRegionPoints, regionI)
+        forAll(localRegionPoints, regioni)
         {
-            label pointi = localRegionPoints[regionI];
-            point pt = extrudePatch.localPoints()[pointi];
-            const vector& n = localRegionNormals[regionI];
+            const label pointi = localRegionPoints[regioni];
+            const point& pt = extrudePatch.localPoints()[pointi];
+            const vector& n = localRegionNormals[regioni];
 
-            for (label layerI = 1; layerI <= model().nLayers(); layerI++)
+            for (label layeri = 1; layeri <= model().nLayers(); layeri++)
             {
-                newPoints[meshPointi++] = model()(pt, n, layerI);
+                newPoints[meshPointi++] = model()(pt, n, layeri);
             }
         }
 
-        shellMap = meshMod.changeMesh
-        (
-            regionMesh,     // mesh to change
-            false           // inflate
-        );
+        meshMod.changeMesh(regionMesh, false);
     }
 
-
-    // Set region mesh instance. Necessary?
+    // Set region mesh instance and write options
     regionMesh.setInstance(meshInstance);
-
-
-    // Update numbering on extruder.
-    extruder.topoChange(shellMap);
-
 
     // Remove any unused patches
     deleteEmptyPatches(regionMesh);
@@ -1806,11 +1858,11 @@ int main(int argc, char *argv[])
         polyTopoChange meshMod(mesh);
 
         // Modify faces to be in bottom (= always coupled) patch
-        forAll(extrudeMeshFaces, zoneFacei)
+        forAll(extrudeFaces, facei)
         {
-            label meshFacei = extrudeMeshFaces[zoneFacei];
-            label zoneI = zoneID[zoneFacei];
-            bool flip = zoneFlipMap[zoneFacei];
+            const label meshFacei = extrudeFaces[facei];
+            const label zonei = extrudeFaceZoneIDs[facei];
+            const bool flip = extrudeFaceFlips[facei];
             const face& f = mesh.faces()[meshFacei];
 
             if (!flip)
@@ -1822,8 +1874,8 @@ int main(int argc, char *argv[])
                     mesh.faceOwner()[meshFacei],// owner
                     -1,                         // neighbour
                     false,                      // face flip
-                    interMeshBottomPatch[zoneI],// patch for face
-                    meshZoneID[zoneI],          // zone for face
+                    interMeshBottomPatch[zonei],// patch for face
+                    zoneMeshZoneID[zonei],      // zone for face
                     flip                        // face flip in zone
                 );
             }
@@ -1836,20 +1888,20 @@ int main(int argc, char *argv[])
                     mesh.faceNeighbour()[meshFacei],// owner
                     -1,                             // neighbour
                     true,                           // face flip
-                    interMeshBottomPatch[zoneI],    // patch for face
-                    meshZoneID[zoneI],              // zone for face
+                    interMeshBottomPatch[zonei],    // patch for face
+                    zoneMeshZoneID[zonei],          // zone for face
                     !flip                           // face flip in zone
                 );
             }
         }
 
-        if (zoneShadowNames.size() > 0) // if there is a top faceZone specified
+        forAll(extrudeFaces, facei)
         {
-            forAll(extrudeMeshFaces, zoneFacei)
+            if (shadowExtrudeFaces[facei] != -1)
             {
-                label meshFacei = extrudeMeshShadowFaces[zoneFacei];
-                label zoneI = zoneShadowID[zoneFacei];
-                bool flip = zoneShadowFlipMap[zoneFacei];
+                const label meshFacei = shadowExtrudeFaces[facei];
+                const label zonei = shadowExtrudeFaceZoneIDs[facei];
+                bool flip = shadowExtrudeFaceFlips[facei];
                 const face& f = mesh.faces()[meshFacei];
 
                 if (!flip)
@@ -1861,8 +1913,8 @@ int main(int argc, char *argv[])
                         mesh.faceOwner()[meshFacei],// owner
                         -1,                         // neighbour
                         false,                      // face flip
-                        interMeshTopPatch[zoneI],   // patch for face
-                        meshZoneID[zoneI],          // zone for face
+                        interMeshTopPatch[zonei],   // patch for face
+                        zoneMeshZoneID[zonei],      // zone for face
                         flip                        // face flip in zone
                     );
                 }
@@ -1875,21 +1927,17 @@ int main(int argc, char *argv[])
                         mesh.faceNeighbour()[meshFacei],// owner
                         -1,                             // neighbour
                         true,                           // face flip
-                        interMeshTopPatch[zoneI],       // patch for face
-                        meshZoneID[zoneI],              // zone for face
+                        interMeshTopPatch[zonei],       // patch for face
+                        zoneMeshZoneID[zonei],          // zone for face
                         !flip                           // face flip in zone
                     );
                 }
             }
-        }
-        else
-        {
-            // Add faces (using same points) to be in top patch
-            forAll(extrudeMeshFaces, zoneFacei)
+            else
             {
-                label meshFacei = extrudeMeshFaces[zoneFacei];
-                label zoneI = zoneID[zoneFacei];
-                bool flip = zoneFlipMap[zoneFacei];
+                const label meshFacei = extrudeFaces[facei];
+                const label zonei = extrudeFaceZoneIDs[facei];
+                const bool flip = extrudeFaceFlips[facei];
                 const face& f = mesh.faces()[meshFacei];
 
                 if (!flip)
@@ -1905,7 +1953,7 @@ int main(int argc, char *argv[])
                             -1,                             // master edge
                             meshFacei,                      // master face
                             true,                           // flip flux
-                            interMeshTopPatch[zoneI],       // patch for face
+                            interMeshTopPatch[zonei],       // patch for face
                             -1,                             // zone for face
                             false                           // face flip in zone
                         );
@@ -1922,7 +1970,7 @@ int main(int argc, char *argv[])
                         -1,                             // master edge
                         meshFacei,                      // master face
                         false,                          // flip flux
-                        interMeshTopPatch[zoneI],       // patch for face
+                        interMeshTopPatch[zonei],       // patch for face
                         -1,                             // zone for face
                         false                           // zone flip
                     );
