@@ -13,7 +13,9 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-application     pisoFoam;
+application     foamRun;
+
+solver          incompressibleFluid;
 
 startFrom       startTime;
 
