@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2020 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2022 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,52 +23,31 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "primitiveFields.H"
-#include "GlobalIOField.H"
+#ifndef DynamicListFwd_H
+#define DynamicListFwd_H
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    typedef GlobalIOField<label> labelGlobalIOField;
-    typedef GlobalIOField<scalar> scalarGlobalIOField;
-    typedef GlobalIOField<vector> vectorGlobalIOField;
-    typedef GlobalIOField<sphericalTensor> sphericalTensorGlobalIOField;
-    typedef GlobalIOField<symmTensor> symmTensorGlobalIOField;
-    typedef GlobalIOField<tensor> tensorGlobalIOField;
 
-    //- Template function for obtaining global status
-    template<>
-    inline bool typeGlobal<labelGlobalIOField>()
-    {
-        return true;
-    }
-    template<>
-    inline bool typeGlobal<scalarGlobalIOField>()
-    {
-        return true;
-    }
-    template<>
-    inline bool typeGlobal<vectorGlobalIOField>()
-    {
-        return true;
-    }
-    template<>
-    inline bool typeGlobal<sphericalTensorGlobalIOField>()
-    {
-        return true;
-    }
-    template<>
-    inline bool typeGlobal<symmTensorGlobalIOField>()
-    {
-        return true;
-    }
-    template<>
-    inline bool typeGlobal<tensorGlobalIOField>()
-    {
-        return true;
-    }
-}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+template
+<
+    class Type,
+    unsigned SizeInc = 0,
+    unsigned SizeMult = 2,
+    unsigned SizeDiv = 1
+>
+class DynamicList;
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

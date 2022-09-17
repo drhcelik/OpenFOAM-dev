@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2017-2020 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2022 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,25 +21,25 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Description
+    Map of dictionaries with IO
+
 \*---------------------------------------------------------------------------*/
 
-#include "GlobalIOFields.H"
+#include "IOMap.H"
+#include "dictionary.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    defineTemplateTypeNameWithName(labelGlobalIOField, "labelField");
-    defineTemplateTypeNameWithName(scalarGlobalIOField, "scalarField");
-    defineTemplateTypeNameWithName(vectorGlobalIOField, "vectorField");
-    defineTemplateTypeNameWithName
+    defineTemplateTypeNameAndDebugWithName
     (
-        sphericalTensorGlobalIOField,
-        "sphericalTensorField"
+        IOMap<dictionary>,
+        "dictionaryIOMap",
+        0
     );
-    defineTemplateTypeNameWithName(symmTensorGlobalIOField, "symmTensorField");
-    defineTemplateTypeNameWithName(tensorGlobalIOField, "tensorField");
 }
 
-
 // ************************************************************************* //
+

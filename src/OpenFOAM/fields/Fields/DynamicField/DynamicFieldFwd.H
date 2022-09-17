@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2015-2020 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2022 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,23 +23,31 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "GlobalIOLists.H"
+#ifndef DynamicFieldFwd_H
+#define DynamicFieldFwd_H
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    defineTemplateTypeNameWithName(labelGlobalIOList, "labelList");
-    defineTemplateTypeNameWithName(scalarGlobalIOList, "scalarList");
-    defineTemplateTypeNameWithName(vectorGlobalIOList, "vectorList");
-    defineTemplateTypeNameWithName
-    (
-        sphericalTensorGlobalIOList,
-        "sphericalTensorList"
-    );
-    defineTemplateTypeNameWithName(symmTensorGlobalIOList, "symmTensorList");
-    defineTemplateTypeNameWithName(tensorGlobalIOList, "tensorList");
-    defineTemplateTypeNameWithName(wordGlobalIOList, "wordList");
-}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+template
+<
+    class Type,
+    unsigned SizeInc = 0,
+    unsigned SizeMult = 2,
+    unsigned SizeDiv = 1
+>
+class DynamicField;
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //
