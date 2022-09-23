@@ -76,26 +76,23 @@ class Cloud
     // Private Data
 
         //- Reference to the mesh
-        const polyMesh& polyMesh_;
+        const polyMesh& pMesh_;
 
         //- Map from patch index to the neighbouring processor index
-        const labelList patchNbrProc_;
+        labelList patchNbrProc_;
 
         //- Map from patch index to the corresponding patch index on the
         //  neighbouring processor
-        const labelList patchNbrProcPatch_;
+        labelList patchNbrProcPatch_;
 
         //- Map from patch index to connected non-conformal cyclics
-        const labelListList patchNonConformalCyclicPatches_;
+        labelListList patchNonConformalCyclicPatches_;
 
         //- Temporary storage for the global particle positions
         mutable autoPtr<vectorField> globalPositionsPtr_;
 
 
     // Private Member Functions
-
-        //- Check patches
-        void checkPatches() const;
 
         //- Initialise cloud on IO constructor
         void initCloud(const bool checkClass);
@@ -165,7 +162,7 @@ public:
             //- Return the polyMesh reference
             const polyMesh& pMesh() const
             {
-                return polyMesh_;
+                return pMesh_;
             }
 
             //- Map from patch index to the neighbouring processor index
