@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2022 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,14 +22,21 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::compressible::
-        turbulentTemperatureRadCoupledMixedFvPatchScalarField
+    Foam::coupledTemperatureFvPatchScalarField
 
 Description
-    Mixed boundary condition for temperature and radiation heat transfer
-    to be used for in multiregion cases. Optional thin thermal layer
-    resistances can be specified through thicknessLayers and kappaLayers
-    entries.
+    Mixed boundary condition for temperature, to be used for heat-transfer
+    on back-to-back baffles. Optional thin thermal layer resistances can be
+    specified through thicknessLayers and kappaLayers entries.
+
+    Specifies gradient and temperature such that the equations are the same
+    on both sides:
+      - refGradient = qs_/kappa
+      - refValue = neighbour value
+      - mixFraction = KDeltaNbr/(KDeltaNbr + KDelta())
+
+    where KDelta is heat-transfer coefficient K*deltaCoeffs
+    and qs is the optional source heat flux.
 
     The thermal conductivity \c kappa can either be retrieved from various
     possible sources, as detailed in the class temperatureCoupledBase.
@@ -37,56 +44,58 @@ Description
 Usage
     \table
         Property     | Description             | Required    | Default value
-        Tnbr         | name of the field    | no | T
-        qrNbr      | name of the radiative flux in the nbr region | no | none
-        qr         | name of the radiative flux in this region | no | none
+        Tnbr         | name of the field       | no          | T
         thicknessLayers | list of thicknesses per layer [m] | no |
-        kappaLayers  | list of thermal conductivites per layer [W/m/K] | no |
+        kappaLayers  | list of thermal conductivities per layer [W/m/K] | no |
+        qs           | Optional source heat flux [W/m^2] | no | 0
+        Qs           | Optional heat source [W]          | no | 0
+        qrNbr        | name of the radiative flux in the nbr region | no | none
+        qr           | name of the radiative flux in this region | no | none
     \endtable
 
     Example of the boundary condition specification:
     \verbatim
     <patchName>
     {
-        type            compressible::turbulentTemperatureRadCoupledMixed;
+        type            coupledTemperature;
         Tnbr            T;
-        qrNbr           qr; // or none. Name of qr field on neighbour region
-        qr              qr; // or none. Name of qr field on local region
         thicknessLayers (0.1 0.2 0.3 0.4);
         kappaLayers     (1 2 3 4);
+        qs              uniform 100;    // Optional source heat flux [W/m^2]
         value           uniform 300;
     }
     \endverbatim
 
     Needs to be on underlying mapped(Wall)FvPatch.
 
+    Note that in order to provide an optional heat source either qs or Qs
+    should be specified, not both.
+
 See also
     Foam::temperatureCoupledBase
 
 SourceFiles
-    turbulentTemperatureRadCoupledMixedFvPatchScalarField.C
+    coupledTemperatureFvPatchScalarField.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef turbulentTemperatureRadCoupledMixedFvPatchScalarField_H
-#define turbulentTemperatureRadCoupledMixedFvPatchScalarField_H
+#ifndef coupledTemperatureFvPatchScalarField_H
+#define coupledTemperatureFvPatchScalarField_H
 
 #include "mixedFvPatchFields.H"
 #include "temperatureCoupledBase.H"
-#include "scalarList.H"
+#include "scalarField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace compressible
-{
 
 /*---------------------------------------------------------------------------*\
-    Class turbulentTemperatureRadCoupledMixedFvPatchScalarField Declaration
+            Class coupledTemperatureFvPatchScalarField Declaration
 \*---------------------------------------------------------------------------*/
 
-class turbulentTemperatureRadCoupledMixedFvPatchScalarField
+class coupledTemperatureFvPatchScalarField
 :
     public mixedFvPatchScalarField,
     public temperatureCoupledBase
@@ -108,6 +117,9 @@ class turbulentTemperatureRadCoupledMixedFvPatchScalarField
         //- Conductivity of layers
         scalarList kappaLayers_;
 
+        //- Source heat flux [W/m^2]
+        scalarField qs_;
+
         //- Total contact resistance
         scalar contactRes_;
 
@@ -115,20 +127,20 @@ class turbulentTemperatureRadCoupledMixedFvPatchScalarField
 public:
 
     //- Runtime type information
-    TypeName("compressible::turbulentTemperatureRadCoupledMixed");
+    TypeName("coupledTemperature");
 
 
     // Constructors
 
         //- Construct from patch and internal field
-        turbulentTemperatureRadCoupledMixedFvPatchScalarField
+        coupledTemperatureFvPatchScalarField
         (
             const fvPatch&,
             const DimensionedField<scalar, volMesh>&
         );
 
         //- Construct from patch, internal field and dictionary
-        turbulentTemperatureRadCoupledMixedFvPatchScalarField
+        coupledTemperatureFvPatchScalarField
         (
             const fvPatch&,
             const DimensionedField<scalar, volMesh>&,
@@ -136,21 +148,20 @@ public:
         );
 
         //- Construct by mapping given
-        //  turbulentTemperatureCoupledBaffleMixedFvPatchScalarField onto a
+        //  coupledTemperatureFvPatchScalarField onto a
         //  new patch
-        turbulentTemperatureRadCoupledMixedFvPatchScalarField
+        coupledTemperatureFvPatchScalarField
         (
-            const
-            turbulentTemperatureRadCoupledMixedFvPatchScalarField&,
+            const coupledTemperatureFvPatchScalarField&,
             const fvPatch&,
             const DimensionedField<scalar, volMesh>&,
             const fvPatchFieldMapper&
         );
 
         //- Construct as copy setting internal field reference
-        turbulentTemperatureRadCoupledMixedFvPatchScalarField
+        coupledTemperatureFvPatchScalarField
         (
-            const turbulentTemperatureRadCoupledMixedFvPatchScalarField&,
+            const coupledTemperatureFvPatchScalarField&,
             const DimensionedField<scalar, volMesh>&
         );
 
@@ -162,7 +173,7 @@ public:
         {
             return tmp<fvPatchScalarField>
             (
-                new turbulentTemperatureRadCoupledMixedFvPatchScalarField
+                new coupledTemperatureFvPatchScalarField
                 (
                     *this,
                     iF
@@ -183,7 +194,6 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace compressible
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
