@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2022 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2022 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,54 +23,55 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "patchToPatch.H"
-#include "patchToPatchTools.H"
+#include "remote.H"
 
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-inline bool Foam::patchToPatch::reverse() const
+inline Foam::remote::remote()
+:
+    proci(-1),
+    elementi(-1)
+{}
+
+
+inline Foam::remote::remote(const label p, const label e)
+:
+    proci(p),
+    elementi(e)
+{}
+
+
+inline Foam::remote::remote(Istream& is)
 {
-    return reverse_;
+    is >> *this;
 }
 
 
-inline Foam::label Foam::patchToPatch::singleProcess() const
+// * * * * * * * * * * * * * * * Friend Operators  * * * * * * * * * * * * * //
+
+inline bool Foam::operator==(const remote& a, const remote& b)
 {
-    return singleProcess_;
+    return a.proci == b.proci && a.elementi == b.elementi;
 }
 
 
-inline bool Foam::patchToPatch::isSingleProcess() const
+inline bool Foam::operator!=(const remote& a, const remote& b)
 {
-    return singleProcess_ != -1;
+    return !(a == b);
 }
 
 
-inline Foam::List<Foam::List<Foam::remote>>
-Foam::patchToPatch::srcTgtProcFaces() const
+// * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * * //
+
+inline Foam::Ostream& Foam::operator<<(Ostream& os, const remote& p)
 {
-    return
-        isSingleProcess()
-      ? patchToPatchTools::localToRemote(srcLocalTgtFaces_)
-      : patchToPatchTools::localToRemote
-        (
-            srcLocalTgtFaces_,
-            localTgtProcFacesPtr_()
-        );
+    return os << p.proci << token::SPACE << p.elementi;
 }
 
 
-inline Foam::List<Foam::List<Foam::remote>>
-Foam::patchToPatch::tgtSrcProcFaces() const
+inline Foam::Istream& Foam::operator>>(Istream& is, remote& p)
 {
-    return
-        isSingleProcess()
-      ? patchToPatchTools::localToRemote(tgtLocalSrcFaces_)
-      : patchToPatchTools::localToRemote
-        (
-            tgtLocalSrcFaces_,
-            localSrcProcFacesPtr_()
-        );
+    return is >> p.proci >> p.elementi;
 }
 
 

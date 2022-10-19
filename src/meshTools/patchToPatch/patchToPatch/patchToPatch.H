@@ -39,6 +39,7 @@ SourceFiles
 #include "distributionMap.H"
 #include "primitivePatch.H"
 #include "primitiveOldTimePatch.H"
+#include "remote.H"
 #include "runTimeSelectionTables.H"
 #include "treeBoundBox.H"
 
@@ -53,45 +54,6 @@ namespace Foam
 
 class patchToPatch
 {
-public:
-
-    // Public Structures
-
-        //- Structure to conveniently store processor and face indices
-        struct procFace
-        {
-            //- The processor index
-            label proci;
-
-            //- The face index
-            label facei;
-
-            //- Equality comparison
-            friend bool operator==(const procFace& a, const procFace& b)
-            {
-                return a.proci == b.proci && a.facei == b.facei;
-            }
-
-            //- Inequality comparison
-            friend bool operator!=(const procFace& a, const procFace& b)
-            {
-                return !(a == b);
-            }
-
-            //- Output stream operator
-            friend Ostream& operator<<(Ostream& os, const procFace& p)
-            {
-                return os << p.proci << token::SPACE << p.facei;
-            }
-
-            //- Input stream operator
-            friend Istream& operator>>(Istream& is, procFace& p)
-            {
-                return is >> p.proci >> p.facei;
-            }
-        };
-
-
 protected:
 
     // Private Data
@@ -118,57 +80,14 @@ protected:
 
         //- When running in parallel, a map from local source face index to
         //  source processor and face index
-        autoPtr<List<procFace>> localSrcProcFacesPtr_;
+        autoPtr<List<remote>> localSrcProcFacesPtr_;
 
         //- When running in parallel, a map from local target face index to
         //  target processor and face index
-        autoPtr<List<procFace>> localTgtProcFacesPtr_;
+        autoPtr<List<remote>> localTgtProcFacesPtr_;
 
 
     // Private Member Functions
-
-        // Indexing
-
-            //- Transfer list-list b into list-list a
-            template<class SubListA, class SubListB>
-            static inline void transferListList
-            (
-                List<SubListA>& a,
-                List<SubListB>& b
-            );
-
-            //- Reverse distribute a list-list given the map
-            template<class Type>
-            static inline void rDistributeListList
-            (
-                const label size,
-                const distributionMap& map,
-                List<List<Type>>& data
-            );
-
-            //- Reverse distribute a dynamic list-list given the map
-            template<class Type>
-            static inline void rDistributeListList
-            (
-                const label size,
-                const distributionMap& map,
-                List<DynamicList<Type>>& data
-            );
-
-            //- Map local faces to proc faces
-            static List<List<procFace>> localFacesToProcFaces
-            (
-                const List<DynamicList<label>>& localFaces,
-                const List<procFace>& map = NullObjectRef<List<procFace>>()
-            );
-
-            //- Map proc faces to local faces
-            static List<DynamicList<label>> procFacesToLocalFaces
-            (
-                const List<List<procFace>>& procFaces,
-                const HashTable<label, procFace, Hash<procFace>>& map
-            );
-
 
         // Searching
 
@@ -264,15 +183,6 @@ protected:
 
         // Parallel functionality
 
-            //- Determine whether or not the intersection of the given patches
-            //  is on a single process. Set singleProcess_ to that process if
-            //  so, and to -1 if not.
-            void calcSingleProcess
-            (
-                const primitiveOldTimePatch& srcPatch,
-                const primitiveOldTimePatch& tgtPatch
-            );
-
             //- Determine which target faces need to be sent to the source.
             //  This is done before intersection. Bound boxes are used to
             //  estimate what faces will intersect.
@@ -284,33 +194,14 @@ protected:
                 const primitiveOldTimePatch& tgtPatch
             ) const;
 
-            //- Determine which source faces need to be sent to the target.
-            //  This is done after intersection, using the addressing generated
-            //  by the intersection.
-            labelListList srcPatchSendFaces() const;
-
-            //- Create a distribution map from a list-list of faces to be sent
-            //  (i.e., the result of calling one of the above methods).
-            autoPtr<distributionMap> patchDistributionMap
-            (
-                labelListList&& sendFaces
-            ) const;
-
             //- Distribute a patch given its distribution map
-            PrimitiveOldTimePatch<faceList, pointField> distributePatch
+            static List<remote> distributePatch
             (
                 const distributionMap& map,
                 const primitiveOldTimePatch& patch,
-                List<procFace>& localProcFaces
-            ) const;
-
-            //- As above, but when you want the proc-faces without the
-            //  associated patch geometry
-            void distributePatch
-            (
-                const distributionMap& map,
-                List<procFace>& localProcFaces
-            ) const;
+                autoPtr<PrimitiveOldTimePatch<faceList, pointField>>&
+                    localPatchPtr
+            );
 
 
         // Hooks
@@ -324,9 +215,9 @@ protected:
                 const primitiveOldTimePatch& tgtPatch
             );
 
-            //- Subset the local target patch so that only parts that actually
+            //- Trim the local target patch so that only parts that actually
             //  intersect the source remain
-            virtual labelList subsetLocalTgt
+            virtual labelList trimLocalTgt
             (
                 const primitiveOldTimePatch& localTgtPatch
             );
@@ -441,10 +332,10 @@ public:
             inline bool isSingleProcess() const;
 
             //- For each source face, the coupled target procs and faces
-            inline List<List<procFace>> srcTgtProcFaces() const;
+            inline List<List<remote>> srcTgtProcFaces() const;
 
             //- For each target face, the coupled source procs and faces
-            inline List<List<procFace>> tgtSrcProcFaces() const;
+            inline List<List<remote>> tgtSrcProcFaces() const;
 
 
         // Interpolation

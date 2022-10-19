@@ -22,73 +22,89 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::polyMeshMap
+    Foam::remote
 
 Description
-    Class containing mesh-to-mesh mapping information.
+    Struct for keeping processor, element (cell, face, point) index.
 
 SourceFiles
-    polyMeshMap.C
+    remoteI.H
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef polyMeshMap_H
-#define polyMeshMap_H
+#ifndef remote_H
+#define remote_H
 
-#include "polyMesh.H"
+#include "Istream.H"
+#include "Ostream.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-class meshToMesh;
+// Forward declaration of friend functions and operators
+class remote;
+inline bool operator==(const remote&, const remote&);
+inline bool operator!=(const remote&, const remote&);
+inline Istream& operator>>(Istream&, remote&);
+inline Ostream& operator<<(Ostream&, const remote&);
 
 /*---------------------------------------------------------------------------*\
-                       Class polyMeshMap Declaration
+                          Class remote Declaration
 \*---------------------------------------------------------------------------*/
 
-class polyMeshMap
+class remote
 {
-    // Private Data
-
-        //- Reference to polyMesh
-        const polyMesh& mesh_;
-
-        //- Reference to the meshToMesh mapper
-        const meshToMesh& mapper_;
-
-
 public:
+
+    // Public Data
+
+        //- Processor index
+        label proci;
+
+        //- Element index
+        label elementi;
+
 
     // Constructors
 
-        //- Construct for mesh
-        polyMeshMap(const polyMesh& mesh, const meshToMesh& mapper);
+        //- Construct null
+        inline remote();
 
-        //- Disallow default bitwise copy construction
-        polyMeshMap(const polyMeshMap&) = delete;
+        //- Construct from components
+        inline remote(const label, const label);
+
+        //- Construct from stream
+        inline remote(Istream& is);
 
 
-    // Member Functions
+    // Friend Operators
 
-        //- Return polyMesh
-        const polyMesh& mesh() const
-        {
-            return mesh_;
-        }
+        //- Equality comparison
+        friend bool operator==(const remote& a, const remote& b);
 
-        //- Return meshToMesh mapper
-        const meshToMesh& mapper() const
-        {
-            return mapper_;
-        }
+        //- Inequality comparison
+        friend bool operator!=(const remote& a, const remote& b);
+
+
+    // IOstream Operators
+
+        //- Write to stream
+        friend Ostream& operator<<(Ostream& os, const remote& p);
+
+        //- Read from stream
+        friend Istream& operator>>(Istream& is, remote& p);
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#include "remoteI.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
