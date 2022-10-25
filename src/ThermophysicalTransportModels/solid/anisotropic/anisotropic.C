@@ -114,7 +114,8 @@ Foam::solidThermophysicalTransportModels::anisotropic::anisotropic
 )
 :
     solidThermophysicalTransportModel(typeName, thermo),
-    coordinateSystem_(coordinateSystem::New(thermo.mesh(), coeffDict()))
+    coordinateSystem_(coordinateSystem::New(thermo.mesh(), coeffDict())),
+    aligned_(thermo.mesh().boundary().size(), true)
 {
     if (coeffDict().found("zones"))
     {
@@ -141,9 +142,51 @@ Foam::solidThermophysicalTransportModels::anisotropic::anisotropic
 
         // Find all the patch faces adjacent to zones
         setZonesPatchFaces();
-
-        Info << endl;
     }
+
+    const fvMesh& mesh = thermo.mesh();
+    const fvBoundaryMesh& bMesh = mesh.boundary();
+
+    bool aligned = true;
+
+    forAll(bMesh, patchi)
+    {
+        if (bMesh[patchi].size())
+        {
+            const vectorField n(bMesh[patchi].nf());
+            const vectorField nKappa(n & Kappa(patchi));
+
+            // Calculate a patch alignment factor for Kappa
+            const scalar alignmentFactor =
+                gSum
+                (
+                    mesh.magSf().boundaryField()[patchi]
+                   *mag(nKappa - n*(nKappa & n))
+                )/gSum(mesh.magSf().boundaryField()[patchi]*mag(nKappa));
+
+            if (alignmentFactor > 1e-3)
+            {
+                aligned_[patchi] = false;
+                aligned = false;
+
+                Info<< "    Kappa is not aligned with patch " << patchi
+                    << " by an alignment factor of " << alignmentFactor
+                    << " (0=aligned, 1=unaligned)" << nl
+                    << "        heat-flux correction will be applied." << endl;
+            }
+        }
+    }
+
+    // If Kappa is not aligned with any patch enable grad(T) caching
+    // because the patch grad(T) will be required for the heat-flux correction
+    if (!aligned)
+    {
+        mesh.solution().enableCache("grad(T)");
+    }
+
+    Info << endl;
+
+    mesh.schemes().setFluxRequired(thermo.T().name());
 
     this->printCoeffs(typeName);
 }
@@ -324,6 +367,28 @@ Foam::solidThermophysicalTransportModels::anisotropic::q() const
         "q",
        -fvm::laplacian(Kappa(), thermo.T())().flux()/mesh.magSf()
     );
+}
+
+
+Foam::tmp<Foam::scalarField>
+Foam::solidThermophysicalTransportModels::anisotropic::qCorr
+(
+    const label patchi
+) const
+{
+    if (!aligned_[patchi])
+    {
+        tmp<volVectorField> gradT(fvc::grad(thermo().T()));
+
+        const vectorField n(thermo().mesh().boundary()[patchi].nf());
+        const vectorField nKappa(n & Kappa(patchi));
+
+        return -(nKappa - n*(nKappa & n)) & gradT().boundaryField()[patchi];
+    }
+    else
+    {
+        return tmp<scalarField>(nullptr);
+    }
 }
 
 
