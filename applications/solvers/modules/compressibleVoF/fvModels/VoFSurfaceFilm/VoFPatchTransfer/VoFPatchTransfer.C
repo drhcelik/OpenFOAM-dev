@@ -32,9 +32,7 @@ License
 
 namespace Foam
 {
-namespace regionModels
-{
-namespace surfaceFilmSubModels
+namespace surfaceFilmModels
 {
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -72,10 +70,10 @@ VoFPatchTransfer::VoFPatchTransfer
         coeffDict_.lookupOrDefault<scalar>("transferRateCoeff", 0.1)
     )
 {
-    const polyBoundaryMesh& pbm = film.regionMesh().boundaryMesh();
+    const polyBoundaryMesh& pbm = film.mesh().boundaryMesh();
     patchIDs_.setSize
     (
-        pbm.size() - film.regionMesh().globalData().processorPatches().size()
+        pbm.size() - film.mesh().globalData().processorPatches().size()
     );
 
     if (coeffDict_.found("patches"))
@@ -152,7 +150,7 @@ void VoFPatchTransfer::correct
     const scalarField& rho = film.rho();
     const scalarField& magSf = film.magSf();
 
-    const polyBoundaryMesh& pbm = film.regionMesh().boundaryMesh();
+    const polyBoundaryMesh& pbm = film.mesh().boundaryMesh();
 
 
     const compressibleTwoPhaseMixture& thermo
@@ -338,8 +336,7 @@ void VoFPatchTransfer::patchTransferredMassTotals
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace surfaceFilmSubModels
-} // End namespace regionModels
+} // End namespace surfaceFilmModels
 } // End namespace Foam
 
 // ************************************************************************* //
