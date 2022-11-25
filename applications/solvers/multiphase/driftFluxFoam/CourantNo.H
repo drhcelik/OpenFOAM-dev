@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2016-2022 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2022 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,28 +21,33 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Global
+    CourantNo
+
+Description
+    Calculates and outputs the mean and maximum Courant Numbers.
+
 \*---------------------------------------------------------------------------*/
 
-#include "rigidBodyModel.H"
+scalar CoNum = 0.0;
+scalar meanCoNum = 0.0;
 
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-inline Foam::point Foam::RBD::restraint::bodyPoint
-(
-    const point& p
-) const
 {
-    return model_.p(bodyID_, p);
+    const scalarField sumPhi
+    (
+        fvc::surfaceSum
+        (
+            mag(phi) + mag(fvc::flux(mixture.Udm()))
+        )().primitiveField()
+    );
+
+    CoNum = 0.5*gMax(sumPhi/mesh.V().field())*runTime.deltaTValue();
+
+    meanCoNum =
+        0.5*(gSum(sumPhi)/gSum(mesh.V().field()))*runTime.deltaTValue();
 }
 
-
-inline Foam::spatialVector Foam::RBD::restraint::bodyPointVelocity
-(
-    const point& p
-) const
-{
-    return model_.v(bodyID_, p);
-}
-
+Info<< "Courant Number mean: " << meanCoNum
+    << " max: " << CoNum << endl;
 
 // ************************************************************************* //
