@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2019-2022 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2022 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,83 +23,52 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "solidDisplacementThermo.H"
+#include "constAnisoSolidThermo.H"
+#include "addToRunTimeSelectionTable.H"
 
 /* * * * * * * * * * * * * * * Private Static Data * * * * * * * * * * * * * */
 
 namespace Foam
 {
-    defineTypeNameAndDebug(solidDisplacementThermo, 0);
+    defineTypeNameAndDebug(constAnisoSolidThermo, 0);
+    addToRunTimeSelectionTable(basicThermo, constAnisoSolidThermo, fvMesh);
+    addToRunTimeSelectionTable(solidThermo, constAnisoSolidThermo, fvMesh);
 }
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::solidDisplacementThermo::solidDisplacementThermo
+Foam::constAnisoSolidThermo::constAnisoSolidThermo
 (
     const fvMesh& mesh,
     const word& phaseName
 )
 :
-    constSolidThermo(mesh, phaseName),
-    planeStress_(lookup("planeStress")),
-    thermalStress_(lookup("thermalStress")),
-    E_(readProperty<scalar>("E", dimPressure)),
-    nu_(readProperty<scalar>("nu", dimless)),
-    alphav_(readProperty<scalar>("alphav", dimless/dimTemperature))
-{}
+    constSolidThermo(mesh, false, phaseName),
+    Kappa_(readProperty<vector>("Kappa", kappa_.dimensions()))
+{
+    kappa_ = mag(Kappa_);
+}
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-Foam::solidDisplacementThermo::~solidDisplacementThermo()
+Foam::constAnisoSolidThermo::~constAnisoSolidThermo()
 {}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-const Foam::volScalarField& Foam::solidDisplacementThermo::E() const
+const Foam::volScalarField& Foam::constAnisoSolidThermo::kappa() const
 {
-    return E_;
+    NotImplemented;
+    return kappa_;
 }
 
 
-const Foam::scalarField& Foam::solidDisplacementThermo::E
-(
-    const label patchi
-) const
+const Foam::volVectorField& Foam::constAnisoSolidThermo::Kappa() const
 {
-    return E_.boundaryField()[patchi];
-}
-
-
-const Foam::volScalarField& Foam::solidDisplacementThermo::nu() const
-{
-    return nu_;
-}
-
-
-const Foam::scalarField& Foam::solidDisplacementThermo::nu
-(
-    const label patchi
-) const
-{
-    return nu_.boundaryField()[patchi];
-}
-
-
-const Foam::volScalarField& Foam::solidDisplacementThermo::alphav() const
-{
-    return alphav_;
-}
-
-
-const Foam::scalarField& Foam::solidDisplacementThermo::alphav
-(
-    const label patchi
-) const
-{
-    return alphav_.boundaryField()[patchi];
+    return Kappa_;
 }
 
 
