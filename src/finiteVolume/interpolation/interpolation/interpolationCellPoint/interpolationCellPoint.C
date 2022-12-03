@@ -31,7 +31,7 @@ License
 template<class Type>
 Foam::interpolationCellPoint<Type>::interpolationCellPoint
 (
-    const GeometricField<Type, fvPatchField, volMesh>& psi
+    const VolField<Type>& psi
 )
 :
     fieldInterpolation<Type, interpolationCellPoint<Type>>(psi),
@@ -45,8 +45,8 @@ Foam::interpolationCellPoint<Type>::interpolationCellPoint
 template<class Type>
 Foam::interpolationCellPoint<Type>::interpolationCellPoint
 (
-    const GeometricField<Type, fvPatchField, volMesh>& psi,
-    tmp<GeometricField<Type, pointPatchField, pointMesh>> psip
+    const VolField<Type>& psi,
+    tmp<PointField<Type>> psip
 )
 :
     fieldInterpolation<Type, interpolationCellPoint<Type>>(psi),

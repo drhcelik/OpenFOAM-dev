@@ -170,29 +170,29 @@ Foam::tmp<Foam::Field<Type>> Foam::levelSetAverage
 
 
 template<class Type>
-Foam::tmp<Foam::GeometricField<Type, Foam::fvPatchField, Foam::volMesh>>
+Foam::tmp<Foam::VolField<Type>>
 Foam::levelSetAverage
 (
     const volScalarField& levelC,
     const pointScalarField& levelP,
-    const GeometricField<Type, fvPatchField, volMesh>& positiveC,
-    const GeometricField<Type, pointPatchField, pointMesh>& positiveP,
-    const GeometricField<Type, fvPatchField, volMesh>& negativeC,
-    const GeometricField<Type, pointPatchField, pointMesh>& negativeP
+    const VolField<Type>& positiveC,
+    const PointField<Type>& positiveP,
+    const VolField<Type>& negativeC,
+    const PointField<Type>& negativeP
 )
 {
     const fvMesh& mesh = levelC.mesh();
 
-    tmp<GeometricField<Type, fvPatchField, volMesh>> tResult
+    tmp<VolField<Type>> tResult
     (
-        GeometricField<Type, fvPatchField, volMesh>::New
+        VolField<Type>::New
         (
             positiveC.name() + ":levelSetAverage",
             mesh,
             dimensioned<Type>("0", positiveC.dimensions(), Zero)
         )
     );
-    GeometricField<Type, fvPatchField, volMesh>& result = tResult.ref();
+    VolField<Type>& result = tResult.ref();
 
     result.primitiveFieldRef() =
         levelSetAverage

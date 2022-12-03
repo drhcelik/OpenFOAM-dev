@@ -54,75 +54,75 @@ namespace Foam
 namespace fvc
 {
     template<class Type>
-    tmp<GeometricField<Type, fvPatchField, volMesh>> ddt
+    tmp<VolField<Type>> ddt
     (
         const dimensioned<Type>,
         const fvMesh&
     );
 
     template<class Type>
-    tmp<GeometricField<Type, fvPatchField, volMesh>> ddt
+    tmp<VolField<Type>> ddt
     (
-        const GeometricField<Type, fvPatchField, volMesh>&
+        const VolField<Type>&
     );
 
     template<class Type>
-    tmp<GeometricField<Type, fvPatchField, volMesh>> ddt
+    tmp<VolField<Type>> ddt
     (
         const dimensionedScalar&,
-        const GeometricField<Type, fvPatchField, volMesh>&
+        const VolField<Type>&
     );
 
     template<class Type>
-    tmp<GeometricField<Type, fvPatchField, volMesh>> ddt
+    tmp<VolField<Type>> ddt
     (
         const volScalarField&,
-        const GeometricField<Type, fvPatchField, volMesh>&
+        const VolField<Type>&
     );
 
     template<class Type>
-    tmp<GeometricField<Type, fvPatchField, volMesh>> ddt
+    tmp<VolField<Type>> ddt
     (
         const one&,
-        const GeometricField<Type, fvPatchField, volMesh>&
+        const VolField<Type>&
     );
 
     template<class Type>
-    tmp<GeometricField<Type, fvPatchField, volMesh>> ddt
+    tmp<VolField<Type>> ddt
     (
         const volScalarField&,
         const volScalarField&,
-        const GeometricField<Type, fvPatchField, volMesh>&
+        const VolField<Type>&
     );
 
     template<class Type>
-    tmp<GeometricField<Type, fvPatchField, volMesh>> ddt
+    tmp<VolField<Type>> ddt
     (
         const one&,
         const one&,
-        const GeometricField<Type, fvPatchField, volMesh>&
+        const VolField<Type>&
     );
 
     template<class Type>
-    tmp<GeometricField<Type, fvPatchField, volMesh>> ddt
+    tmp<VolField<Type>> ddt
     (
         const one&,
         const volScalarField&,
-        const GeometricField<Type, fvPatchField, volMesh>&
+        const VolField<Type>&
     );
 
     template<class Type>
-    tmp<GeometricField<Type, fvPatchField, volMesh>> ddt
+    tmp<VolField<Type>> ddt
     (
         const volScalarField&,
         const one&,
-        const GeometricField<Type, fvPatchField, volMesh>&
+        const VolField<Type>&
     );
 
     template<class Type>
-    tmp<GeometricField<Type, fvsPatchField, surfaceMesh>> ddt
+    tmp<SurfaceField<Type>> ddt
     (
-        const GeometricField<Type, fvsPatchField, surfaceMesh>&
+        const SurfaceField<Type>&
     );
 
     template<class Type>
@@ -137,8 +137,8 @@ namespace fvc
     >
     ddtCorr
     (
-        const GeometricField<Type, fvPatchField, volMesh>& U,
-        const GeometricField<Type, fvsPatchField, surfaceMesh>& Uf
+        const VolField<Type>& U,
+        const SurfaceField<Type>& Uf
     );
 
     template<class Type>
@@ -153,7 +153,7 @@ namespace fvc
     >
     ddtCorr
     (
-        const GeometricField<Type, fvPatchField, volMesh>& U,
+        const VolField<Type>& U,
         const GeometricField
         <
             typename Foam::flux<Type>::type,
@@ -174,14 +174,14 @@ namespace fvc
     >
     ddtCorr
     (
-        const GeometricField<Type, fvPatchField, volMesh>& U,
+        const VolField<Type>& U,
         const GeometricField
         <
             typename Foam::flux<Type>::type,
             fvsPatchField,
             surfaceMesh
         >& phi,
-        const autoPtr<GeometricField<Type, fvsPatchField, surfaceMesh>>& Uf
+        const autoPtr<SurfaceField<Type>>& Uf
     );
 
     template<class Type>
@@ -197,8 +197,8 @@ namespace fvc
     ddtCorr
     (
         const volScalarField& rho,
-        const GeometricField<Type, fvPatchField, volMesh>& U,
-        const GeometricField<Type, fvsPatchField, surfaceMesh>& Uf
+        const VolField<Type>& U,
+        const SurfaceField<Type>& Uf
     );
 
     template<class Type>
@@ -214,7 +214,7 @@ namespace fvc
     ddtCorr
     (
         const volScalarField& rho,
-        const GeometricField<Type, fvPatchField, volMesh>& U,
+        const VolField<Type>& U,
         const GeometricField
         <
             typename Foam::flux<Type>::type,
@@ -236,14 +236,14 @@ namespace fvc
     ddtCorr
     (
         const volScalarField& rho,
-        const GeometricField<Type, fvPatchField, volMesh>& U,
+        const VolField<Type>& U,
         const GeometricField
         <
             typename Foam::flux<Type>::type,
             fvsPatchField,
             surfaceMesh
         >& phi,
-        const autoPtr<GeometricField<Type, fvsPatchField, surfaceMesh>>& Uf
+        const autoPtr<SurfaceField<Type>>& Uf
     );
 }
 

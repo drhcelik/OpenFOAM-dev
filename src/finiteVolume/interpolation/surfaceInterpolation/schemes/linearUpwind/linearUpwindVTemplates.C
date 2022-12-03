@@ -87,17 +87,17 @@ Foam::linearUpwindV<Type>::linearUpwindV
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 template<class Type>
-Foam::tmp<Foam::GeometricField<Type, Foam::fvsPatchField, Foam::surfaceMesh>>
+Foam::tmp<Foam::SurfaceField<Type>>
 Foam::linearUpwindV<Type>::correction
 (
-    const GeometricField<Type, fvPatchField, volMesh>& vf
+    const VolField<Type>& vf
 ) const
 {
     const fvMesh& mesh = this->mesh();
 
-    tmp<GeometricField<Type, fvsPatchField, surfaceMesh>> tsfCorr
+    tmp<SurfaceField<Type>> tsfCorr
     (
-        GeometricField<Type, fvsPatchField, surfaceMesh>::New
+        SurfaceField<Type>::New
         (
             "linearUpwindV::correction(" + vf.name() + ')',
             mesh,
@@ -110,7 +110,7 @@ Foam::linearUpwindV<Type>::correction
         )
     );
 
-    GeometricField<Type, fvsPatchField, surfaceMesh>& sfCorr = tsfCorr.ref();
+    SurfaceField<Type>& sfCorr = tsfCorr.ref();
 
     const surfaceScalarField& faceFlux = this->faceFlux_;
     const surfaceScalarField& w = mesh.weights();
@@ -176,7 +176,7 @@ Foam::linearUpwindV<Type>::correction
     }
 
 
-    typename GeometricField<Type, fvsPatchField, surfaceMesh>::
+    typename SurfaceField<Type>::
         Boundary& bSfCorr = sfCorr.boundaryFieldRef();
 
     forAll(bSfCorr, patchi)

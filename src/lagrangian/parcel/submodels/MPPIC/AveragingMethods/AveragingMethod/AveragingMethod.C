@@ -152,7 +152,7 @@ bool Foam::AveragingMethod<Type>::write(const bool write) const
     Field<scalar> pointVolume(mesh_.nPoints(), 0);
 
     // output fields
-    GeometricField<Type, fvPatchField, volMesh> cellValue
+    VolField<Type> cellValue
     (
         IOobject
         (
@@ -163,7 +163,7 @@ bool Foam::AveragingMethod<Type>::write(const bool write) const
         mesh_,
         dimensioned<Type>("zero", dimless, Zero)
     );
-    GeometricField<TypeGrad, fvPatchField, volMesh> cellGrad
+    VolField<GradType> cellGrad
     (
         IOobject
         (
@@ -172,9 +172,9 @@ bool Foam::AveragingMethod<Type>::write(const bool write) const
             mesh_
         ),
         mesh_,
-        dimensioned<TypeGrad>("zero", dimless, Zero)
+        dimensioned<GradType>("zero", dimless, Zero)
     );
-    GeometricField<Type, pointPatchField, pointMesh> pointValue
+    PointField<Type> pointValue
     (
         IOobject
         (
@@ -185,7 +185,7 @@ bool Foam::AveragingMethod<Type>::write(const bool write) const
         pointMesh_,
         dimensioned<Type>("zero", dimless, Zero)
     );
-    GeometricField<TypeGrad, pointPatchField, pointMesh> pointGrad
+    PointField<GradType> pointGrad
     (
         IOobject
         (
@@ -194,7 +194,7 @@ bool Foam::AveragingMethod<Type>::write(const bool write) const
             mesh_
         ),
         pointMesh_,
-        dimensioned<TypeGrad>("zero", dimless, Zero)
+        dimensioned<GradType>("zero", dimless, Zero)
     );
 
     // Barycentric coordinates of the tet vertices

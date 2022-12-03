@@ -32,7 +32,7 @@ template<class Type>
 Foam::tmp<Foam::Field<Type>>
 Foam::sampledSurfaces::sampledIsoSurfaceSurface::sampleField
 (
-    const GeometricField<Type, fvPatchField, volMesh>& vField
+    const VolField<Type>& vField
 ) const
 {
     update();
@@ -52,7 +52,7 @@ Foam::sampledSurfaces::sampledIsoSurfaceSurface::interpolateField
 
     if (isA<interpolationVolPointInterpolation<Type>>(interpolator))
     {
-        const GeometricField<Type, pointPatchField, pointMesh>& pField =
+        const PointField<Type>& pField =
             refCast<const interpolationVolPointInterpolation<Type>>
             (interpolator).psip();
 

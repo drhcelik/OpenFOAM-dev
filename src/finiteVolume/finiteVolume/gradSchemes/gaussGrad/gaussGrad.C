@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2022 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -40,7 +40,7 @@ Foam::tmp
 >
 Foam::fv::gaussGrad<Type>::gradf
 (
-    const GeometricField<Type, fvsPatchField, surfaceMesh>& ssf,
+    const SurfaceField<Type>& ssf,
     const word& name
 )
 {
@@ -48,9 +48,9 @@ Foam::fv::gaussGrad<Type>::gradf
 
     const fvMesh& mesh = ssf.mesh();
 
-    tmp<GeometricField<GradType, fvPatchField, volMesh>> tgGrad
+    tmp<VolField<GradType>> tgGrad
     (
-        GeometricField<GradType, fvPatchField, volMesh>::New
+        VolField<GradType>::New
         (
             name,
             mesh,
@@ -63,7 +63,7 @@ Foam::fv::gaussGrad<Type>::gradf
             extrapolatedCalculatedFvPatchField<GradType>::typeName
         )
     );
-    GeometricField<GradType, fvPatchField, volMesh>& gGrad = tgGrad.ref();
+    VolField<GradType>& gGrad = tgGrad.ref();
 
     const labelUList& owner = mesh.owner();
     const labelUList& neighbour = mesh.neighbour();
@@ -115,17 +115,17 @@ Foam::tmp
 >
 Foam::fv::gaussGrad<Type>::calcGrad
 (
-    const GeometricField<Type, fvPatchField, volMesh>& vsf,
+    const VolField<Type>& vsf,
     const word& name
 ) const
 {
     typedef typename outerProduct<vector, Type>::type GradType;
 
-    tmp<GeometricField<GradType, fvPatchField, volMesh>> tgGrad
+    tmp<VolField<GradType>> tgGrad
     (
         gradf(tinterpScheme_().interpolate(vsf), name)
     );
-    GeometricField<GradType, fvPatchField, volMesh>& gGrad = tgGrad.ref();
+    VolField<GradType>& gGrad = tgGrad.ref();
 
     correctBoundaryConditions(vsf, gGrad);
 
@@ -136,7 +136,7 @@ Foam::fv::gaussGrad<Type>::calcGrad
 template<class Type>
 void Foam::fv::gaussGrad<Type>::correctBoundaryConditions
 (
-    const GeometricField<Type, fvPatchField, volMesh>& vsf,
+    const VolField<Type>& vsf,
     GeometricField
     <
         typename outerProduct<vector, Type>::type, fvPatchField, volMesh

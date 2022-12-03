@@ -28,11 +28,11 @@ License
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class Type>
-Foam::tmp<Foam::GeometricField<Type, Foam::pointPatchField, Foam::pointMesh>>
+Foam::tmp<Foam::PointField<Type>>
 Foam::pointFieldReconstructor::reconstructField(const IOobject& fieldIoObject)
 {
     // Read the field for all the processors
-    PtrList<GeometricField<Type, pointPatchField, pointMesh>> procFields
+    PtrList<PointField<Type>> procFields
     (
         procMeshes_.size()
     );
@@ -42,7 +42,7 @@ Foam::pointFieldReconstructor::reconstructField(const IOobject& fieldIoObject)
         procFields.set
         (
             proci,
-            new GeometricField<Type, pointPatchField, pointMesh>
+            new PointField<Type>
             (
                 IOobject
                 (
@@ -67,7 +67,7 @@ Foam::pointFieldReconstructor::reconstructField(const IOobject& fieldIoObject)
 
     forAll(procMeshes_, proci)
     {
-        const GeometricField<Type, pointPatchField, pointMesh>&
+        const PointField<Type>&
             procField = procFields[proci];
 
         // Get processor-to-global addressing for use in rmap
@@ -118,9 +118,9 @@ Foam::pointFieldReconstructor::reconstructField(const IOobject& fieldIoObject)
 
     // Construct and write the field
     // setting the internalField and patchFields
-    return tmp<GeometricField<Type, pointPatchField, pointMesh>>
+    return tmp<PointField<Type>>
     (
-        new GeometricField<Type, pointPatchField, pointMesh>
+        new PointField<Type>
         (
             IOobject
             (
@@ -149,7 +149,7 @@ void Foam::pointFieldReconstructor::reconstructFields
 {
     word fieldClassName
     (
-        GeometricField<Type, pointPatchField, pointMesh>::typeName
+        PointField<Type>::typeName
     );
 
     IOobjectList fields = objects.lookupClass(fieldClassName);

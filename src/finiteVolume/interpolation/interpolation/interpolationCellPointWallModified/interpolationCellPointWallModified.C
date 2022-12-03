@@ -33,17 +33,17 @@ License
 
 template<class Type>
 template<class TYPE>
-Foam::tmp<Foam::GeometricField<TYPE, Foam::pointPatchField, Foam::pointMesh>>
+Foam::tmp<Foam::PointField<TYPE>>
 Foam::interpolationCellPointWallModified<Type>::calcPointField
 (
-    const GeometricField<TYPE, fvPatchField, volMesh>& psi
+    const VolField<TYPE>& psi
 ) const
 {
     FatalErrorInFunction
         << typeName << " interpolation is only defined for vector fields"
         << exit(FatalError);
 
-    return tmp<GeometricField<TYPE, pointPatchField, pointMesh>>(nullptr);
+    return tmp<PointField<TYPE>>(nullptr);
 }
 
 
@@ -324,7 +324,7 @@ template<class Type>
 Foam::interpolationCellPointWallModified<Type>::
 interpolationCellPointWallModified
 (
-    const GeometricField<Type, fvPatchField, volMesh>& psi
+    const VolField<Type>& psi
 )
 :
     interpolationCellPoint<Type>(psi, calcPointField(psi))
