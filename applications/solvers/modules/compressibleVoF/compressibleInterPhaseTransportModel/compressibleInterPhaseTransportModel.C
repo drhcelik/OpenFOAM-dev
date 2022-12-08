@@ -92,7 +92,7 @@ Foam::compressibleInterPhaseTransportModel::compressibleInterPhaseTransportModel
             )
         );
 
-        turbulence1_ =
+        momentumTransport1_ =
         (
             phaseCompressible::momentumTransportModel::New
             (
@@ -105,7 +105,7 @@ Foam::compressibleInterPhaseTransportModel::compressibleInterPhaseTransportModel
             )
         );
 
-        turbulence2_ =
+        momentumTransport2_ =
         (
             phaseCompressible::momentumTransportModel::New
             (
@@ -120,7 +120,7 @@ Foam::compressibleInterPhaseTransportModel::compressibleInterPhaseTransportModel
     }
     else
     {
-        turbulence_ = compressible::momentumTransportModel::New
+        mixtureMomentumTransport_ = compressible::momentumTransportModel::New
         (
             rho,
             U,
@@ -128,50 +128,12 @@ Foam::compressibleInterPhaseTransportModel::compressibleInterPhaseTransportModel
             mixture
         );
 
-        turbulence_->validate();
+        mixtureMomentumTransport_->validate();
     }
 }
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-Foam::tmp<Foam::volScalarField>
-Foam::compressibleInterPhaseTransportModel::alphaEff() const
-{
-    if (twoPhaseTransport_)
-    {
-        return
-            mixture_.alpha1()
-           *(
-                mixture_.thermo1().kappa()
-              + mixture_.thermo1().rho()*mixture_.thermo1().Cp()
-               *turbulence1_->nut()
-            )/mixture_.thermo1().Cv()
-          + mixture_.alpha2()
-           *(
-                mixture_.thermo2().kappa()
-              + mixture_.thermo2().rho()*mixture_.thermo2().Cp()
-               *turbulence2_->nut()
-            )/mixture_.thermo2().Cv();
-    }
-    else
-    {
-        return
-            mixture_.alpha1()
-           *(
-                mixture_.thermo1().kappa()
-              + mixture_.thermo1().rho()*mixture_.thermo1().Cp()
-               *turbulence_->nut()
-            )/mixture_.thermo1().Cv()
-          + mixture_.alpha2()
-           *(
-                mixture_.thermo2().kappa()
-              + mixture_.thermo2().rho()*mixture_.thermo2().Cp()
-               *turbulence_->nut()
-            )/mixture_.thermo2().Cv();
-    }
-}
-
 
 Foam::tmp<Foam::fvVectorMatrix>
 Foam::compressibleInterPhaseTransportModel::divDevTau
@@ -182,12 +144,12 @@ Foam::compressibleInterPhaseTransportModel::divDevTau
     if (twoPhaseTransport_)
     {
         return
-            turbulence1_->divDevTau(U)
-          + turbulence2_->divDevTau(U);
+            momentumTransport1_->divDevTau(U)
+          + momentumTransport2_->divDevTau(U);
     }
     else
     {
-        return turbulence_->divDevTau(U);
+        return mixtureMomentumTransport_->divDevTau(U);
     }
 }
 
@@ -209,12 +171,12 @@ void Foam::compressibleInterPhaseTransportModel::correct()
 {
     if (twoPhaseTransport_)
     {
-        turbulence1_->correct();
-        turbulence2_->correct();
+        momentumTransport1_->correct();
+        momentumTransport2_->correct();
     }
     else
     {
-        turbulence_->correct();
+        mixtureMomentumTransport_->correct();
     }
 }
 
