@@ -41,7 +41,6 @@ SourceFiles
 \*---------------------------------------------------------------------------*/
 
 #include "Function2.H"
-#include "MeshObjects.H"
 
 #ifndef Fickian_H
 #define Fickian_H
@@ -144,7 +143,7 @@ public:
         virtual tmp<fvScalarMatrix> divj(volScalarField& Yi) const;
 
         //- Update the diffusion coefficients
-        virtual void correct();
+        virtual void predict();
 
 
         // Mesh changes
