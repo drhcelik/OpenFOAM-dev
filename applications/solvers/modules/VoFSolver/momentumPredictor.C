@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2022 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2022-2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -55,7 +55,7 @@ void Foam::solvers::VoFSolver::momentumPredictor()
             fvc::reconstruct
             (
                 (
-                    interface.surfaceTensionForce()
+                    surfaceTensionForce()
                   - buoyancy.ghf*fvc::snGrad(rho)
                   - fvc::snGrad(p_rgh)
                 ) * mesh.magSf()

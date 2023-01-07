@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,51 +23,19 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "phase.H"
+#include "VoFMixture.H"
+
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+
+namespace Foam
+{
+    defineTypeNameAndDebug(VoFMixture, 0);
+}
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::phase::phase(const word& phaseName, const fvMesh& mesh)
-:
-    volScalarField
-    (
-        IOobject
-        (
-            IOobject::groupName("alpha", phaseName),
-            mesh.time().name(),
-            mesh,
-            IOobject::MUST_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh
-    ),
-    name_(phaseName),
-    nuModel_(viscosityModel::New(mesh, phaseName)),
-    rho_("rho", dimDensity, nuModel_())
+Foam::VoFMixture::VoFMixture(const fvMesh& mesh)
 {}
-
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-Foam::autoPtr<Foam::phase> Foam::phase::clone() const
-{
-    NotImplemented;
-    return autoPtr<phase>(nullptr);
-}
-
-
-void Foam::phase::correct()
-{
-    nuModel_->correct();
-}
-
-
-bool Foam::phase::read(const dictionary& phaseDict)
-{
-    phaseDict.lookup("rho") >> rho_;
-
-    return true;
-}
 
 
 // ************************************************************************* //
