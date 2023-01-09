@@ -23,24 +23,44 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "UPtrDictionary.H"
+#include "incompressiblePhase.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-template<class T>
-Foam::UPtrDictionary<T>::UPtrDictionary(const label size)
+Foam::incompressiblePhase::incompressiblePhase
+(
+    const word& name,
+    const fvMesh& mesh
+)
 :
-    DictionaryBase<UDLPtrList<T>, T>(size)
+    phase(name, mesh),
+    nuModel_(viscosityModel::New(mesh, name)),
+    rho_("rho", dimDensity, nuModel_())
 {}
 
 
-template<class T>
-Foam::UPtrDictionary<T>::UPtrDictionary(const UPtrDictionary& dict)
-:
-    DictionaryBase<UDLPtrList<T>, T>(dict)
-{}
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+Foam::autoPtr<Foam::incompressiblePhase>
+Foam::incompressiblePhase::clone() const
+{
+    NotImplemented;
+    return autoPtr<incompressiblePhase>(nullptr);
+}
 
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+void Foam::incompressiblePhase::correct()
+{
+    nuModel_->correct();
+}
+
+
+bool Foam::incompressiblePhase::read(const dictionary& dict)
+{
+    dict.lookup("rho") >> rho_;
+
+    return true;
+}
+
 
 // ************************************************************************* //

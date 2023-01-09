@@ -23,105 +23,44 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "LPtrList.H"
+#include "ULPtrList.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class LListBase, class T>
-Foam::LPtrList<LListBase, T>::LPtrList(const LPtrList<LListBase, T>& lst)
-:
-    ULPtrList<LListBase, T>()
+Foam::ULPtrList<LListBase, T>::ULPtrList(const ULPtrList<LListBase, T>& lst)
 {
-    for
-    (
-        typename ULPtrList<LListBase, T>::const_iterator iter = lst.begin();
-        iter != lst.end();
-        ++iter
-    )
+    for (const_iterator iter = lst.begin(); iter != lst.end(); ++iter)
     {
-        this->append(iter().clone().ptr());
+        this->append(&iter());
     }
 }
 
 
 template<class LListBase, class T>
-Foam::LPtrList<LListBase, T>::LPtrList(LPtrList<LListBase, T>&& lst)
-:
-    ULPtrList<LListBase, T>()
+Foam::ULPtrList<LListBase, T>::ULPtrList(ULPtrList<LListBase, T>&& lst)
 {
     transfer(lst);
-}
-
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-template<class LListBase, class T>
-Foam::LPtrList<LListBase, T>::~LPtrList()
-{
-    this->clear();
-}
-
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-template<class LListBase, class T>
-bool Foam::LPtrList<LListBase, T>::eraseHead()
-{
-    T* tPtr;
-    if ((tPtr = this->removeHead()))
-    {
-        delete tPtr;
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-
-template<class LListBase, class T>
-void Foam::LPtrList<LListBase, T>::clear()
-{
-    const label oldSize = this->size();
-    for (label i=0; i<oldSize; ++i)
-    {
-        eraseHead();
-    }
-
-    LList<LListBase, T*>::clear();
-}
-
-
-template<class LListBase, class T>
-void Foam::LPtrList<LListBase, T>::transfer(LPtrList<LListBase, T>& lst)
-{
-    clear();
-    LList<LListBase, T*>::transfer(lst);
 }
 
 
 // * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //
 
 template<class LListBase, class T>
-void Foam::LPtrList<LListBase, T>::operator=(const LPtrList<LListBase, T>& lst)
+void Foam::ULPtrList<LListBase, T>::operator=
+(
+    const ULPtrList<LListBase, T>& lst
+)
 {
-    clear();
-
-    for
-    (
-        typename ULPtrList<LListBase, T>::const_iterator iter = lst.begin();
-        iter != lst.end();
-        ++iter
-    )
+    for (const_iterator iter = lst.begin(); iter != lst.end(); ++iter)
     {
-        this->append(iter().clone().ptr());
+        this->append(&iter());
     }
 }
 
 
 template<class LListBase, class T>
-void Foam::LPtrList<LListBase, T>::operator=(LPtrList<LListBase, T>&& lst)
+void Foam::ULPtrList<LListBase, T>::operator=(ULPtrList<LListBase, T>&& lst)
 {
     transfer(lst);
 }
@@ -129,7 +68,7 @@ void Foam::LPtrList<LListBase, T>::operator=(LPtrList<LListBase, T>&& lst)
 
 // * * * * * * * * * * * * * * * Friend Operators  * * * * * * * * * * * * * //
 
-#include "LPtrListIO.C"
+#include "ULPtrListIO.C"
 
 
 // ************************************************************************* //
