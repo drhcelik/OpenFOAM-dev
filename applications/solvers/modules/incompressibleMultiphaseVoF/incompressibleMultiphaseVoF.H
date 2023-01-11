@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2022-2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,46 +22,38 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::solvers::compressibleVoF
+    Foam::solvers::incompressibleMultiphaseVoF
 
 Description
-    Solver module for for 2 compressible, non-isothermal immiscible fluids
-    using a VOF (volume of fluid) phase-fraction based interface capturing
-    approach, with optional mesh motion and mesh topology changes including
-    adaptive re-meshing.
+    Solver module for the solution of multiple incompressible, isothermal
+    immiscible fluids using a VOF (volume of fluid) phase-fraction based
+    interface capturing approach, with optional mesh motion and mesh topology
+    changes including adaptive re-meshing.
 
     The momentum and other fluid properties are of the "mixture" and a single
     momentum equation is solved.
 
-    Either mixture or two-phase transport modelling may be selected.  In the
-    mixture approach a single laminar, RAS or LES model is selected to model the
-    momentum stress.  In the Euler-Euler two-phase approach separate laminar,
-    RAS or LES selected models are selected for each of the phases.
+    A mixture approach for momentum transport is provided in which a single
+    laminar, RAS or LES model is selected to model the momentum stress.
 
     Uses the flexible PIMPLE (PISO-SIMPLE) solution for time-resolved and
     pseudo-transient and steady simulations.
 
-    Optional fvModels and fvConstraints are provided to enhance the simulation
-    in many ways including adding various sources, Lagrangian
-    particles, surface film etc. and constraining or limiting the solution.
-
 SourceFiles
-    compressibleVoF.C
+    incompressibleMultiphaseVoF.C
 
 See also
     Foam::solvers::VoFSolver
-    Foam::solvers::twoPhaseVoFSolver
-    Foam::solvers::incompressibleVoF
+    Foam::solvers::multiphaseVoFSolver
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef compressibleVoF_H
-#define compressibleVoF_H
+#ifndef incompressibleMultiphaseVoF_H
+#define incompressibleMultiphaseVoF_H
 
-#include "twoPhaseVoFSolver.H"
-#include "compressibleTwoPhaseVoFMixture.H"
-#include "compressibleInterPhaseTransportModel.H"
-#include "compressibleInterPhaseThermophysicalTransportModel.H"
+#include "multiphaseVoFSolver.H"
+#include "incompressibleMultiphaseVoFMixture.H"
+#include "incompressibleMomentumTransportModels.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -71,12 +63,12 @@ namespace solvers
 {
 
 /*---------------------------------------------------------------------------*\
-                          Class compressibleVoF Declaration
+                          Class incompressibleMultiphaseVoF Declaration
 \*---------------------------------------------------------------------------*/
 
-class compressibleVoF
+class incompressibleMultiphaseVoF
 :
-    public twoPhaseVoFSolver
+    public multiphaseVoFSolver
 {
 
 protected:
@@ -84,16 +76,16 @@ protected:
     // Phase properties
 
         //- The compressible two-phase mixture
-        compressibleTwoPhaseVoFMixture& mixture;
+        incompressibleMultiphaseVoFMixture& mixture;
+
+        //- Reference to the phases
+        UPtrListDictionary<incompressibleVoFphase>& phases;
 
 
     // Thermophysical properties
 
-        //- Reference to the mixture static pressure field
-        volScalarField& p;
-
-        //- Compressibility source
-        volScalarField::Internal dgdt;
+        //- Static pressure field
+        volScalarField p;
 
 
     // Pressure reference
@@ -101,46 +93,15 @@ protected:
         //- Pressure reference
         Foam::pressureReference pressureReference_;
 
-        //- Minimum pressure
-        dimensionedScalar pMin;
-
-
-    // Kinematic properties
-
-        // Phase-1 mass-flux
-        surfaceScalarField alphaRhoPhi1;
-
-        // Phase-2 mass-flux
-        surfaceScalarField alphaRhoPhi2;
-
-        //- Kinetic energy field
-        //  Used in the energy equation
-        volScalarField K;
-
 
     // Momentum transport
 
+        //- Momentum transport model pointer
+        autoPtr<incompressible::momentumTransportModel> momentumTransport_;
+
         //- Momentum transport model
-        compressibleInterPhaseTransportModel momentumTransport;
+        incompressible::momentumTransportModel& momentumTransport;
 
-
-    // Thermophysical transport
-
-        //- Thermophysical transport model
-        compressibleInterPhaseThermophysicalTransportModel
-            thermophysicalTransport;
-
-
-    // Cached temporary fields
-
-        //- Phase-1 continuity error
-        tmp<volScalarField::Internal> contErr1;
-
-        //- Phase-2 continuity error
-        tmp<volScalarField::Internal> contErr2;
-
-
-protected:
 
     // Protected Member Functions
 
@@ -150,49 +111,57 @@ protected:
             return pressureReference_;
         }
 
-        //- Compressible flow is divergent
+        //- Is the flow divergent?
+        //  i.e. includes phase-fraction sources
         virtual bool divergent()
         {
-            return true;
+            return false;
         }
 
-        //- Calculate the alpha equation sources
-        virtual void alphaSuSp
-        (
-            tmp<volScalarField::Internal>& Su,
-            tmp<volScalarField::Internal>& Sp
-        );
-
         //- Return the momentum equation stress term
-        virtual tmp<fvVectorMatrix> divDevTau(volVectorField& U);
+        virtual tmp<fvVectorMatrix> divDevTau(volVectorField& U)
+        {
+            return momentumTransport.divDevTau(rho, U);
+        }
+
+        //- Solve for the phase-fractions
+        virtual void alphaPredictor();
+
+
+private:
+
+    // Private Member Functions
+
+        //- Solve for the phase-fractions
+        void alphaSolve(const dictionary& alphaControls);
 
 
 public:
 
     //- Runtime type information
-    TypeName("compressibleVoF");
+    TypeName("incompressibleMultiphaseVoF");
 
 
     // Constructors
 
         //- Construct from region mesh
-        compressibleVoF(fvMesh& mesh);
+        incompressibleMultiphaseVoF(fvMesh& mesh);
 
         //- Disallow default bitwise copy construction
-        compressibleVoF(const compressibleVoF&) = delete;
+        incompressibleMultiphaseVoF
+        (
+            const incompressibleMultiphaseVoF&
+        ) = delete;
 
 
     //- Destructor
-    virtual ~compressibleVoF();
+    virtual ~incompressibleMultiphaseVoF();
 
 
     // Member Functions
 
         //- Called at the start of the PIMPLE loop
         virtual void prePredictor();
-
-        //- Construct and optionally solve the momentum equation
-        virtual void momentumPredictor();
 
         //- Construct and solve the energy equation,
         //  convert to temperature
@@ -209,7 +178,7 @@ public:
     // Member Operators
 
         //- Disallow default bitwise assignment
-        void operator=(const compressibleVoF&) = delete;
+        void operator=(const incompressibleMultiphaseVoF&) = delete;
 };
 
 
