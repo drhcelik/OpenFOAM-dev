@@ -9,40 +9,25 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    location    "system";
-    object      controlDict;
+    location    "constant";
+    object      momentumTransport;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-application     moveMesh;
+simulationType RAS;
 
-startFrom       startTime;
+RAS
+{
+    // Tested with kEpsilon, realizableKE, kOmega, kOmega2006, kOmegaSST, v2f,
+    // ShihQuadraticKE, LienCubicKE.
+    model           kEpsilon;
 
-startTime       0;
+    turbulence      on;
 
-stopAt          endTime;
+    printCoeffs     on;
 
-endTime         25;
-
-deltaT          1;
-
-writeControl    timeStep;
-
-writeInterval   5;
-
-purgeWrite      0;
-
-writeFormat     binary;
-
-writePrecision  6;
-
-writeCompression off;
-
-timeFormat      general;
-
-timePrecision   6;
-
-runTimeModifiable yes;
+    viscosityModel  Newtonian;
+}
 
 
 // ************************************************************************* //

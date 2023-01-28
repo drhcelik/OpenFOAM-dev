@@ -23,24 +23,40 @@
 #     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Script
-#     moveDynamicMesh
+#     scalarTransportFoam
 #
 # Description
-#     Script to inform the user that moveDynamicMesh has been superseded
-#     and replaced by the more general movingMesh solver module
+#     Script to inform the user that scalarTransportFoam has been superseded
+#     and replaced by the more general functions solver module
 #     executed by the foamRun application.
+#
+#     The solver specified by either the subSolver or if not present the solver
+#     entry in the controlDict is instantiated to provide the physical fields
+#     needed by the functionObjects.  The functionObjects are then instantiated
+#     from the specifications are read from the functions entry in the
+#     controlDict and executed in a time-loop also controlled by entries in
+#     controlDict and the maxDeltaT() returned by the sub-solver.
+#
+#     See tutorials/modules/incompressibleFluid/pitzDailyScalarTransport
 #
 #------------------------------------------------------------------------------
 
 cat <<EOF
 
-moveDynamicMesh has been superseded and replaced by the more general
-movingMesh solver module executed by the foamRun application:
+scalarTransportFoam has been superseded and replaced by the more general
+functions solver module executed by the foamRun application:
 
-    foamRun -solver movingMesh
+    foamRun -solver functions
+
+The solver specified by either the subSolver or if not present the solver entry
+in the controlDict is instantiated to provide the physical fields needed by the
+functionObjects.  The functionObjects are then instantiated from the
+specifications are read from the functions entry in the controlDict and executed
+in a time-loop also controlled by entries in controlDict and the maxDeltaT()
+returned by the sub-solver.  See:
+
+    tutorials/modules/incompressibleFluid/pitzDailyScalarTransport
 
 EOF
-
-exec env foamRun -solver movingMesh "$@"
 
 #------------------------------------------------------------------------------

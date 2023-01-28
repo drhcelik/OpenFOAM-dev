@@ -10,25 +10,41 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "system";
-    object      fvSolution;
+    object      controlDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-solvers
-{
-    T
-    {
-        solver          PBiCGStab;
-        preconditioner  DILU;
-        tolerance       1e-06;
-        relTol          0;
-    }
-}
+application     foamRun;
 
-SIMPLE
-{
-    nNonOrthogonalCorrectors 0;
-}
+solver          movingMesh;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         25;
+
+deltaT          1;
+
+writeControl    timeStep;
+
+writeInterval   5;
+
+purgeWrite      0;
+
+writeFormat     binary;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
 
 
 // ************************************************************************* //
