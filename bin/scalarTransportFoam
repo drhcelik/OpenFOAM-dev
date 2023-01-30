@@ -32,12 +32,12 @@
 #
 #     The solver specified by either the subSolver or if not present the solver
 #     entry in the controlDict is instantiated to provide the physical fields
-#     needed by the functionObjects.  The functionObjects are then instantiated
-#     from the specifications are read from the functions entry in the
-#     controlDict and executed in a time-loop also controlled by entries in
-#     controlDict and the maxDeltaT() returned by the sub-solver.
+#     needed by the functionObjects.  The scalarTransport functionObject is then
+#     instantiated from the functions entry in the controlDict and executed in a
+#     time-loop also controlled by entries in controlDict and the maxDeltaT()
+#     returned by the sub-solver.  See:
 #
-#     See tutorials/modules/incompressibleFluid/pitzDailyScalarTransport
+#         tutorials/modules/incompressibleFluid/pitzDailyScalarTransport
 #
 #------------------------------------------------------------------------------
 
@@ -50,10 +50,10 @@ functions solver module executed by the foamRun application:
 
 The solver specified by either the subSolver or if not present the solver entry
 in the controlDict is instantiated to provide the physical fields needed by the
-functionObjects.  The functionObjects are then instantiated from the
-specifications are read from the functions entry in the controlDict and executed
-in a time-loop also controlled by entries in controlDict and the maxDeltaT()
-returned by the sub-solver.  See:
+functionObjects.  The scalarTransport functionObject is then instantiated from
+the functions entry in the controlDict and executed in a time-loop also
+controlled by entries in controlDict and the maxDeltaT() returned by the
+sub-solver.  See:
 
     tutorials/modules/incompressibleFluid/pitzDailyScalarTransport
 
