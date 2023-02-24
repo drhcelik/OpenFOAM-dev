@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2018 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,63 +21,30 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-InNamespace
-    Foam
+Global
+    meshCourantNo
 
 Description
-    Interpolates y values from one curve to another with a different x
-    distribution.
-
-    Uses Catmull-Rom spline interpolation between points.
-
-SourceFiles
-    interpolateSplineXY.C
+    Calculates and outputs the mean and maximum Courant Numbers.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef interpolateSplineXY_H
-#define interpolateSplineXY_H
+scalar meshCoNum = 0.0;
+scalar meanMeshCoNum = 0.0;
 
-#include "scalar.H"
-#include "primitiveFieldsFwd.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-namespace Foam
 {
+    scalarField sumPhi
+    (
+        fvc::surfaceSum(mag(mesh.phi()))().primitiveField()
+    );
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    meshCoNum = 0.5*gMax(sumPhi/mesh.V().field())*runTime.deltaTValue();
 
-template<class Type>
-Field<Type> interpolateSplineXY
-(
-    const scalarField& xNew,
-    const scalarField& xOld,
-    const Field<Type>& yOld
-);
+    meanMeshCoNum =
+        0.5*(gSum(sumPhi)/gSum(mesh.V().field()))*runTime.deltaTValue();
+}
 
-
-template<class Type>
-Type interpolateSplineXY
-(
-    const scalar x,
-    const scalarField& xOld,
-    const Field<Type>& yOld
-);
-
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-} // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#ifdef NoRepository
-    #include "interpolateSplineXY.C"
-#endif
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
+Info<< "Mesh Courant Number mean: " << meanMeshCoNum
+    << " max: " << meshCoNum << endl;
 
 // ************************************************************************* //
