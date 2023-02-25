@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2020-2022 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,27 +23,42 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "twoResistanceHeatTransferPhaseSystem.H"
+#include "contactAngleModel.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    template<>
-    const char* NamedEnum
-    <
-        Foam::twoResistanceHeatTransferPhaseSystem::latentHeatTransfer,
-        2
-    >::names[] = {"heat", "mass"};
+    defineTypeNameAndDebug(contactAngleModel, 0);
+    defineRunTimeSelectionTable(contactAngleModel, dictionary);
 }
 
 
-const Foam::NamedEnum
-<
-    Foam::twoResistanceHeatTransferPhaseSystem::latentHeatTransfer,
-    2
->
-Foam::twoResistanceHeatTransferPhaseSystem::latentHeatTransferNames_;
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+Foam::contactAngleModel::contactAngleModel()
+{}
+
+
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+
+Foam::contactAngleModel::~contactAngleModel()
+{}
+
+
+// * * * * * * * * * * * * * * * IOstream Functions  * * * * * * * * * * * * //
+
+void Foam::writeEntry(Ostream& os, const contactAngleModel& ca)
+{
+    writeKeyword(os, "contactAngle")
+        << nl << indent << token::BEGIN_BLOCK << nl << incrIndent;
+
+    writeEntry(os, "type", ca.type());
+
+    ca.write(os);
+
+    os  << decrIndent << indent << token::END_BLOCK << endl;
+}
 
 
 // ************************************************************************* //
