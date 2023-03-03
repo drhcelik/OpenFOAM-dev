@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,21 +22,22 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::mappedPolyPatch
+    Foam::mappedFilmSurfacePolyPatch
 
 Description
-    Patch which holds a mapping engine to map values from another patch
+    Film surface patch which holds a mapping engine to map values
+    from another patch
 
 SourceFiles
-    mappedPolyPatch.C
+    mappedFilmSurfacePolyPatch.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef mappedPolyPatch_H
-#define mappedPolyPatch_H
+#ifndef mappedFilmSurfacePolyPatch_H
+#define mappedFilmSurfacePolyPatch_H
 
-#include "polyPatch.H"
-#include "mappedPatchBase.H"
+#include "filmSurfacePolyPatch.H"
+#include "mappedExtrudedPatchBase.H"
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -44,16 +45,17 @@ SourceFiles
 namespace Foam
 {
 
+class polyMesh;
+
 /*---------------------------------------------------------------------------*\
-                       Class mappedPolyPatch Declaration
+                     Class mappedFilmSurfacePolyPatch Declaration
 \*---------------------------------------------------------------------------*/
 
-class mappedPolyPatch
+class mappedFilmSurfacePolyPatch
 :
-    public polyPatch,
-    public mappedPatchBase
+    public filmSurfacePolyPatch,
+    public mappedExtrudedPatchBase
 {
-
 protected:
 
     // Protected Member Functions
@@ -71,13 +73,13 @@ protected:
 public:
 
     //- Runtime type information
-    TypeName("mapped");
+    TypeName("mappedFilmSurface");
 
 
     // Constructors
 
         //- Construct from components
-        mappedPolyPatch
+        mappedFilmSurfacePolyPatch
         (
             const word& name,
             const label size,
@@ -87,8 +89,21 @@ public:
             const word& patchType
         );
 
+        //- Construct from components
+        mappedFilmSurfacePolyPatch
+        (
+            const word& name,
+            const label size,
+            const label start,
+            const label index,
+            const word& neighbourRegion,
+            const word& neighbourPatch,
+            const word& bottomPatch,
+            const polyBoundaryMesh& bm
+        );
+
         //- Construct from dictionary
-        mappedPolyPatch
+        mappedFilmSurfacePolyPatch
         (
             const word& name,
             const dictionary& dict,
@@ -98,17 +113,17 @@ public:
         );
 
         //- Construct as copy, resetting the boundary mesh
-        mappedPolyPatch
+        mappedFilmSurfacePolyPatch
         (
-            const mappedPolyPatch&,
+            const mappedFilmSurfacePolyPatch&,
             const polyBoundaryMesh&
         );
 
         //- Construct given the original patch and resetting the
         //  face list and boundary mesh information
-        mappedPolyPatch
+        mappedFilmSurfacePolyPatch
         (
-            const mappedPolyPatch& pp,
+            const mappedFilmSurfacePolyPatch& pp,
             const polyBoundaryMesh& bm,
             const label index,
             const label newSize,
@@ -118,7 +133,10 @@ public:
         //- Construct and return a clone, resetting the boundary mesh
         virtual autoPtr<polyPatch> clone(const polyBoundaryMesh& bm) const
         {
-            return autoPtr<polyPatch>(new mappedPolyPatch(*this, bm));
+            return autoPtr<polyPatch>
+            (
+                new mappedFilmSurfacePolyPatch(*this, bm)
+            );
         }
 
         //- Construct and return a clone, resetting the face list
@@ -133,13 +151,20 @@ public:
         {
             return autoPtr<polyPatch>
             (
-                new mappedPolyPatch(*this, bm, index, newSize, newStart)
+                new mappedFilmSurfacePolyPatch
+                (
+                    *this,
+                    bm,
+                    index,
+                    newSize,
+                    newStart
+                )
             );
         }
 
 
     //- Destructor
-    virtual ~mappedPolyPatch();
+    virtual ~mappedFilmSurfacePolyPatch();
 
 
     // Member Functions

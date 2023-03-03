@@ -22,28 +22,18 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::HashList
-
-Description
-    HashList class. Like HashTable, but much less dynamic memory-y. Should be
-    faster for small sets of non-dynamic primitive types (labels, edges,
-    points, etc...). It is also much less functional at present. There is no
-    re-sizing, so you have to make sure it is constructed sufficiently large to
-    hold all the data that will ever be inserted into it.
+    Foam::mappedExtrudedWallPointPatch
 
 SourceFiles
-    HashList.C
+    mappedExtrudedWallPointPatch.C
 
 \*---------------------------------------------------------------------------*/
 
-#include "List.H"
-#include "Tuple2.H"
-#include "word.H"
+#ifndef mappedExtrudedWallPointPatch_H
+#define mappedExtrudedWallPointPatch_H
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#ifndef HashList_H
-#define HashList_H
+#include "wallPointPatch.H"
+#include "mappedExtrudedWallPolyPatch.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -51,60 +41,37 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                          Class HashList Declaration
+                    Class mappedExtrudedWallPointPatch Declaration
 \*---------------------------------------------------------------------------*/
 
-template<class Type, class Key=word, class Hash=string::hash>
-class HashList
+class mappedExtrudedWallPointPatch
 :
-    private List<Tuple2<Key, Type>>
+    public wallPointPatch
 {
+
 public:
 
-    // Public Static Member Data
-
-        //- Null key value for unset elements in the list
-        static const Key nullKey;
+    //- Runtime type information
+    TypeName(mappedExtrudedWallPolyPatch::typeName_());
 
 
     // Constructors
 
-        //- Construct given a size
-        HashList(const label size);
-
-
-    // Member Functions
-
-        //- The size of the underlying list
-        inline label capacity() const;
-
-        //- Clear all elements
-        void clear();
-
-        //- Resize and clear all elements
-        void resizeAndClear(const label newSize);
-
-        //- Insert into the hash list. Return true if the value was newly
-        //  inserted, or false if it was already there.
-        bool insert(const Key& k, const Type& t);
-
-
-    // Member Operators
-
-        //- Retrieve from the hash list
-        const Type& operator[](const Key& k) const;
+        //- Construct from polyPatch
+        mappedExtrudedWallPointPatch
+        (
+            const polyPatch& patch,
+            const pointBoundaryMesh& bm
+        )
+        :
+            wallPointPatch(patch, bm)
+        {}
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#ifdef NoRepository
-    #include "HashList.C"
-#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2022 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,18 +22,18 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::mappedExtrudedWallPointPatch
+    Foam::mappedFilmSurfacePointPatch
 
 SourceFiles
-    mappedExtrudedWallPointPatch.C
+    mappedFilmSurfacePointPatch.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef mappedExtrudedWallPointPatch_H
-#define mappedExtrudedWallPointPatch_H
+#ifndef mappedFilmSurfacePointPatch_H
+#define mappedFilmSurfacePointPatch_H
 
-#include "wallPointPatch.H"
-#include "mappedExtrudedWallPolyPatch.H"
+#include "filmSurfacePointPatch.H"
+#include "mappedFilmSurfacePolyPatch.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -41,30 +41,30 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                    Class mappedExtrudedWallPointPatch Declaration
+                    Class mappedFilmSurfacePointPatch Declaration
 \*---------------------------------------------------------------------------*/
 
-class mappedExtrudedWallPointPatch
+class mappedFilmSurfacePointPatch
 :
-    public wallPointPatch
+    public filmSurfacePointPatch
 {
 
 public:
 
     //- Runtime type information
-    TypeName(mappedExtrudedWallPolyPatch::typeName_());
+    TypeName(mappedFilmSurfacePolyPatch::typeName_());
 
 
     // Constructors
 
         //- Construct from polyPatch
-        mappedExtrudedWallPointPatch
+        mappedFilmSurfacePointPatch
         (
             const polyPatch& patch,
             const pointBoundaryMesh& bm
         )
         :
-            wallPointPatch(patch, bm)
+            filmSurfacePointPatch(patch, bm)
         {}
 };
 

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2022 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,29 +23,15 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "mappedExtrudedWallPointPatch.H"
+#include "mappedFilmSurfaceFvPatch.H"
 #include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-defineTypeNameAndDebug(mappedExtrudedWallPointPatch, 0);
-
-// Add the patch constructor functions to the hash tables
-addToRunTimeSelectionTable
-(
-    facePointPatch,
-    mappedExtrudedWallPointPatch,
-    polyPatch
-);
-
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-} // End namespace Foam
+    defineTypeNameAndDebug(mappedFilmSurfaceFvPatch, 0);
+    addToRunTimeSelectionTable(fvPatch, mappedFilmSurfaceFvPatch, polyPatch);
+}
 
 // ************************************************************************* //

@@ -56,8 +56,7 @@ Foam::mappedFilmWallPolyPatch::mappedFilmWallPolyPatch
 )
 :
     filmWallPolyPatch(name, size, start, index, bm, patchType),
-    mappedPatchBase(static_cast<const polyPatch&>(*this)),
-    reMapAfterMove_(true)
+    mappedPatchBase(static_cast<const polyPatch&>(*this))
 {
     //  mapped is not constraint type so add mapped group explicitly
     if (findIndex(inGroups(), mappedPolyPatch::typeName) == -1)
@@ -85,8 +84,7 @@ Foam::mappedFilmWallPolyPatch::mappedFilmWallPolyPatch
         neighbourRegion,
         neighbourPatch,
         cyclicTransform(true)
-    ),
-    reMapAfterMove_(true)
+    )
 {}
 
 
@@ -100,8 +98,7 @@ Foam::mappedFilmWallPolyPatch::mappedFilmWallPolyPatch
 )
 :
     filmWallPolyPatch(name, dict, index, bm, patchType),
-    mappedPatchBase(*this, dict, true),
-    reMapAfterMove_(dict.lookupOrDefault<bool>("reMapAfterMove", true))
+    mappedPatchBase(*this, dict, true)
 {
     //  mapped is not constraint type so add mapped group explicitly
     if (findIndex(inGroups(), mappedPolyPatch::typeName) == -1)
@@ -118,8 +115,7 @@ Foam::mappedFilmWallPolyPatch::mappedFilmWallPolyPatch
 )
 :
     filmWallPolyPatch(pp, bm),
-    mappedPatchBase(*this, pp),
-    reMapAfterMove_(true)
+    mappedPatchBase(*this, pp)
 {}
 
 
@@ -133,8 +129,7 @@ Foam::mappedFilmWallPolyPatch::mappedFilmWallPolyPatch
 )
 :
     filmWallPolyPatch(pp, bm, index, newSize, newStart),
-    mappedPatchBase(*this, pp),
-    reMapAfterMove_(true)
+    mappedPatchBase(*this, pp)
 {}
 
 
@@ -146,26 +141,10 @@ Foam::mappedFilmWallPolyPatch::~mappedFilmWallPolyPatch()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::mappedFilmWallPolyPatch::initCalcGeometry(PstreamBuffers& pBufs)
-{
-    filmWallPolyPatch::initCalcGeometry(pBufs);
-}
-
-
 void Foam::mappedFilmWallPolyPatch::calcGeometry(PstreamBuffers& pBufs)
 {
     filmWallPolyPatch::calcGeometry(pBufs);
     mappedPatchBase::clearOut();
-}
-
-
-void Foam::mappedFilmWallPolyPatch::initMovePoints
-(
-    PstreamBuffers& pBufs,
-    const pointField& p
-)
-{
-    filmWallPolyPatch::initMovePoints(pBufs, p);
 }
 
 
@@ -176,16 +155,7 @@ void Foam::mappedFilmWallPolyPatch::movePoints
 )
 {
     filmWallPolyPatch::movePoints(pBufs, p);
-    if (reMapAfterMove_)
-    {
-        mappedPatchBase::clearOut();
-    }
-}
-
-
-void Foam::mappedFilmWallPolyPatch::initTopoChange(PstreamBuffers& pBufs)
-{
-    filmWallPolyPatch::initTopoChange(pBufs);
+    mappedPatchBase::clearOut();
 }
 
 
@@ -200,7 +170,6 @@ void Foam::mappedFilmWallPolyPatch::write(Ostream& os) const
 {
     filmWallPolyPatch::write(os);
     mappedPatchBase::write(os);
-    writeEntryIfDifferent<bool>(os, "reMapAfterMove", true, reMapAfterMove_);
 }
 
 
