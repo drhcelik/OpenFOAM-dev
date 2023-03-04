@@ -71,7 +71,7 @@ SourceFiles
 #define mappedValueFvPatchField_H
 
 #include "fixedValueFvPatchFields.H"
-#include "mappedPatchBase.H"
+#include "mappedFvPatchField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -85,36 +85,9 @@ namespace Foam
 template<class Type>
 class mappedValueFvPatchField
 :
-    public fixedValueFvPatchField<Type>
+    public fixedValueFvPatchField<Type>,
+    public mappedFvPatchField<Type>
 {
-protected:
-
-    // Protected Member Data
-
-        //- The field to map
-        const word fieldName_;
-
-        //- If true adjust the sampled field to maintain an average value
-        const bool setAverage_;
-
-        //- Average value the sampled field is adjusted to
-        const Type average_;
-
-        //- The mapping engine
-        autoPtr<mappedPatchBase> mapperPtr_;
-
-
-    // Protected Member Functions
-
-        //- Return the mapping engine
-        const mappedPatchBase& mapper() const;
-
-        //- Return the neighbouring patch field
-        const fvPatchField<Type>& nbrPatchField() const;
-
-        //- Return the mapped values, given the neighbouring field
-        tmp<Field<Type>> mappedValues(const Field<Type>& nbrPatchField) const;
-
 
 public:
 

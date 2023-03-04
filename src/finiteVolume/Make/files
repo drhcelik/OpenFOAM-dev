@@ -16,7 +16,6 @@ $(fvPatches)/fvPatch/fvPatchNew.C
 
 basicFvPatches = $(fvPatches)/basic
 $(basicFvPatches)/coupled/coupledFvPatch.C
-$(basicFvPatches)/generic/genericFvPatch.C
 
 constraintFvPatches = $(fvPatches)/constraint
 $(constraintFvPatches)/cyclic/cyclicFvPatch.C
@@ -193,6 +192,7 @@ $(derivedFvPatchFields)/inletOutlet/inletOutletFvPatchFields.C
 $(derivedFvPatchFields)/inletOutletTotalTemperature/inletOutletTotalTemperatureFvPatchScalarField.C
 $(derivedFvPatchFields)/mappedFlowRateVelocity/mappedFlowRateVelocityFvPatchVectorField.C
 $(derivedFvPatchFields)/mappedInternalValue/mappedInternalValueFvPatchFields.C
+$(derivedFvPatchFields)/mapped/mappedFvPatchFields.C
 $(derivedFvPatchFields)/mappedValue/mappedValueFvPatchFields.C
 $(derivedFvPatchFields)/mappedValueAndPatchInternalValue/mappedValueAndPatchInternalValueFvPatchFields.C
 $(derivedFvPatchFields)/mappedVelocityFlux/mappedVelocityFluxFvPatchField.C
