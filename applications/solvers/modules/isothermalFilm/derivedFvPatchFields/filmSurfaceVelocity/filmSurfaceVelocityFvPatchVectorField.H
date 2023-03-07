@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2022-2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,112 +22,108 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::MRFFreestreamVelocityFvPatchVectorField
+    Foam::filmSurfaceVelocityFvPatchVectorField
 
 Description
-    Freestream velocity condition to be used for a wall rotating with the
-    moving frame in an MRF (multi-reference frame) or SRF (single reference
-    frame) case.
+    Film surface velocity boundary condition
 
-    Given the free stream velocity in the absolute frame at time 0, the
-    condition applies the appropriate rotation transformation in time and space
-    to determine the current freestream velocity.
+    Evaluates the surface velocity from the shear imposed by the neighbouring
+    fluid velocity using a simple drag model based on the difference between the
+    fluid and film velocities multiplied by the coefficient \c Cs.  This simple
+    model is used in preference to the standard viscous shear stress model in
+    order to provide some means to include the drag enhancing effect
+    of surface ripples, rivulets etc. in the film surface.
 
 Usage
     \table
-        Property         | Description                | Required | Default value
-        freestreamValue0 | freestream velocity at t=0 | yes      |
-        freestreamValue  | freestream velocity at t   | yes      |
+        Property     | Description             | Required    | Default value
+        Cs           | Fluid-film drag coefficient | yes |
     \endtable
 
     Example of the boundary condition specification:
     \verbatim
     <patchName>
     {
-        type                MRFFreestreamVelocity;
-        freestreamValue0    (1 0 0);
-        freestreamValue     uniform (1 0 0);
+        type            filmSurfaceVelocity;
+        Cs              0.005;
     }
     \endverbatim
 
 See also
-    Foam::freestreamFvPatchField
-    Foam::MRFVelocityFvPatchVectorField
+    Foam::mixedFvPatchField
 
 SourceFiles
-    MRFFreestreamVelocityFvPatchVectorField.C
+    filmSurfaceVelocityFvPatchVectorField.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef MRFFreestreamVelocityFvPatchVectorField_H
-#define MRFFreestreamVelocityFvPatchVectorField_H
+#ifndef filmSurfaceVelocityFvPatchVectorField_H
+#define filmSurfaceVelocityFvPatchVectorField_H
 
-#include "freestreamVelocityFvPatchVectorField.H"
-#include "MRFPatchField.H"
+#include "mixedFvPatchFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-
 /*---------------------------------------------------------------------------*\
-           Class MRFFreestreamVelocityFvPatchVectorField Declaration
+          Class filmSurfaceVelocityFvPatchVectorField Declaration
 \*---------------------------------------------------------------------------*/
 
-class MRFFreestreamVelocityFvPatchVectorField
+class filmSurfaceVelocityFvPatchVectorField
 :
-    public freestreamVelocityFvPatchVectorField,
-    public MRFPatchField
+    public mixedFvPatchVectorField
 {
     // Private Data
 
-        //- Velocity of the free stream at time = 0
-        vector freestreamValue0_;
+        //- Fluid-film drag-coefficient
+        scalar Cs_;
 
 
 public:
 
-    //- Runtime type information
-    TypeName("MRFFreestreamVelocity");
+   //- Runtime type information
+   TypeName("filmSurfaceVelocity");
 
 
-    // Constructors
+   // Constructors
 
         //- Construct from patch and internal field
-        MRFFreestreamVelocityFvPatchVectorField
+        filmSurfaceVelocityFvPatchVectorField
         (
             const fvPatch&,
             const DimensionedField<vector, volMesh>&
         );
 
         //- Construct from patch, internal field and dictionary
-        MRFFreestreamVelocityFvPatchVectorField
+        filmSurfaceVelocityFvPatchVectorField
         (
             const fvPatch&,
             const DimensionedField<vector, volMesh>&,
             const dictionary&
         );
 
-        //- Construct by mapping given MRFFreestreamVelocityFvPatchVectorField
+        //- Construct by mapping given
+        //  filmSurfaceVelocityFvPatchVectorField
         //  onto a new patch
-        MRFFreestreamVelocityFvPatchVectorField
+        filmSurfaceVelocityFvPatchVectorField
         (
-            const MRFFreestreamVelocityFvPatchVectorField&,
+            const filmSurfaceVelocityFvPatchVectorField&,
             const fvPatch&,
             const DimensionedField<vector, volMesh>&,
             const fvPatchFieldMapper&
         );
 
         //- Disallow copy without setting internal field reference
-        MRFFreestreamVelocityFvPatchVectorField
+        filmSurfaceVelocityFvPatchVectorField
         (
-            const MRFFreestreamVelocityFvPatchVectorField&
+            const filmSurfaceVelocityFvPatchVectorField&
         ) = delete;
 
         //- Copy constructor setting internal field reference
-        MRFFreestreamVelocityFvPatchVectorField
+        filmSurfaceVelocityFvPatchVectorField
         (
-            const MRFFreestreamVelocityFvPatchVectorField&,
+            const filmSurfaceVelocityFvPatchVectorField&,
             const DimensionedField<vector, volMesh>&
         );
 
@@ -139,18 +135,19 @@ public:
         {
             return tmp<fvPatchVectorField>
             (
-                new MRFFreestreamVelocityFvPatchVectorField(*this, iF)
+                new filmSurfaceVelocityFvPatchVectorField
+                (
+                    *this,
+                    iF
+                )
             );
         }
 
 
     // Member Functions
 
-        // Evaluation functions
-
-            //- Update the coefficients associated with the patch field
-            virtual void updateCoeffs();
-
+        //- Update the coefficients associated with the patch field
+        virtual void updateCoeffs();
 
         //- Write
         virtual void write(Ostream&) const;
