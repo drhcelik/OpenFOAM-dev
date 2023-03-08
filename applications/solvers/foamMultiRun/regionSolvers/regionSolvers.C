@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2022 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2022-2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,6 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "regionSolvers.H"
+#include "solver.H"
 #include "Time.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -37,7 +38,13 @@ Foam::regionSolvers::regionSolvers(const Time& runTime)
 
         forAllConstIter(dictionary, regionSolversDict, iter)
         {
-            append(Pair<word>(iter().keyword(), iter().stream()));
+            const word regionName(iter().keyword());
+            const word solverName(iter().stream());
+
+            // Load the solver library
+            solver::load(solverName);
+
+            append(Pair<word>(regionName, solverName));
         }
     }
     else
@@ -45,6 +52,7 @@ Foam::regionSolvers::regionSolvers(const Time& runTime)
         // Partial backward-compatibility
         // Converts the regions entry in the regionProperties dictionary into
         // the regionSolvers list
+        // Only supports fluid and solid regions
 
         typeIOobject<IOdictionary> regionPropertiesHeader
         (

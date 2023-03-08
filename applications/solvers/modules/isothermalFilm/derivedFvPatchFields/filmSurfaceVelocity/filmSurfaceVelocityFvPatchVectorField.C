@@ -122,9 +122,11 @@ void Foam::filmSurfaceVelocityFvPatchVectorField::updateCoeffs()
     const fvPatch& patchNbr =
         refCast<const fvMesh>(mpp.nbrMesh()).boundary()[patchiNbr];
 
-    const vectorField UpNbr =
+    const vectorField UpNbr
+    (
         patchNbr.lookupPatchField<volVectorField, scalar>("U")
-       .patchInternalField();
+       .patchInternalField()
+    );
 
     // Set the reference value to the neighbouring fluid internal velocity
     refValue() = mpp.distribute(UpNbr);
@@ -161,7 +163,6 @@ void Foam::filmSurfaceVelocityFvPatchVectorField::write
 ) const
 {
     fvPatchField<vector>::write(os);
-
     writeEntry(os, "Cs", Cs_);
     writeEntry(os, "value", *this);
 }
