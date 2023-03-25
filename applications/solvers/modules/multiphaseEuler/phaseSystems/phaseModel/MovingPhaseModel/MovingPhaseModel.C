@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2015-2022 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2015-2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -141,7 +141,9 @@ Foam::MovingPhaseModel<BasePhaseModel>::MovingPhaseModel
         (
             IOobject::groupName("alphaPhi", this->name()),
             fluid.mesh().time().name(),
-            fluid.mesh()
+            fluid.mesh(),
+            IOobject::READ_IF_PRESENT,
+            IOobject::NO_WRITE
         ),
         fluid.mesh(),
         dimensionedScalar(dimensionSet(0, 3, -1, 0, 0), 0)
@@ -152,7 +154,9 @@ Foam::MovingPhaseModel<BasePhaseModel>::MovingPhaseModel
         (
             IOobject::groupName("alphaRhoPhi", this->name()),
             fluid.mesh().time().name(),
-            fluid.mesh()
+            fluid.mesh(),
+            IOobject::READ_IF_PRESENT,
+            IOobject::AUTO_WRITE
         ),
         fluid.mesh(),
         dimensionedScalar(dimensionSet(1, 0, -1, 0, 0), 0)
@@ -196,7 +200,7 @@ Foam::MovingPhaseModel<BasePhaseModel>::MovingPhaseModel
 {
     phi_.writeOpt() = IOobject::AUTO_WRITE;
 
-    if (fluid.mesh().dynamic())
+    if (fluid.mesh().dynamic() || this->fluid().MRF().size())
     {
         Uf_ = new surfaceVectorField
         (
@@ -305,11 +309,11 @@ void Foam::MovingPhaseModel<BasePhaseModel>::correctUf()
 {
     const fvMesh& mesh = this->fluid().mesh();
 
-    if (mesh.dynamic())
+    if (Uf_.valid())
     {
-        Uf_.ref() = fvc::interpolate(U_);
+        Uf_() = fvc::interpolate(U_);
         surfaceVectorField n(mesh.Sf()/mesh.magSf());
-        Uf_.ref() +=
+        Uf_() +=
           n*(
                 this->fluid().MRF().absolute(fvc::absolute(phi_, U_))
                /mesh.magSf()
@@ -396,13 +400,10 @@ Foam::MovingPhaseModel<BasePhaseModel>::phiRef()
 
 
 template<class BasePhaseModel>
-Foam::tmp<Foam::surfaceVectorField>
+const Foam::autoPtr<Foam::surfaceVectorField>&
 Foam::MovingPhaseModel<BasePhaseModel>::Uf() const
 {
-    return
-        Uf_.valid()
-      ? tmp<surfaceVectorField>(Uf_())
-      : tmp<surfaceVectorField>();
+    return Uf_;
 }
 
 
@@ -412,7 +413,7 @@ Foam::MovingPhaseModel<BasePhaseModel>::UfRef()
 {
     if (Uf_.valid())
     {
-        return Uf_.ref();
+        return Uf_();
     }
     else
     {
