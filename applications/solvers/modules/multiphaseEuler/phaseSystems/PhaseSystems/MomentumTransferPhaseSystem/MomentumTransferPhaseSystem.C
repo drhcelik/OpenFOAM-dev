@@ -209,7 +209,14 @@ Foam::MomentumTransferPhaseSystem<BasePhaseSystem>::momentumTransfer()
             {
                 fvVectorMatrix& eqn = *eqns[iter().name()];
 
-                eqn -= fvm::Sp(K, eqn.psi());
+                const volScalarField phaseK
+                (
+                    iter.otherPhase()
+                   /max(iter.otherPhase(), iter.otherPhase().residualAlpha())
+                   *K
+                );
+
+                eqn -= fvm::Sp(phaseK, eqn.psi());
             }
         }
     }
@@ -481,7 +488,19 @@ Foam::MomentumTransferPhaseSystem<BasePhaseSystem>::AFfs() const
 
         forAllConstIter(phaseInterface, interface, iter)
         {
-            addField(iter(), "AFf", Kf, AFfs);
+            const surfaceScalarField alphaf
+            (
+                fvc::interpolate(iter.otherPhase())
+            );
+
+            addField
+            (
+                iter(),
+                "AFf",
+                alphaf/max(alphaf, iter.otherPhase().residualAlpha())
+               *Kf,
+                AFfs
+            );
         }
     }
 
@@ -820,7 +839,12 @@ Foam::MomentumTransferPhaseSystem<BasePhaseSystem>::phiKdPhis
             (
                 iter(),
                 "phiKdPhi",
-               -fvc::interpolate(rAUs[iter().index()]*K)
+                fvc::interpolate
+                (
+                   -iter.otherPhase()
+                   /max(iter.otherPhase(), iter.otherPhase().residualAlpha())
+                   *rAUs[iter().index()]*K
+                )
                *fvc::absolute
                 (
                     this->MRF().absolute(iter.otherPhase().phi()),
@@ -862,11 +886,18 @@ Foam::MomentumTransferPhaseSystem<BasePhaseSystem>::phiKdPhifs
 
         forAllConstIter(phaseInterface, interface, iter)
         {
+            const surfaceScalarField alphaf
+            (
+                fvc::interpolate(iter.otherPhase())
+            );
+
             addField
             (
                 iter(),
                 "phiKdPhif",
-               -rAUfs[iter().index()]*Kf
+               -rAUfs[iter().index()]
+               *alphaf/max(alphaf, iter.otherPhase().residualAlpha())
+               *Kf
                *fvc::absolute
                 (
                     this->MRF().absolute(iter.otherPhase().phi()),
@@ -912,7 +943,10 @@ Foam::MomentumTransferPhaseSystem<BasePhaseSystem>::KdUByAs
             (
                 iter(),
                 "KdUByA",
-               -rAUs[iter().index()]*K*iter.otherPhase().U(),
+               -rAUs[iter().index()]
+               *iter.otherPhase()
+               /max(iter.otherPhase(), iter.otherPhase().residualAlpha())
+               *K*iter.otherPhase().U(),
                 KdUByAs
             );
         }
