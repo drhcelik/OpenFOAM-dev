@@ -24,7 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "incompressibleMultiphaseVoF.H"
-#include "CorrectPhi.H"
+#include "fvCorrectPhi.H"
 #include "geometricZeroField.H"
 #include "addToRunTimeSelectionTable.H"
 
@@ -102,52 +102,37 @@ Foam::solvers::incompressibleMultiphaseVoF::incompressibleMultiphaseVoF
     // Read the controls
     readControls();
 
+    if (correctPhi || mesh.topoChanging())
+    {
+        rAU = new volScalarField
+        (
+            IOobject
+            (
+                "rAU",
+                runTime.name(),
+                mesh,
+                IOobject::READ_IF_PRESENT,
+                IOobject::AUTO_WRITE
+            ),
+            mesh,
+            dimensionedScalar(dimTime/dimDensity, 1)
+        );
+    }
+
     if (!runTime.restart() || !divergent())
     {
-        if (correctPhi)
-        {
-            rAU = new volScalarField
-            (
-                IOobject
-                (
-                    "rAU",
-                    runTime.name(),
-                    mesh,
-                    IOobject::READ_IF_PRESENT,
-                    IOobject::AUTO_WRITE
-                ),
-                mesh,
-                dimensionedScalar(dimTime/dimDensity, 1)
-            );
+        correctUphiBCs(U_, phi, true);
 
-            correctUphiBCs(U_, phi, true);
-
-            CorrectPhi
-            (
-                phi,
-                U,
-                p_rgh,
-                surfaceScalarField("rAUf", fvc::interpolate(rAU())),
-                autoPtr<volScalarField>(),
-                pressureReference(),
-                pimple
-            );
-        }
-        else
-        {
-            correctUphiBCs(U_, phi, true);
-
-            CorrectPhi
-            (
-                phi,
-                U,
-                p_rgh,
-                dimensionedScalar(dimTime/rho.dimensions(), 1),
-                autoPtr<volScalarField>(),
-                pressureReference(),
-                pimple
-            );
-        }
+        fv::correctPhi
+        (
+            phi,
+            U,
+            p_rgh,
+            rAU,
+            autoPtr<volScalarField>(),
+            pressureReference(),
+            pimple
+        );
     }
 }
 

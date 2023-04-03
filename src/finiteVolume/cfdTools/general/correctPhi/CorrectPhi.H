@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2016-2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2015-2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,18 +21,25 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Class
-    Foam::constrainHbyA
+Function
+    Foam::fv::CorrectPhi
 
 Description
+    Flux correction functions to ensure continuity.
+
+    Required during start-up, restart, mesh-motion etc. when non-conservative
+    fluxes may adversely affect the prediction-part of the solution algorithm
+    (the part before the first pressure solution which would ensure continuity).
+    This is particularly important for VoF and other multi-phase solver in
+    which non-conservative fluxes cause unboundedness of the phase-fraction.
 
 SourceFiles
-    constrainHbyA.C
+    CorrectPhi.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef constrainHbyA_H
-#define constrainHbyA_H
+#ifndef CorrectPhi_H
+#define CorrectPhi_H
 
 #include "volFieldsFwd.H"
 #include "surfaceFieldsFwd.H"
@@ -41,40 +48,41 @@ SourceFiles
 
 namespace Foam
 {
+    class pressureReference;
+    class nonOrthogonalSolutionControl;
+
+    namespace fv
+    {
+        template<class RAUfType>
+        void CorrectPhi
+        (
+            surfaceScalarField& phi,
+            const volVectorField& U,
+            const volScalarField& p,
+            const RAUfType& rAU,
+            const autoPtr<volScalarField>& divU,
+            const pressureReference& pressureReference,
+            nonOrthogonalSolutionControl& pcorrControl
+        );
+
+        template<class RAUfType>
+        void CorrectPhi
+        (
+            surfaceScalarField& phi,
+            const volScalarField& p,
+            const volScalarField& psi,
+            const RAUfType& rAU,
+            const volScalarField& divRhoU,
+            nonOrthogonalSolutionControl& pcorrControl
+        );
+    }
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-tmp<volVectorField> constrainHbyA
-(
-    const tmp<volVectorField>& tHbyA,
-    const volVectorField& U,
-    const volScalarField& p
-);
-
-tmp<volVectorField> constrainH
-(
-    const tmp<volVectorField>& tH,
-    const volScalarField& rA,
-    const volVectorField& U,
-    const volScalarField& p
-);
-
-tmp<surfaceScalarField> constrainPhiHbyA
-(
-    const tmp<surfaceScalarField>& tphiHbyA,
-    const volVectorField& U,
-    const volScalarField& p
-);
-
-tmp<surfaceScalarField> constrainPhid
-(
-    const tmp<surfaceScalarField>& tphiHbyA,
-    const volScalarField& p
-);
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-} // End namespace Foam
+#ifdef NoRepository
+    #include "CorrectPhi.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
