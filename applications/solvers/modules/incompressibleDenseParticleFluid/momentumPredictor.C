@@ -23,38 +23,53 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "isothermalFilm.H"
-#include "fvcDiv.H"
+#include "incompressibleDenseParticleFluid.H"
+#include "fvcDdt.H"
+#include "fvcSnGrad.H"
+#include "fvcReconstruct.H"
+#include "fvmDiv.H"
 #include "fvmDdt.H"
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::solvers::isothermalFilm::predictAlpha()
+void Foam::solvers::incompressibleDenseParticleFluid::momentumPredictor()
 {
-    // Update delta and alpha BCs for time-varying inlets etc.
-    delta_.correctBoundaryConditions();
-    alpha_.boundaryFieldRef() == delta.boundaryField()/VbyA.boundaryField();
+    volVectorField& Uc(Uc_);
 
-    fvScalarMatrix alphaEqn
+    tUcEqn =
     (
-        fvm::ddt(rho, alpha_) + fvc::div(alphaRhoPhi)
-      ==
-        fvModels().source(rho, alpha_)
+        fvm::ddt(alphac, Uc) + fvm::div(alphaPhic, Uc)
+      - fvm::Sp(fvc::ddt(alphac) + fvc::div(alphaPhic), Uc)
+      + momentumTransport->divDevSigma(Uc)
+     ==
+        fvModels().source(Uc)
     );
+    fvVectorMatrix& UcEqn = tUcEqn.ref();
 
-    alphaEqn.solve();
+    UcEqn.relax();
 
-    fvConstraints().constrain(alpha_);
+    fvConstraints().constrain(UcEqn);
 
-    // Update film thickness
-    correctDelta();
-}
+    if (pimple.momentumPredictor())
+    {
+        // Face buoyancy force
+        const surfaceScalarField Fgf(g & mesh.Sf());
 
+        solve
+        (
+            UcEqn
+         ==
+            fvc::reconstruct
+            (
+                Fgf - fvc::snGrad(p)*mesh.magSf()
+              - Dcf()*(phic - phid())
+            )
+          + Dc()*fvc::reconstruct(phic - phid())
+          + Fd() - fvm::Sp(Dc(), Uc)
+        );
 
-void Foam::solvers::isothermalFilm::correctDelta()
-{
-    delta_ = max(alpha, scalar(0))*VbyA;
-    delta_.correctBoundaryConditions();
+        fvConstraints().constrain(Uc);
+    }
 }
 
 

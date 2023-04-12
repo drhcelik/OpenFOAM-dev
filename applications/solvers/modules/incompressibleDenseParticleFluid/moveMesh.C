@@ -23,38 +23,48 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "isothermalFilm.H"
-#include "fvcDiv.H"
-#include "fvmDdt.H"
+#include "incompressibleDenseParticleFluid.H"
+#include "fvCorrectPhi.H"
+#include "fvcMeshPhi.H"
+#include "geometricZeroField.H"
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::solvers::isothermalFilm::predictAlpha()
+void Foam::solvers::incompressibleDenseParticleFluid::moveMesh()
 {
-    // Update delta and alpha BCs for time-varying inlets etc.
-    delta_.correctBoundaryConditions();
-    alpha_.boundaryFieldRef() == delta.boundaryField()/VbyA.boundaryField();
+    if (pimple.firstIter() || pimple.moveMeshOuterCorrectors())
+    {
+        // Move the mesh
+        mesh_.move();
 
-    fvScalarMatrix alphaEqn
-    (
-        fvm::ddt(rho, alpha_) + fvc::div(alphaRhoPhi)
-      ==
-        fvModels().source(rho, alpha_)
-    );
+        if (mesh.changing())
+        {
+            if (correctPhi || mesh.topoChanged())
+            {
+                // Calculate absolute flux
+                // from the mapped surface velocity
+                phic_ = mesh.Sf() & Ucf();
 
-    alphaEqn.solve();
+                correctUphiBCs(Uc_, phic_, true);
 
-    fvConstraints().constrain(alpha_);
+                fv::correctPhi
+                (
+                    phic_,
+                    Uc,
+                    p,
+                    autoPtr<volScalarField>(),
+                    autoPtr<volScalarField>(),
+                    pressureReference,
+                    pimple
+                );
 
-    // Update film thickness
-    correctDelta();
-}
+                // Make the flux relative to the mesh motion
+                fvc::makeRelative(phic_, Uc);
+            }
 
-
-void Foam::solvers::isothermalFilm::correctDelta()
-{
-    delta_ = max(alpha, scalar(0))*VbyA;
-    delta_.correctBoundaryConditions();
+            meshCourantNo();
+        }
+    }
 }
 
 
