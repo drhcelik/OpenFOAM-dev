@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2022-2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,25 +23,26 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef makeReactingParcelSurfaceFilmModels_H
-#define makeReactingParcelSurfaceFilmModels_H
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#include "NoSurfaceFilm.H"
 #include "ThermoSurfaceFilm.H"
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-#define makeReactingParcelSurfaceFilmModels(CloudType)                         \
-                                                                               \
-    makeSurfaceFilmModel(CloudType);                                           \
-    makeSurfaceFilmModelType(NoSurfaceFilm, CloudType);                        \
-    makeSurfaceFilmModelType(ThermoSurfaceFilm, CloudType);
+namespace Foam
+{
+    template<>
+    const char* NamedEnum
+    <
+        ThermoSurfaceFilmBase::interactionType,
+        3
+    >::names[] = {"absorb", "bounce", "splashBai"};
+}
 
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+const Foam::NamedEnum
+<
+    Foam::ThermoSurfaceFilmBase::interactionType,
+    3
+> Foam::ThermoSurfaceFilmBase::interactionTypeNames_;
 
-#endif
 
 // ************************************************************************* //

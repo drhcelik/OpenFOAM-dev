@@ -25,11 +25,10 @@ License
 
 #include "ThermoSurfaceFilm.H"
 #include "thermoSurfaceFilm.H"
-#include "addToRunTimeSelectionTable.H"
-#include "mathematicalConstants.H"
-#include "Pstream.H"
 #include "ThermoCloud.H"
 #include "meshTools.H"
+#include "mathematicalConstants.H"
+#include "addToRunTimeSelectionTable.H"
 
 using namespace Foam::constant::mathematical;
 
@@ -63,7 +62,7 @@ Foam::vector Foam::ThermoSurfaceFilm<CloudType>::splashDirection
 template<class CloudType>
 void Foam::ThermoSurfaceFilm<CloudType>::absorbInteraction
 (
-    surfaceFilm& filmModel,
+    thermoSurfaceFilm& filmModel,
     const parcelType& p,
     const polyPatch& pp,
     const label facei,
@@ -152,7 +151,7 @@ void Foam::ThermoSurfaceFilm<CloudType>::bounceInteraction
 template<class CloudType>
 void Foam::ThermoSurfaceFilm<CloudType>::drySplashInteraction
 (
-    surfaceFilm& filmModel,
+    thermoSurfaceFilm& filmModel,
     const parcelType& p,
     const polyPatch& pp,
     const label facei,
@@ -215,7 +214,7 @@ void Foam::ThermoSurfaceFilm<CloudType>::drySplashInteraction
 template<class CloudType>
 void Foam::ThermoSurfaceFilm<CloudType>::wetSplashInteraction
 (
-    surfaceFilm& filmModel,
+    thermoSurfaceFilm& filmModel,
     parcelType& p,
     const polyPatch& pp,
     const label facei,
@@ -299,7 +298,7 @@ void Foam::ThermoSurfaceFilm<CloudType>::wetSplashInteraction
 template<class CloudType>
 void Foam::ThermoSurfaceFilm<CloudType>::splashInteraction
 (
-    surfaceFilm& filmModel,
+    thermoSurfaceFilm& filmModel,
     const parcelType& p,
     const polyPatch& pp,
     const label facei,
@@ -432,30 +431,30 @@ void Foam::ThermoSurfaceFilm<CloudType>::splashInteraction
 
 
 template<class CloudType>
-Foam::UPtrList<Foam::surfaceFilm>&
-Foam::ThermoSurfaceFilm<CloudType>::surfaceFilmPtrs() const
+Foam::UPtrList<Foam::thermoSurfaceFilm>&
+Foam::ThermoSurfaceFilm<CloudType>::filmPtrs() const
 {
     const objectRegistry& db = this->owner().mesh().time();
 
-    if (!surfaceFilmNames_.empty() && surfaceFilms_.empty())
+    if (!filmNames_.empty() && films_.empty())
     {
         // If there are multiple surface films and/or surface films with
-        // non-default names, then require the surfaceFilms entry to have been
+        // non-default names, then require the films entry to have been
         // specified
         {
-            HashTable<const surfaceFilm*> surfaceFilmPtrs =
-                db.lookupClass<surfaceFilm>();
+            HashTable<const thermoSurfaceFilm*> filmPtrs =
+                db.lookupClass<thermoSurfaceFilm>();
 
             const word defaultName =
-                surfaceFilm::typeName + "Properties";
+                thermoSurfaceFilm::typeName + "Properties";
 
             if
             (
                 (
-                    surfaceFilmPtrs.size() == 1
-                 && surfaceFilmPtrs.begin().key() != defaultName
+                    filmPtrs.size() == 1
+                 && filmPtrs.begin().key() != defaultName
                 )
-             || (surfaceFilmPtrs.size() > 1)
+             || (filmPtrs.size() > 1)
             )
             {
                 this->coeffDict().lookup("surfaceFilms");
@@ -463,47 +462,74 @@ Foam::ThermoSurfaceFilm<CloudType>::surfaceFilmPtrs() const
         }
 
         // Cache pointers to the surface film models
-        surfaceFilms_.resize(surfaceFilmNames_.size());
-        forAll(surfaceFilms_, filmi)
+        films_.resize(filmNames_.size());
+        filmPatches_.setSize(films_.size());
+
+        forAll(films_, filmi)
         {
-            surfaceFilms_.set
+            films_.set
             (
                 filmi,
-               &db.template lookupObjectRef<surfaceFilm>
+               &db.template lookupObjectRef<thermoSurfaceFilm>
                 (
-                    surfaceFilmNames_[filmi] + "Properties"
+                    filmNames_[filmi] + "Properties"
                 )
             );
+
+            if (films_[filmi].primaryPatchIDs().size() > 1)
+            {
+                FatalErrorInFunction
+                    << "Number of film primary patch IDs > 1 for film "
+                    << films_[filmi].name()
+                    << exit(FatalError);
+            }
+
+            filmPatches_[filmi] = films_[filmi].primaryPatchIDs()[0];
         }
     }
 
-    return surfaceFilms_;
+    return films_;
 }
 
 
 template<class CloudType>
-void Foam::ThermoSurfaceFilm<CloudType>::cacheFilmFields
-(
-    const label filmPatchi,
-    const label primaryPatchi,
-    const surfaceFilm& filmModel
-)
+const Foam::labelList& Foam::ThermoSurfaceFilm<CloudType>::filmPatches() const
 {
-    SurfaceFilmModel<CloudType>::cacheFilmFields
-    (
-        filmPatchi,
-        primaryPatchi,
-        filmModel
-    );
+    // Ensure filmPatches_ has been initialise
+    filmPtrs();
 
-    const thermoSurfaceFilm& thermalFilmModel =
-        refCast<const thermoSurfaceFilm>(filmModel);
+    return filmPatches_;
+}
 
-    TFilmPatch_ = thermalFilmModel.thermo().T().boundaryField()[filmPatchi];
+
+template<class CloudType>
+void Foam::ThermoSurfaceFilm<CloudType>::cacheFilmFields(const label filmi)
+{
+    const thermoSurfaceFilm& filmModel = this->filmPtrs()[filmi];
+    const label filmPatchi = filmModel.intCoupledPatchIDs()[0];
+
+    this->massParcelPatch_ =
+        filmModel.cloudMassTrans().boundaryField()[filmPatchi];
+    filmModel.toPrimary(filmPatchi, this->massParcelPatch_);
+
+    this->diameterParcelPatch_ =
+        filmModel.cloudDiameterTrans().boundaryField()[filmPatchi];
+    filmModel.toPrimary(filmPatchi, this->diameterParcelPatch_);
+
+    UFilmPatch_ = filmModel.U().boundaryField()[filmPatchi];
+    filmModel.toPrimary(filmPatchi, UFilmPatch_);
+
+    rhoFilmPatch_ = filmModel.rho().boundaryField()[filmPatchi];
+    filmModel.toPrimary(filmPatchi, rhoFilmPatch_);
+
+    this->deltaFilmPatch_ =
+        filmModel.delta().boundaryField()[filmPatchi];
+    filmModel.toPrimary(filmPatchi, this->deltaFilmPatch_);
+
+    TFilmPatch_ = filmModel.thermo().T().boundaryField()[filmPatchi];
     filmModel.toPrimary(filmPatchi, TFilmPatch_);
 
-    CpFilmPatch_ =
-        thermalFilmModel.thermo().Cpv().boundaryField()[filmPatchi];
+    CpFilmPatch_ = filmModel.thermo().Cpv().boundaryField()[filmPatchi];
     filmModel.toPrimary(filmPatchi, CpFilmPatch_);
 }
 
@@ -515,7 +541,19 @@ void Foam::ThermoSurfaceFilm<CloudType>::setParcelProperties
     const label filmFacei
 ) const
 {
-    SurfaceFilmModel<CloudType>::setParcelProperties(p, filmFacei);
+    // Set parcel properties
+    const scalar vol =
+        mathematical::pi/6.0*pow3(this->diameterParcelPatch_[filmFacei]);
+    p.d() = this->diameterParcelPatch_[filmFacei];
+    p.U() = UFilmPatch_[filmFacei];
+    p.rho() = rhoFilmPatch_[filmFacei];
+
+    p.nParticle() = this->massParcelPatch_[filmFacei]/p.rho()/vol;
+
+    if (this->ejectedParcelType_ >= 0)
+    {
+        p.typeId() = this->ejectedParcelType_;
+    }
 
     // Set parcel properties
     p.T() = TFilmPatch_[filmFacei];
@@ -534,15 +572,17 @@ Foam::ThermoSurfaceFilm<CloudType>::ThermoSurfaceFilm
 :
     SurfaceFilmModel<CloudType>(dict, owner, typeName),
     rndGen_(owner.rndGen()),
-    surfaceFilmNames_
+    filmNames_
     (
         this->coeffDict().lookupOrDefault
         (
             "surfaceFilms",
-            wordList(1, surfaceFilm::typeName)
+            wordList(1, thermoSurfaceFilm::typeName)
         )
     ),
-    surfaceFilms_(),
+    films_(),
+    UFilmPatch_(0),
+    rhoFilmPatch_(0),
     TFilmPatch_(0),
     CpFilmPatch_(0),
     interactionType_
@@ -582,8 +622,10 @@ Foam::ThermoSurfaceFilm<CloudType>::ThermoSurfaceFilm
 :
     SurfaceFilmModel<CloudType>(sfm),
     rndGen_(sfm.rndGen_),
-    surfaceFilmNames_(sfm.surfaceFilmNames_),
-    surfaceFilms_(),
+    filmNames_(sfm.filmNames_),
+    films_(),
+    UFilmPatch_(sfm.UFilmPatch_),
+    rhoFilmPatch_(sfm.rhoFilmPatch_),
     TFilmPatch_(sfm.TFilmPatch_),
     CpFilmPatch_(sfm.CpFilmPatch_),
     interactionType_(sfm.interactionType_),
@@ -616,9 +658,9 @@ bool Foam::ThermoSurfaceFilm<CloudType>::transferParcel
 {
     const label patchi = pp.index();
 
-    forAll(this->surfaceFilmPtrs(), filmi)
+    forAll(this->filmPtrs(), filmi)
     {
-        surfaceFilm& filmModel = this->surfaceFilmPtrs()[filmi];
+        thermoSurfaceFilm& filmModel = this->filmPtrs()[filmi];
 
         if (filmModel.isFilmPatch(patchi))
         {
@@ -646,7 +688,7 @@ bool Foam::ThermoSurfaceFilm<CloudType>::transferParcel
                 }
                 case interactionType::splashBai:
                 {
-                    if (this->deltaFilmPatch_[patchi][facei] < deltaWet_)
+                    if (this->deltaFilmPatch_[facei] < deltaWet_)
                     {
                         drySplashInteraction
                         (

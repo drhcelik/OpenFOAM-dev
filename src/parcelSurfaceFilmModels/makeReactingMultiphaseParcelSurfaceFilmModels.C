@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2022 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,26 +23,11 @@ License
 
 \*---------------------------------------------------------------------------*/
 
+#include "reactingMultiphaseCloud.H"
 #include "ThermoSurfaceFilm.H"
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace Foam
-{
-    template<>
-    const char* NamedEnum
-    <
-        ThermoSurfaceFilmBase::interactionType,
-        3
-    >::names[] = {"absorb", "bounce", "splashBai"};
-}
-
-
-const Foam::NamedEnum
-<
-    Foam::ThermoSurfaceFilmBase::interactionType,
-    3
-> Foam::ThermoSurfaceFilmBase::interactionTypeNames_;
-
+makeSurfaceFilmModelType(ThermoSurfaceFilm, reactingMultiphaseCloud);
 
 // ************************************************************************* //

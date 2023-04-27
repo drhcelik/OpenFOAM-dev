@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2022 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -42,7 +42,6 @@ Description
 
 SourceFiles
     ThermoSurfaceFilm.C
-    ThermoSurfaceFilmI.H
 
 \*---------------------------------------------------------------------------*/
 
@@ -55,6 +54,11 @@ SourceFiles
 
 namespace Foam
 {
+
+// Forward declaration of classes
+class thermoSurfaceFilm;
+class Random;
+
 
 /*---------------------------------------------------------------------------*\
                        Class ThermoSurfaceFilmBase Declaration
@@ -87,9 +91,15 @@ class ThermoSurfaceFilm
     public SurfaceFilmModel<CloudType>,
     public ThermoSurfaceFilmBase
 {
+    // Private Member Functions
+
+        //- Return pointers to the films
+        UPtrList<thermoSurfaceFilm>& filmPtrs() const;
+
+
 protected:
 
-    // Protected data
+    // Protected Data
 
         //- Convenience typedef to the cloud's parcel type
         typedef typename CloudType::parcelType parcelType;
@@ -100,14 +110,23 @@ protected:
 
         // Film models
 
-            //- Names of the surface films
-            const wordList surfaceFilmNames_;
+            //- Names of the films
+            const wordList filmNames_;
 
-            //- Pointers to the surface films
-            mutable UPtrList<surfaceFilm> surfaceFilms_;
+            //- Pointers to the films
+            mutable UPtrList<thermoSurfaceFilm> films_;
+
+            //- List of film patches
+            mutable labelList filmPatches_;
 
 
         // Cached injector fields per film patch
+
+            //- Film velocity / patch face
+            vectorField UFilmPatch_;
+
+            //- Film density / patch face
+            scalarField rhoFilmPatch_;
 
             //- Film temperature / patch face
             scalarField TFilmPatch_;
@@ -168,7 +187,7 @@ protected:
             //- Absorb parcel into film
             void absorbInteraction
             (
-                surfaceFilm&,
+                thermoSurfaceFilm&,
                 const parcelType& p,
                 const polyPatch& pp,
                 const label facei,
@@ -188,7 +207,7 @@ protected:
             //- Parcel interaction with dry surface
             void drySplashInteraction
             (
-                surfaceFilm&,
+                thermoSurfaceFilm&,
                 const parcelType& p,
                 const polyPatch& pp,
                 const label facei,
@@ -198,7 +217,7 @@ protected:
             //- Parcel interaction with wetted surface
             void wetSplashInteraction
             (
-                surfaceFilm&,
+                thermoSurfaceFilm&,
                 parcelType& p,
                 const polyPatch& pp,
                 const label facei,
@@ -208,7 +227,7 @@ protected:
             //- Bai parcel splash interaction model
             void splashInteraction
             (
-                surfaceFilm&,
+                thermoSurfaceFilm&,
                 const parcelType& p,
                 const polyPatch& pp,
                 const label facei,
@@ -219,17 +238,11 @@ protected:
                 bool& keepParticle
             );
 
-
         //- Return pointers to the films
-        virtual UPtrList<surfaceFilm>& surfaceFilmPtrs() const;
+        virtual const labelList& filmPatches() const;
 
         //- Cache the film fields in preparation for injection
-        virtual void cacheFilmFields
-        (
-            const label filmPatchi,
-            const label primaryPatchi,
-            const surfaceFilm& filmModel
-        );
+        virtual void cacheFilmFields(const label filmi);
 
         //- Set the individual parcel properties
         virtual void setParcelProperties
@@ -271,7 +284,7 @@ public:
 
         // Evaluation
 
-            //- Transfer parcel from cloud to surface film
+            //- Transfer parcel from cloud to film
             //  Returns true if parcel is to be transferred
             virtual bool transferParcel
             (
@@ -283,7 +296,7 @@ public:
 
         // I-O
 
-            //- Write surface film info to stream
+            //- Write film info to stream
             virtual void info(Ostream& os);
 };
 

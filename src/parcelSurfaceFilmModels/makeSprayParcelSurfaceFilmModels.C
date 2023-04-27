@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2020 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,25 +23,11 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef makeThermoParcelSurfaceFilmModels_H
-#define makeThermoParcelSurfaceFilmModels_H
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#include "NoSurfaceFilm.H"
+#include "sprayCloud.H"
 #include "ThermoSurfaceFilm.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#define makeParcelSurfaceFilmModels(CloudType)                                 \
-                                                                               \
-    makeSurfaceFilmModel(CloudType);                                           \
-                                                                               \
-    makeSurfaceFilmModelType(NoSurfaceFilm, CloudType);                        \
-    makeSurfaceFilmModelType(ThermoSurfaceFilm, CloudType);
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
+makeSurfaceFilmModelType(ThermoSurfaceFilm, sprayCloud);
 
 // ************************************************************************* //
