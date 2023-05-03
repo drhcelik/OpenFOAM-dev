@@ -38,7 +38,7 @@ expansionRatio  1;
 
 linearNormalCoeffs
 {
-    thickness       0.001;
+    thickness       0.002;
 }
 
 // ************************************************************************* //

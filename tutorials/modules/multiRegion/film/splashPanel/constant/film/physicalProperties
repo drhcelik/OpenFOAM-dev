@@ -9,36 +9,30 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    object      extrudeToRegionMeshDict;
+    location    "constant";
+    object      physicalProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-region          film;
-
-patches         (film);
-
-extrudeModel    linearNormal;
-
-intrude         yes;
-
-adaptMesh       no;
-
-patchTypes      (mappedExtrudedWall);
-patchNames      (film);
-
-regionPatchTypes   (filmWall);
-regionPatchNames   (wall);
-
-regionOppositePatchTypes    (mappedFilmSurface);
-regionOppositePatchNames    (surface);
-
-nLayers         1;
-
-expansionRatio  1;
-
-linearNormalCoeffs
+thermoType
 {
-    thickness       0.001;
+    type            heRhoThermo;
+    mixture         pureMixture;
+    properties      liquid;
+    energy          sensibleInternalEnergy;
 }
+
+mixture
+{
+    H2O;
+}
+
+sigma
+{
+    type    constant;
+    sigma   0.07;
+}
+
+deltaWet    1e-4;
 
 // ************************************************************************* //

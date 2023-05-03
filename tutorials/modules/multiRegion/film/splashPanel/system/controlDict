@@ -9,36 +9,52 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    object      extrudeToRegionMeshDict;
+    location    "system";
+    object      controlDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-region          film;
+application     foamMultiRun;
 
-patches         (film);
-
-extrudeModel    linearNormal;
-
-intrude         yes;
-
-adaptMesh       no;
-
-patchTypes      (mappedExtrudedWall);
-patchNames      (film);
-
-regionPatchTypes   (filmWall);
-regionPatchNames   (wall);
-
-regionOppositePatchTypes    (mappedFilmSurface);
-regionOppositePatchNames    (surface);
-
-nLayers         1;
-
-expansionRatio  1;
-
-linearNormalCoeffs
+regionSolvers
 {
-    thickness       0.001;
+    fluid           multicomponentFluid;
+    film            film;
 }
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         1;
+
+deltaT          1e-4;
+
+writeControl    adjustableRunTime;
+
+writeInterval   0.01;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  10;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  yes;
+
+maxCo           0.3;
+
+maxDeltaT       1e-03;
+
 
 // ************************************************************************* //

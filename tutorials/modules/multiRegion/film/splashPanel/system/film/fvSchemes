@@ -9,36 +9,39 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    object      extrudeToRegionMeshDict;
+    location    "system/film";
+    object      fvSchemes;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-region          film;
-
-patches         (film);
-
-extrudeModel    linearNormal;
-
-intrude         yes;
-
-adaptMesh       no;
-
-patchTypes      (mappedExtrudedWall);
-patchNames      (film);
-
-regionPatchTypes   (filmWall);
-regionPatchNames   (wall);
-
-regionOppositePatchTypes    (mappedFilmSurface);
-regionOppositePatchNames    (surface);
-
-nLayers         1;
-
-expansionRatio  1;
-
-linearNormalCoeffs
+ddtSchemes
 {
-    thickness       0.001;
+    default         Euler;
 }
+
+gradSchemes
+{
+    default         Gauss linear;
+}
+
+divSchemes
+{
+    default             none;
+
+    div(phid,alpha)     Gauss upwind;
+    div(alphaRhoPhi,U)  Gauss upwind;
+    div(alphaRhoPhi,e)  Gauss upwind;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear uncorrected;
+}
+
+snGradSchemes
+{
+    default         uncorrected;
+}
+
 
 // ************************************************************************* //

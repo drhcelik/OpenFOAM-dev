@@ -8,37 +8,14 @@
 FoamFile
 {
     format      ascii;
-    class       dictionary;
-    object      extrudeToRegionMeshDict;
+    class       uniformDimensionedVectorField;
+    location    "constant";
+    object      g;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-region          film;
+dimensions      [0 1 -2 0 0 0 0];
+value           (0 0 -9.81);
 
-patches         (film);
-
-extrudeModel    linearNormal;
-
-intrude         yes;
-
-adaptMesh       no;
-
-patchTypes      (mappedExtrudedWall);
-patchNames      (film);
-
-regionPatchTypes   (filmWall);
-regionPatchNames   (wall);
-
-regionOppositePatchTypes    (mappedFilmSurface);
-regionOppositePatchNames    (surface);
-
-nLayers         1;
-
-expansionRatio  1;
-
-linearNormalCoeffs
-{
-    thickness       0.001;
-}
 
 // ************************************************************************* //
