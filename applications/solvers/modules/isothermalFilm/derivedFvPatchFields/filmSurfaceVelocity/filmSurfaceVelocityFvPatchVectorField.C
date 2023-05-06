@@ -24,7 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "filmSurfaceVelocityFvPatchVectorField.H"
-#include "momentumTransportModel.H"
+#include "compressibleMomentumTransportModel.H"
 #include "mappedPatchBase.H"
 #include "addToRunTimeSelectionTable.H"
 
@@ -122,6 +122,7 @@ void Foam::filmSurfaceVelocityFvPatchVectorField::updateCoeffs()
     const fvPatch& patchNbr =
         refCast<const fvMesh>(mpp.nbrMesh()).boundary()[patchiNbr];
 
+    // Neighbour patch face-cell velocity
     const vectorField UpNbr
     (
         patchNbr.lookupPatchField<volVectorField, scalar>("U")
@@ -136,43 +137,56 @@ void Foam::filmSurfaceVelocityFvPatchVectorField::updateCoeffs()
     refValue() -= n*(n & refValue());
 
     // Lookup the momentum transport model
-    const momentumTransportModel& transportModel =
-        db().lookupType<momentumTransportModel>();
+    const compressibleMomentumTransportModel& transportModel =
+        db().lookupType<compressibleMomentumTransportModel>();
 
-    // Get the patch laminar viscosity divided by delta
-    const tmp<scalarField> nuEffByDelta
+    // Lookup the neighbour momentum transport model
+    const compressibleMomentumTransportModel& transportModelNbr =
+        mpp.nbrMesh().lookupType<compressibleMomentumTransportModel>();
+
+    // Patch laminar dynamic viscosity divided by delta
+    const tmp<scalarField> muEffByDelta
     (
-        transportModel.nuEff(patch().index())*patch().deltaCoeffs()
+        transportModel.rho().boundaryField()[patch().index()]
+       *transportModel.nuEff(patch().index())
+       *patch().deltaCoeffs()
     );
 
     if (Cs_ > 0)
     {
-        // Calculate the drag coefficient from the drag constant
-        // and the magnitude of the velocity difference
-        const scalarField Ds(Cs_*mag(refValue() - *this));
-
-        // Calculate the value-fraction from the balance between the
-        // external fluid drag and internal film stress
-        valueFraction() = Ds/(Ds + nuEffByDelta);
-    }
-    else
-    {
-        // Lookup the neighbour momentum transport model
-        const momentumTransportModel& transportModelNbr =
-            mpp.nbrMesh().lookupType<momentumTransportModel>();
-
-        // Get the patch laminar viscosity
-        const tmp<scalarField> nuEffByDeltaNbr
+        // Get the neighbour patch density
+        const tmp<scalarField> rhopNbr
         (
             mpp.fromNeighbour
             (
-                transportModelNbr.nuEff(patchiNbr)*patchNbr.deltaCoeffs()
+                transportModelNbr.rho().boundaryField()[patchiNbr]
+            )
+        );
+
+        // Calculate the drag coefficient from the drag constant
+        // and the magnitude of the velocity difference
+        const scalarField Ds(Cs_*rhopNbr*mag(refValue() - *this));
+
+        // Calculate the value-fraction from the balance between the
+        // external fluid drag and internal film stress
+        valueFraction() = Ds/(muEffByDelta + Ds);
+    }
+    else
+    {
+        // Get the neighbour patch laminar dynamic viscosity divided by delta
+        const tmp<scalarField> muEffByDeltaNbr
+        (
+            mpp.fromNeighbour
+            (
+                transportModelNbr.rho().boundaryField()[patchiNbr]
+               *transportModelNbr.nuEff(patchiNbr)
+               *patchNbr.deltaCoeffs()
             )
         );
 
         // Calculate the value-fraction from the balance between the
         // external fluid and internal film stresses
-        valueFraction() = nuEffByDeltaNbr()/(nuEffByDelta + nuEffByDeltaNbr());
+        valueFraction() = muEffByDeltaNbr()/(muEffByDelta + muEffByDeltaNbr());
     }
 
     mixedFvPatchField<vector>::updateCoeffs();
