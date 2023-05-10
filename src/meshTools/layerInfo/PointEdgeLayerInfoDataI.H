@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,28 +23,27 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "LayerInfoData.H"
+#include "PointEdgeLayerInfoData.H"
 #include "polyMesh.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class Type>
-inline Foam::LayerInfoData<Type>::LayerInfoData()
+inline Foam::PointEdgeLayerInfoData<Type>::PointEdgeLayerInfoData()
 :
-    layerInfo(),
+    pointEdgeLayerInfo(),
     data_()
 {}
 
 
 template<class Type>
-inline Foam::LayerInfoData<Type>::LayerInfoData
+inline Foam::PointEdgeLayerInfoData<Type>::PointEdgeLayerInfoData
 (
-    const label faceLayer,
-    const label direction,
+    const label pointLayer,
     const Type& data
 )
 :
-    layerInfo(faceLayer, direction),
+    pointEdgeLayerInfo(pointLayer),
     data_(data)
 {}
 
@@ -52,7 +51,7 @@ inline Foam::LayerInfoData<Type>::LayerInfoData
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class Type>
-inline const Type& Foam::LayerInfoData<Type>::data() const
+inline const Type& Foam::PointEdgeLayerInfoData<Type>::data() const
 {
     return data_;
 }
@@ -60,7 +59,7 @@ inline const Type& Foam::LayerInfoData<Type>::data() const
 
 template<class Type>
 template<class TrackingData>
-inline void Foam::LayerInfoData<Type>::transform
+inline void Foam::PointEdgeLayerInfoData<Type>::transform
 (
     const polyPatch& patch,
     const label patchFacei,
@@ -79,19 +78,19 @@ inline void Foam::LayerInfoData<Type>::transform
 
 template<class Type>
 template<class TrackingData>
-inline bool Foam::LayerInfoData<Type>::updateCell
+inline bool Foam::PointEdgeLayerInfoData<Type>::updatePoint
 (
     const polyMesh& mesh,
-    const label thisCelli,
-    const label nbrFacei,
-    const LayerInfoData<Type>& nbrInfo,
+    const label pointi,
+    const label edgei,
+    const PointEdgeLayerInfoData<Type>& edgeInfo,
     const scalar tol,
     TrackingData& td
 )
 {
-    if (layerInfo::updateCell(mesh, thisCelli, nbrFacei, nbrInfo, tol, td))
+    if (pointEdgeLayerInfo::updatePoint(mesh, pointi, edgei, edgeInfo, tol, td))
     {
-        data_ = nbrInfo.data_;
+        data_ = edgeInfo.data_;
         return true;
     }
     else
@@ -103,19 +102,18 @@ inline bool Foam::LayerInfoData<Type>::updateCell
 
 template<class Type>
 template<class TrackingData>
-inline bool Foam::LayerInfoData<Type>::updateFace
+inline bool Foam::PointEdgeLayerInfoData<Type>::updatePoint
 (
     const polyMesh& mesh,
-    const label thisFacei,
-    const label nbrCelli,
-    const LayerInfoData<Type>& nbrInfo,
+    const label pointi,
+    const PointEdgeLayerInfoData<Type>& newPointInfo,
     const scalar tol,
     TrackingData& td
 )
 {
-    if (layerInfo::updateFace(mesh, thisFacei, nbrCelli, nbrInfo, tol, td))
+    if (pointEdgeLayerInfo::updatePoint(mesh, pointi, newPointInfo, tol, td))
     {
-        data_ = nbrInfo.data_;
+        data_ = newPointInfo.data_;
         return true;
     }
     else
@@ -127,18 +125,16 @@ inline bool Foam::LayerInfoData<Type>::updateFace
 
 template<class Type>
 template<class TrackingData>
-inline bool Foam::LayerInfoData<Type>::updateFace
+inline bool Foam::PointEdgeLayerInfoData<Type>::updatePoint
 (
-    const polyMesh& mesh,
-    const label thisFacei,
-    const LayerInfoData<Type>& nbrInfo,
+    const PointEdgeLayerInfoData<Type>& newPointInfo,
     const scalar tol,
     TrackingData& td
 )
 {
-    if (layerInfo::updateFace(mesh, thisFacei, nbrInfo, tol, td))
+    if (pointEdgeLayerInfo::updatePoint(newPointInfo, tol, td))
     {
-        data_ = nbrInfo.data_;
+        data_ = newPointInfo.data_;
         return true;
     }
     else
@@ -150,9 +146,33 @@ inline bool Foam::LayerInfoData<Type>::updateFace
 
 template<class Type>
 template<class TrackingData>
-inline bool Foam::LayerInfoData<Type>::equal
+inline bool Foam::PointEdgeLayerInfoData<Type>::updateEdge
 (
-    const LayerInfoData<Type>& rhs,
+    const polyMesh& mesh,
+    const label edgei,
+    const label pointi,
+    const PointEdgeLayerInfoData<Type>& pointInfo,
+    const scalar tol,
+    TrackingData& td
+)
+{
+    if (pointEdgeLayerInfo::updateEdge(mesh, edgei, pointi, pointInfo, tol, td))
+    {
+        data_ = pointInfo.data_;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
+template<class Type>
+template<class TrackingData>
+inline bool Foam::PointEdgeLayerInfoData<Type>::equal
+(
+    const PointEdgeLayerInfoData<Type>& rhs,
     TrackingData& td
 ) const
 {
@@ -163,19 +183,19 @@ inline bool Foam::LayerInfoData<Type>::equal
 // * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //
 
 template<class Type>
-inline bool Foam::LayerInfoData<Type>::operator==
+inline bool Foam::PointEdgeLayerInfoData<Type>::operator==
 (
-    const Foam::LayerInfoData<Type>& rhs
+    const Foam::PointEdgeLayerInfoData<Type>& rhs
 ) const
 {
-    return layerInfo::operator==(rhs) && data_ == rhs.data_;
+    return pointEdgeLayerInfo::operator==(rhs) && data_ == rhs.data_;
 }
 
 
 template<class Type>
-inline bool Foam::LayerInfoData<Type>::operator!=
+inline bool Foam::PointEdgeLayerInfoData<Type>::operator!=
 (
-    const Foam::LayerInfoData<Type>& rhs
+    const Foam::PointEdgeLayerInfoData<Type>& rhs
 ) const
 {
     return !(*this == rhs);
@@ -188,17 +208,21 @@ template<class Type>
 Foam::Ostream& Foam::operator<<
 (
     Ostream& os,
-    const LayerInfoData<Type>& l
+    const PointEdgeLayerInfoData<Type>& l
 )
 {
-    return os << static_cast<const layerInfo&>(l) << token::SPACE << l.data_;
+    return
+        os
+     << static_cast<const pointEdgeLayerInfo&>(l)
+     << token::SPACE
+     << l.data_;
 }
 
 
 template<class Type>
-Foam::Istream& Foam::operator>>(Istream& is, LayerInfoData<Type>& l)
+Foam::Istream& Foam::operator>>(Istream& is, PointEdgeLayerInfoData<Type>& l)
 {
-    return is >> static_cast<layerInfo&>(l) >> l.data_;
+    return is >> static_cast<pointEdgeLayerInfo&>(l) >> l.data_;
 }
 
 

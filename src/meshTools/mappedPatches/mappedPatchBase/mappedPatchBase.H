@@ -135,6 +135,15 @@ protected:
         //- Get the local points for this patch
         virtual tmp<pointField> patchLocalPoints() const;
 
+        //- Get the face-areas for the neighbour patch
+        tmp<vectorField> nbrPatchFaceAreas() const;
+
+        //- Get the face-centres for the neighbour patch
+        tmp<pointField> nbrPatchFaceCentres() const;
+
+        //- Get the local points for the neighbour patch
+        tmp<pointField> nbrPatchLocalPoints() const;
+
         //- Calculate mapping
         void calcMapping() const;
 
@@ -174,7 +183,7 @@ public:
         (
             const polyPatch& pp,
             const dictionary& dict,
-            const bool transformisNone
+            const bool defaultTransformIsNone
         );
 
         //- Construct as copy, resetting patch

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,21 +22,20 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::LayerInfoData
+    Foam::PointEdgeLayerInfoData
 
 Description
-    Class to be used with FaceCellWave which enumerates layers of cells and
-    transports data through those layers
+    Class to be used with PointEdgeWave which enumerates layers of points
 
 SourceFiles
-    LayerInfoDataI.H
+    PointEdgeLayerInfoDataI.H
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef LayerInfoData_H
-#define LayerInfoData_H
+#ifndef PointEdgeLayerInfoData_H
+#define PointEdgeLayerInfoData_H
 
-#include "layerInfo.H"
+#include "pointEdgeLayerInfo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -50,20 +49,20 @@ class transformer;
 
 // Forward declaration of friend functions and operators
 template<class Type>
-class LayerInfoData;
+class PointEdgeLayerInfoData;
 template<class Type>
-inline Ostream& operator<<(Ostream&, const LayerInfoData<Type>&);
+inline Ostream& operator<<(Ostream&, const PointEdgeLayerInfoData<Type>&);
 template<class Type>
-inline Istream& operator>>(Istream&, LayerInfoData<Type>&);
+inline Istream& operator>>(Istream&, PointEdgeLayerInfoData<Type>&);
 
 /*---------------------------------------------------------------------------*\
-                        Class LayerInfoData Declaration
+                          Class PointEdgeLayerInfoData Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Type>
-class LayerInfoData
+class PointEdgeLayerInfoData
 :
-    public layerInfo
+    public pointEdgeLayerInfo
 {
     // Private Data
 
@@ -76,15 +75,10 @@ public:
     // Constructors
 
         //- Construct null
-        inline LayerInfoData();
+        inline PointEdgeLayerInfoData();
 
-        //- Construct given the face layer index and direction
-        inline LayerInfoData
-        (
-            const label faceLayer,
-            const label direction,
-            const Type& data
-        );
+        //- Construct given the point layer index
+        inline PointEdgeLayerInfoData(const label pointLayer, const Type& data);
 
 
     // Member Functions
@@ -95,66 +89,77 @@ public:
             inline const Type& data() const;
 
 
-        // Needed by FaceCellWave
+        // Needed by PointEdgeWave
 
             //- Transform across an interface
             template<class TrackingData>
             inline void transform
             (
                 const polyPatch& patch,
-                const label patchFacei,
+                const label patchPointi,
                 const transformer& transform,
                 TrackingData& td
             );
 
-            //- Influence of neighbouring face
+            //- Influence of edge on point
             template<class TrackingData>
-            inline bool updateCell
+            inline bool updatePoint
             (
-                const polyMesh&,
-                const label thisCelli,
-                const label nbrFacei,
-                const LayerInfoData<Type>& nbrInfo,
+                const polyMesh& mesh,
+                const label pointi,
+                const label edgei,
+                const PointEdgeLayerInfoData<Type>& edgeInfo,
                 const scalar tol,
                 TrackingData& td
             );
 
-            //- Influence of neighbouring cell
+            //- Influence of different value on same point.
+            //  Merge new and old info.
             template<class TrackingData>
-            inline bool updateFace
+            inline bool updatePoint
             (
-                const polyMesh&,
-                const label thisFacei,
-                const label nbrCelli,
-                const LayerInfoData<Type>& nbrInfo,
+                const polyMesh& mesh,
+                const label pointi,
+                const PointEdgeLayerInfoData<Type>& newPointInfo,
                 const scalar tol,
                 TrackingData& td
             );
 
-            //- Influence of different value on same face
+            //- Influence of different value on same point.
+            //  No old information.
             template<class TrackingData>
-            inline bool updateFace
+            inline bool updatePoint
             (
-                const polyMesh&,
-                const label thisFacei,
-                const LayerInfoData<Type>& nbrInfo,
+                const PointEdgeLayerInfoData<Type>& newPointInfo,
                 const scalar tol,
                 TrackingData& td
             );
 
-            //- Test equality
+            //- Influence of point on edge
+            template<class TrackingData>
+            inline bool updateEdge
+            (
+                const polyMesh& mesh,
+                const label edgei,
+                const label pointi,
+                const PointEdgeLayerInfoData<Type>& pointInfo,
+                const scalar tol,
+                TrackingData& td
+            );
+
+            //- Same (like operator==)
             template<class TrackingData>
             inline bool equal
             (
-                const LayerInfoData<Type>&,
+                const PointEdgeLayerInfoData<Type>&,
                 TrackingData& td
             ) const;
 
 
     // Member Operators
 
-        inline bool operator==(const LayerInfoData<Type>&) const;
-        inline bool operator!=(const LayerInfoData<Type>&) const;
+        inline bool operator==(const PointEdgeLayerInfoData<Type>&) const;
+        inline bool operator!=(const PointEdgeLayerInfoData<Type>&) const;
 
 
     // IOstream Operators
@@ -162,30 +167,30 @@ public:
         friend Ostream& operator<< <Type>
         (
             Ostream&,
-            const LayerInfoData<Type>&
+            const PointEdgeLayerInfoData<Type>&
         );
         friend Istream& operator>> <Type>
         (
             Istream&,
-            LayerInfoData<Type>&
+            PointEdgeLayerInfoData<Type>&
         );
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#define DefineContiguousLayerInfoDataType(Type, nullArg)                      \
+#define DefineContiguousPointEdgeLayerInfoDataType(Type, nullArg)             \
     template<>                                                                \
-    inline bool contiguous<LayerInfoData<Type>>()                             \
+    inline bool contiguous<PointEdgeLayerInfoData<Type>>()                    \
     {                                                                         \
         return true;                                                          \
     }
 
-DefineContiguousLayerInfoDataType(bool, );
-DefineContiguousLayerInfoDataType(label, );
-FOR_ALL_FIELD_TYPES(DefineContiguousLayerInfoDataType);
+DefineContiguousPointEdgeLayerInfoDataType(bool, );
+DefineContiguousPointEdgeLayerInfoDataType(label, );
+FOR_ALL_FIELD_TYPES(DefineContiguousPointEdgeLayerInfoDataType);
 
-#undef DefineContiguousLayerInfoDataType
+#undef DefineContiguousPointEdgeLayerInfoDataType
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -194,7 +199,7 @@ FOR_ALL_FIELD_TYPES(DefineContiguousLayerInfoDataType);
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "LayerInfoDataI.H"
+#include "PointEdgeLayerInfoDataI.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
