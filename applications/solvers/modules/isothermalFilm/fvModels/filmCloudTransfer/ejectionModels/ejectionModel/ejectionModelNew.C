@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2013-2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,19 +23,37 @@ License
 
 \*---------------------------------------------------------------------------*/
 
+#include "ejectionModel.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-template<class Type>
-void Foam::functionObjects::writeFile::writeHeaderValue
+Foam::autoPtr<Foam::ejectionModel> Foam::ejectionModel::New
 (
-    Ostream& os,
-    const string& property,
-    const Type& value
-) const
+    const dictionary& dict,
+    const solvers::isothermalFilm& film
+)
 {
-    os  << setw(1) << '#' << setw(1) << ' '
-        << setf(ios_base::left) << setw(charWidth() - 2) << property.c_str()
-        << setw(1) << ':' << setw(1) << ' ' << value << endl;
+    const word modelType(dict.lookup("model"));
+
+    Info<< "Selecting film ejection model " << modelType << endl;
+
+    dictionaryConstructorTable::iterator cstrIter =
+        dictionaryConstructorTablePtr_->find(modelType);
+
+    if (cstrIter == dictionaryConstructorTablePtr_->end())
+    {
+        FatalErrorInFunction
+            << "Unknown film ejection model "
+            << modelType << nl << nl
+            << "Valid film ejection models are:" << nl
+            << dictionaryConstructorTablePtr_->toc()
+            << exit(FatalError);
+    }
+
+    return autoPtr<ejectionModel>
+    (
+        cstrIter()(dict.optionalSubDict(modelType + "Coeffs"), film)
+    );
 }
 
 
