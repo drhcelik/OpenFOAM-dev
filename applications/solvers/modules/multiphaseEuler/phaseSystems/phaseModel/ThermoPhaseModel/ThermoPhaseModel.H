@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2015-2022 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2015-2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -100,10 +100,13 @@ public:
             virtual const rhoThermo& thermo() const;
 
             //- Access the thermophysical model
-            virtual rhoThermo& thermoRef();
+            virtual rhoThermo& thermo();
 
             //- Return the density field
-            virtual tmp<volScalarField> rho() const;
+            virtual const volScalarField& rho() const;
+
+            //- Access the the density field
+            virtual volScalarField& rho();
 
 
         // Transport

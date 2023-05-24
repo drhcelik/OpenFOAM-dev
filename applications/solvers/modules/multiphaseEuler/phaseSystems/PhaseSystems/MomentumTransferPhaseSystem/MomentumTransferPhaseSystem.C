@@ -280,7 +280,8 @@ Foam::MomentumTransferPhaseSystem<BasePhaseSystem>::momentumTransfer()
                 fvVectorMatrix& eqn = *eqns[phase.name()];
 
                 const volVectorField& U = eqn.psi();
-                const surfaceScalarField& phi = phase.phi();
+
+                const surfaceScalarField& phi = phase.phiRef();
                 const tmp<surfaceScalarField> taphi(fvc::absolute(phi, U));
                 const surfaceScalarField& aphi(taphi());
 
@@ -420,8 +421,9 @@ Foam::MomentumTransferPhaseSystem<BasePhaseSystem>::momentumTransferf()
 
         if (!phase.stationary())
         {
-            const volVectorField& U = phase.U();
-            const surfaceScalarField& phi = phase.phi();
+            const volVectorField& U = phase.URef();
+            const surfaceScalarField& phi = phase.phiRef();
+
             const tmp<surfaceScalarField> taphi(fvc::absolute(phi, U));
             const surfaceScalarField& aphi(taphi());
 
@@ -1132,7 +1134,7 @@ Foam::MomentumTransferPhaseSystem<BasePhaseSystem>::ddtCorrs() const
             fvc::ddtCorr
             (
                 phase,
-                phase.rho()(),
+                phase.rho(),
                 phase.U()(),
                 phase.phi()(),
                 phase.Uf()

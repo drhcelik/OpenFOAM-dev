@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2015-2022 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2015-2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -83,15 +83,23 @@ Foam::ThermoPhaseModel<BasePhaseModel, ThermoModel>::thermo() const
 
 template<class BasePhaseModel, class ThermoModel>
 Foam::rhoThermo&
-Foam::ThermoPhaseModel<BasePhaseModel, ThermoModel>::thermoRef()
+Foam::ThermoPhaseModel<BasePhaseModel, ThermoModel>::thermo()
 {
     return thermo_();
 }
 
 
 template<class BasePhaseModel, class ThermoModel>
-Foam::tmp<Foam::volScalarField>
+const Foam::volScalarField&
 Foam::ThermoPhaseModel<BasePhaseModel, ThermoModel>::rho() const
+{
+    return thermo_->rho();
+}
+
+
+template<class BasePhaseModel, class ThermoModel>
+Foam::volScalarField&
+Foam::ThermoPhaseModel<BasePhaseModel, ThermoModel>::rho()
 {
     return thermo_->rho();
 }

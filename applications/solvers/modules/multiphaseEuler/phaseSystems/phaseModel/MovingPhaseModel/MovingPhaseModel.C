@@ -170,7 +170,7 @@ Foam::MovingPhaseModel<BasePhaseModel>::MovingPhaseModel
         phaseCompressible::momentumTransportModel::New
         (
             *this,
-            this->thermo().rho(),
+            this->rho(),
             U_,
             alphaRhoPhi_,
             phi_,
@@ -235,8 +235,7 @@ void Foam::MovingPhaseModel<BasePhaseModel>::correctContinuityError
     const volScalarField& source
 )
 {
-    volScalarField& rho = this->thermoRef().rho();
-
+    volScalarField& rho = this->rho();
     continuityError_ = fvc::ddt(*this, rho) + fvc::div(alphaRhoPhi_) - source;
 }
 
@@ -335,7 +334,7 @@ Foam::tmp<Foam::fvVectorMatrix>
 Foam::MovingPhaseModel<BasePhaseModel>::UEqn()
 {
     const volScalarField& alpha = *this;
-    const volScalarField& rho = this->thermo().rho();
+    const volScalarField& rho = this->rho();
 
     return
     (
@@ -355,7 +354,7 @@ Foam::MovingPhaseModel<BasePhaseModel>::UfEqn()
     // As the "normal" U-eqn but without the ddt terms
 
     const volScalarField& alpha = *this;
-    const volScalarField& rho = this->thermo().rho();
+    const volScalarField& rho = this->rho();
 
     return
     (
@@ -384,6 +383,14 @@ Foam::MovingPhaseModel<BasePhaseModel>::URef()
 
 
 template<class BasePhaseModel>
+const Foam::volVectorField&
+Foam::MovingPhaseModel<BasePhaseModel>::URef() const
+{
+    return U_;
+}
+
+
+template<class BasePhaseModel>
 Foam::tmp<Foam::surfaceScalarField>
 Foam::MovingPhaseModel<BasePhaseModel>::phi() const
 {
@@ -394,6 +401,14 @@ Foam::MovingPhaseModel<BasePhaseModel>::phi() const
 template<class BasePhaseModel>
 Foam::surfaceScalarField&
 Foam::MovingPhaseModel<BasePhaseModel>::phiRef()
+{
+    return phi_;
+}
+
+
+template<class BasePhaseModel>
+const Foam::surfaceScalarField&
+Foam::MovingPhaseModel<BasePhaseModel>::phiRef() const
 {
     return phi_;
 }
@@ -427,6 +442,25 @@ Foam::MovingPhaseModel<BasePhaseModel>::UfRef()
 
 
 template<class BasePhaseModel>
+const Foam::surfaceVectorField&
+Foam::MovingPhaseModel<BasePhaseModel>::UfRef() const
+{
+    if (Uf_.valid())
+    {
+        return Uf_();
+    }
+    else
+    {
+        FatalErrorInFunction
+            << "Uf has not been allocated."
+            << exit(FatalError);
+
+        return const_cast<surfaceVectorField&>(surfaceVectorField::null());
+    }
+}
+
+
+template<class BasePhaseModel>
 Foam::tmp<Foam::surfaceScalarField>
 Foam::MovingPhaseModel<BasePhaseModel>::alphaPhi() const
 {
@@ -443,6 +477,14 @@ Foam::MovingPhaseModel<BasePhaseModel>::alphaPhiRef()
 
 
 template<class BasePhaseModel>
+const Foam::surfaceScalarField&
+Foam::MovingPhaseModel<BasePhaseModel>::alphaPhiRef() const
+{
+    return alphaPhi_;
+}
+
+
+template<class BasePhaseModel>
 Foam::tmp<Foam::surfaceScalarField>
 Foam::MovingPhaseModel<BasePhaseModel>::alphaRhoPhi() const
 {
@@ -453,6 +495,14 @@ Foam::MovingPhaseModel<BasePhaseModel>::alphaRhoPhi() const
 template<class BasePhaseModel>
 Foam::surfaceScalarField&
 Foam::MovingPhaseModel<BasePhaseModel>::alphaRhoPhiRef()
+{
+    return alphaRhoPhi_;
+}
+
+
+template<class BasePhaseModel>
+const Foam::surfaceScalarField&
+Foam::MovingPhaseModel<BasePhaseModel>::alphaRhoPhiRef() const
 {
     return alphaRhoPhi_;
 }
