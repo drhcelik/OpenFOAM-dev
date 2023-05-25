@@ -10,50 +10,19 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "constant";
-    object      fvModels;
+    object      momentumTransport;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-forcing
+simulationType  laminar; // RAS;
+
+RAS
 {
-    type            waveForcing;
+    model           kEpsilon;
 
-    libs            ("libwaves.so");
+    turbulence      on;
 
-    liquidPhase     water;
-
-    origin          (600 0 0);
-    direction       (1 0 0);
-
-    scale
-    {
-        type        halfCosineRamp;
-        start       0;
-        duration    300;
-    }
-
-    lambda          0.5;
-}
-
-damping
-{
-    type            isotropicDamping;
-
-    libs            ("libwaves.so");
-
-    origin          (0 0 0);
-    direction       (-1 0 0);
-
-    scale
-    {
-        type        halfCosineRamp;
-        start       0;
-        duration    600;
-    }
-
-    lambda          0.5;
-
-    value           (2 0 0);
+    printCoeffs     on;
 }
 
 
