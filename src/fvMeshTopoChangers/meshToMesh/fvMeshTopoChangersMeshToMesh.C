@@ -92,7 +92,7 @@ Foam::fvMeshTopoChangers::meshToMesh::meshToMesh
 {
     forAll(times_, i)
     {
-        timeIndices_.insert(label((times_[i] + timeDelta_/2.0)/timeDelta_));
+        timeIndices_.insert(int64_t((times_[i] + timeDelta_/2.0)/timeDelta_));
     }
 }
 
@@ -107,7 +107,13 @@ Foam::fvMeshTopoChangers::meshToMesh::~meshToMesh()
 
 bool Foam::fvMeshTopoChangers::meshToMesh::update()
 {
-    if (timeIndex_ == -1)
+    // Add the meshToMeshAdjustTimeStepFunctionObject functionObject
+    // if not already present
+    if
+    (
+        mesh().time().functionObjects().findObjectID("meshToMeshAdjustTimeStep")
+     == -1
+    )
     {
         const_cast<Time&>(mesh().time()).functionObjects().append
         (
