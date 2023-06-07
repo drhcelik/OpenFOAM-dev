@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2021-2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,54 +23,61 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "argList.H"
+#include "checkMesh.H"
 #include "fvMesh.H"
-#include "Time.H"
-#include "timeSelector.H"
+#include "addToRunTimeSelectionTable.H"
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-using namespace Foam;
-
-int main(int argc, char *argv[])
+namespace Foam
 {
-    Foam::argList::addBoolOption("write", "write mesh/results files");
-    #include "addOverwriteOption.H"
-    #include "addRegionOption.H"
+namespace functionObjects
+{
+    defineTypeNameAndDebug(checkMesh, 0);
+    addToRunTimeSelectionTable(functionObject, checkMesh, dictionary);
+}
+}
 
-    #include "setRootCase.H"
-    #include "createTimeNoFunctionObjects.H"
-    #include "createNamedMesh.H"
 
-    const bool write = args.optionFound("write");
-    const bool overwrite = args.optionFound("overwrite");
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-    if (write || overwrite)
+Foam::functionObjects::checkMesh::checkMesh
+(
+    const word& name,
+    const Time& runTime,
+    const dictionary& dict
+)
+:
+    fvMeshFunctionObject(name, runTime, dict)
+{
+    read(dict);
+}
+
+
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+
+Foam::functionObjects::checkMesh::~checkMesh()
+{}
+
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+bool Foam::functionObjects::checkMesh::execute()
+{
+    if (mesh_.changing())
     {
-        const word oldInstance = mesh.pointsInstance();
-
-        mesh.setInstance(runTime.name());
-
-        // Set the precision of the points data to 10
-        IOstream::defaultPrecision(max(10u, IOstream::defaultPrecision()));
-
-        if (!overwrite)
-        {
-            runTime++;
-        }
-        else
-        {
-            mesh.setInstance(oldInstance);
-        }
-
-        // Write resulting mesh
-        Info<< "Writing mesh to " << runTime.name() << nl << endl;
-        mesh.write();
+        return mesh_.checkMesh(true);
     }
+    else
+    {
+        return true;
+    }
+}
 
-    Info<< "End" << nl << endl;
 
-    return 0;
+bool Foam::functionObjects::checkMesh::write()
+{
+    return true;
 }
 
 
