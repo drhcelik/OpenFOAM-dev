@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,60 +21,37 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Class
-    Foam::pTraits
+Global
+    Foam::read
 
 Description
-    Traits class for primitives.
-
-    All primitives need a specialised version of this class. The
-    specialised version will normally also require a conversion
-    method.
+    Read a type from an Istream or string using the pTraits class.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef pTraits_H
-#define pTraits_H
+#ifndef read_H
+#define read_H
+
+#include "pTraits.H"
+#include "IStringStream.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-class Istream;
-
-/*---------------------------------------------------------------------------*\
-                           Class pTraits Declaration
-\*---------------------------------------------------------------------------*/
-
-template<class PrimitiveType>
-class pTraits
-:
-    public PrimitiveType
-{
-
-public:
-
-    // Constructors
-
-        //- Construct from primitive
-        pTraits(const PrimitiveType& p)
-        :
-            PrimitiveType(p)
-        {}
-
-        //- Construct from Istream
-        pTraits(Istream& is)
-        :
-            PrimitiveType(is)
-        {}
-};
-
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 template<typename Type>
-inline Type read(Istream& is)
+inline Type read(const string& str)
 {
-    return pTraits<Type>(is);
+    return read<Type>(IStringStream(str)());
+}
+
+template<typename Type>
+inline Type read(const char* str)
+{
+    return read<Type>(IStringStream(str)());
 }
 
 
