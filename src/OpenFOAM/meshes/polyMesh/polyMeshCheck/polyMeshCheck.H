@@ -21,37 +21,52 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Namespace
+    Foam::polyMeshCheck
+
 Description
+
+
+SourceFiles
+    polyMeshCheck.C
 
 \*---------------------------------------------------------------------------*/
 
-#include "argList.H"
-#include "Time.H"
-#include "timeSelector.H"
+#ifndef polyMeshCheck_H
+#define polyMeshCheck_H
 
-using namespace Foam;
+#include "polyMesh.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// Main program:
 
-int main(int argc, char *argv[])
+namespace Foam
 {
-    argList::noParallel();
-    // timeSelector::addOptions();
-    timeSelector::addOptions(true, true);
 
-    #include "setRootCase.H"
-    #include "createTime.H"
+/*---------------------------------------------------------------------------*\
+                        Namespace polyMeshCheck Declaration
+\*---------------------------------------------------------------------------*/
 
-    Info<< "Times found:" << runTime.times() << endl;
+namespace polyMeshCheck
+{
+    //- Check mesh topology for correctness.
+    //  Returns false for no error.
+    bool checkTopology(const polyMesh& mesh, const bool report = false);
 
-    const instantList timeDirs = timeSelector::select0(runTime, args);
+    //- Check mesh geometry (& implicitly topology) for correctness.
+    //  Returns false for no error.
+    bool checkGeometry(const polyMesh& mesh, const bool report = false);
 
-    Info<< "Times selected:" << timeDirs << endl;
-    Info<< "\nEnd\n" << endl;
-
-    return 0;
+    //- Check mesh for correctness. Returns false for no error.
+    bool checkMesh(const polyMesh& mesh, const bool report = false);
 }
 
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //
