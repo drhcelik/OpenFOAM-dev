@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2022-2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,88 +23,38 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "solver.H"
-#include "localEulerDdtScheme.H"
-
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
-
-namespace Foam
-{
-    defineTypeNameAndDebug(solver, 0);
-    defineRunTimeSelectionTable(solver, fvMesh);
-}
-
-
-Foam::scalar Foam::solver::deltaTFactor = 1.2;
-
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-bool Foam::solver::writeData(Ostream&) const
-{
-    NotImplemented;
-    return false;
-}
-
+#include "meshQualityConfiguration.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::solver::solver(fvMesh& mesh)
+Foam::meshQualityConfiguration::meshQualityConfiguration
+(
+    const fileName& name,
+    const fileName& dir,
+    const Time& time
+)
 :
-    regIOobject
-    (
-        IOobject
-        (
-            typeName,
-            mesh.time().timeName(),
-            mesh
-        )
-    ),
-
-    mesh_(mesh),
-    steady(mesh_.schemes().steady()),
-    LTS(fv::localEulerDdt::enabled(mesh)),
-
-    fvModelsPtr(nullptr),
-    fvConstraintsPtr(nullptr),
-
-    mesh(mesh_),
-    runTime(mesh_.time()),
-    pimple(mesh_)
-{
-    deltaTFactor =
-        mesh.time().controlDict().lookupOrDefault<scalar>("deltaTFactor", 1.2);
-}
-
+    caseFileConfiguration(name, dir, time)
+{}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-Foam::solver::~solver()
+Foam::meshQualityConfiguration::~meshQualityConfiguration()
 {}
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-Foam::fvModels& Foam::solver::fvModels() const
+void Foam::meshQualityConfiguration::write()
 {
-    if (!fvModelsPtr)
-    {
-        fvModelsPtr = &Foam::fvModels::New(mesh);
-    }
+    dict_.writeHeader(os_, word("dictionary"));
+    os_ << "#includeEtc \"caseDicts/mesh/generation/meshQualityDict.cfg\""
+        << nl << endl;
 
-    return *fvModelsPtr;
+    os_ << "//- minFaceWeight (0 -> 0.5)" << nl
+        << "//minFaceWeight 0.02;";
+
+    dict_.writeEndDivider(os_);
 }
-
-
-Foam::fvConstraints& Foam::solver::fvConstraints() const
-{
-    if (!fvConstraintsPtr)
-    {
-        fvConstraintsPtr = &Foam::fvConstraints::New(mesh);
-    }
-
-    return *fvConstraintsPtr;
-}
-
 
 // ************************************************************************* //
