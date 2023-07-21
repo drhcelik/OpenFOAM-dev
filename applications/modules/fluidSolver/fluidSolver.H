@@ -96,10 +96,10 @@ protected:
         bool correctPhi;
 
         //- Current maximum Courant number for time-step control
-        scalar CoNum;
+        scalar CoNum_;
 
         //- Read controls
-        void readControls();
+        void readControls(const bool construct = false);
 
         //- Check mesh Courant numbers for moving mesh cases
         void meshCourantNo() const;
@@ -127,6 +127,14 @@ protected:
             const volScalarField& thermoRho,
             const surfaceScalarField& phi
         );
+
+
+public:
+
+    // Public Data
+
+        //- Current maximum Courant number for time-step control
+        const scalar& CoNum;
 
 
 public:

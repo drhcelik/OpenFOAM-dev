@@ -45,21 +45,24 @@ namespace solvers
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-void Foam::solvers::multiphaseEuler::readControls()
+void Foam::solvers::multiphaseEuler::readControls(const bool construct)
 {
-    fluidSolver::readControls();
+    fluidSolver::readControls(construct);
 
-    faceMomentum =
-        pimple.dict().lookupOrDefault<Switch>("faceMomentum", false);
+    if (construct || mesh.solution().modified())
+    {
+        faceMomentum =
+            pimple.dict().lookupOrDefault<Switch>("faceMomentum", false);
 
-    dragCorrection =
-        pimple.dict().lookupOrDefault<Switch>("dragCorrection", false);
+        dragCorrection =
+            pimple.dict().lookupOrDefault<Switch>("dragCorrection", false);
 
-    partialElimination =
-        pimple.dict().lookupOrDefault<Switch>("partialElimination", false);
+        partialElimination =
+            pimple.dict().lookupOrDefault<Switch>("partialElimination", false);
 
-    nEnergyCorrectors =
-        pimple.dict().lookupOrDefault<int>("nEnergyCorrectors", 1);
+        nEnergyCorrectors =
+            pimple.dict().lookupOrDefault<int>("nEnergyCorrectors", 1);
+    }
 }
 
 
@@ -79,7 +82,7 @@ void Foam::solvers::multiphaseEuler::correctCoNum()
         );
     }
 
-    CoNum = 0.5*gMax(sumPhi/mesh.V().field())*runTime.deltaTValue();
+    CoNum_ = 0.5*gMax(sumPhi/mesh.V().field())*runTime.deltaTValue();
 
     const scalar meanCoNum =
         0.5*(gSum(sumPhi)/gSum(mesh.V().field()))*runTime.deltaTValue();
@@ -184,7 +187,7 @@ Foam::solvers::multiphaseEuler::multiphaseEuler(fvMesh& mesh)
     phi(phi_)
 {
     // Read the controls
-    readControls();
+    readControls(true);
 
     mesh.schemes().setFluxRequired(p_rgh.name());
 
