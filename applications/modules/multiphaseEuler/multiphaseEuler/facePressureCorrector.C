@@ -68,9 +68,9 @@ void Foam::solvers::multiphaseEuler::facePressureCorrector()
         rAs.setSize(phases.size());
     }
 
-    PtrList<PtrList<surfaceScalarField>> invADfs;
+    PtrList<surfaceScalarField> HVmfs(movingPhases.size());
+    PtrList<PtrList<surfaceScalarField>> invADVfs;
     {
-        PtrList<surfaceScalarField> Vmfs(fluid.Vmfs());
         PtrList<surfaceScalarField> Afs(movingPhases.size());
 
         forAll(fluid.movingPhases(), movingPhasei)
@@ -110,14 +110,9 @@ void Foam::solvers::multiphaseEuler::facePressureCorrector()
                     fvc::interpolate(A)
                 )
             );
-
-            if (Vmfs.set(phase.index()))
-            {
-                Afs[movingPhasei] += Vmfs[phase.index()];
-            }
         }
 
-        invADfs = fluid.invADfs(Afs);
+        invADVfs = fluid.invADVfs(Afs, HVmfs);
     }
 
     volScalarField rho("rho", fluid.rho());
@@ -162,8 +157,8 @@ void Foam::solvers::multiphaseEuler::facePressureCorrector()
             );
         }
 
-        alphaByADfs = invADfs & lalphafs;
-        FgByADfs = invADfs & Fgfs;
+        alphaByADfs = invADVfs & lalphafs;
+        FgByADfs = invADVfs & Fgfs;
     }
 
 
@@ -205,9 +200,14 @@ void Foam::solvers::multiphaseEuler::facePressureCorrector()
                      + fvc::flux(UEqns[phase.index()].H())
                     )
                 );
+
+                if (HVmfs.set(movingPhasei))
+                {
+                    phiHs[movingPhasei] += HVmfs[movingPhasei];
+                }
             }
 
-            phiHbyADs = invADfs & phiHs;
+            phiHbyADs = invADVfs & phiHs;
         }
 
         forAll(movingPhases, movingPhasei)

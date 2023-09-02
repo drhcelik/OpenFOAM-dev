@@ -72,20 +72,6 @@ class MomentumTransferPhaseSystem
             phaseInterfaceKey::hash
         > KdTable;
 
-        typedef HashPtrTable
-        <
-            surfaceScalarField,
-            phaseInterfaceKey,
-            phaseInterfaceKey::hash
-        > KdfTable;
-
-        typedef HashPtrTable
-        <
-            volScalarField,
-            phaseInterfaceKey,
-            phaseInterfaceKey::hash
-        > VmTable;
-
         typedef HashTable
         <
             autoPtr<blendedDragModel>,
@@ -124,14 +110,8 @@ class MomentumTransferPhaseSystem
 
     // Private Data
 
-        //- Drag coefficients
-        KdTable Kds_;
-
-        //- Face drag coefficients
-        KdfTable Kdfs_;
-
-        //- Virtual mass coefficients
-        VmTable Vms_;
+        //- Cached drag coefficients for dragCorrs
+        mutable KdTable Kds_;
 
 
         // Sub Models
@@ -169,14 +149,14 @@ protected:
             const tmp<surfaceScalarField>& field
         ) const;
 
-        //- Invert the ADs matrix inplace
-        void invADs(List<UPtrList<scalarField>>& ADs) const;
+        //- Invert the ADVs matrix inplace
+        void invADVs(List<UPtrList<scalarField>>& ADVs) const;
 
-        //- Invert the ADs matrix inplace
+        //- Invert the ADVs matrix inplace
         template<template<class> class PatchField, class GeoMesh>
-        void invADs
+        void invADVs
         (
-            PtrList<PtrList<GeometricField<scalar, PatchField, GeoMesh>>>& ADs
+            PtrList<PtrList<GeometricField<scalar, PatchField, GeoMesh>>>& ADVs
         ) const;
 
 
@@ -202,10 +182,6 @@ public:
         //- As momentumTransfer, but for the face-based algorithm
         virtual autoPtr<phaseSystem::momentumTransferTable> momentumTransferf();
 
-        //- Return implicit force coefficients on the faces, for the face-based
-        //  algorithm.
-        virtual PtrList<surfaceScalarField> Vmfs() const;
-
         //- Return the explicit force fluxes for the cell-based algorithm, that
         //  do not depend on phase mass/volume fluxes, and can therefore be
         //  evaluated outside the corrector loop. This includes things like
@@ -215,18 +191,22 @@ public:
         //- As Fs, but for the face-based algorithm
         virtual PtrList<surfaceScalarField> Ffs() const;
 
-        //- Return the inverse of (As + Ds)
-        virtual void invADs
+        //- Return the inverse of the central + drag + virtual mass
+        //  coefficient matrix
+        virtual void invADVs
         (
             const PtrList<volScalarField>& As,
-            PtrList<PtrList<volScalarField>>& invADs,
-            PtrList<PtrList<surfaceScalarField>>& invADfs
+            PtrList<volVectorField>& HVms,
+            PtrList<PtrList<volScalarField>>& invADVs,
+            PtrList<PtrList<surfaceScalarField>>& invADVfs
         ) const;
 
-        //- Return the inverse of (Afs + Dfs)
-        virtual PtrList<PtrList<surfaceScalarField>> invADfs
+        //- Return the inverse of the central + drag + virtual mass
+        //  coefficient matrix
+        virtual PtrList<PtrList<surfaceScalarField>> invADVfs
         (
-            const PtrList<surfaceScalarField>& Afs
+            const PtrList<surfaceScalarField>& Afs,
+            PtrList<surfaceScalarField>& HVmfs
         ) const;
 
         //- Returns true if the phase pressure is treated implicitly

@@ -521,28 +521,28 @@ public:
             //  algorithm
             virtual autoPtr<momentumTransferTable> momentumTransferf() = 0;
 
-            //- Return the implicit force coefficients for the face-based
-            //  algorithm
-            virtual PtrList<surfaceScalarField> Vmfs() const = 0;
-
             //- Return the force fluxes for the cell-based algorithm
             virtual PtrList<surfaceScalarField> Fs() const = 0;
 
             //- Return the force fluxes for the face-based algorithm
             virtual PtrList<surfaceScalarField> Ffs() const = 0;
 
-            //- Return the inverse of (As + Ds)
-            virtual void invADs
+            //- Return the inverse of the central + drag + virtual mass
+            //  coefficient matrix
+            virtual void invADVs
             (
                 const PtrList<volScalarField>& As,
-                PtrList<PtrList<volScalarField>>& invADs,
-                PtrList<PtrList<surfaceScalarField>>& invADfs
+                PtrList<volVectorField>& HVms,
+                PtrList<PtrList<volScalarField>>& invADVs,
+                PtrList<PtrList<surfaceScalarField>>& invADVfs
             ) const = 0;
 
-            //- Return the inverse of (Afs + Dfs)
-            virtual PtrList<PtrList<surfaceScalarField>> invADfs
+            //- Return the inverse of the face central + drag + virtual mass
+            //  coefficient matrix
+            virtual PtrList<PtrList<surfaceScalarField>> invADVfs
             (
-                const PtrList<surfaceScalarField>& Afs
+                const PtrList<surfaceScalarField>& Afs,
+                PtrList<surfaceScalarField>& HVmfs
             ) const = 0;
 
             //- Returns true if the phase pressure is treated implicitly

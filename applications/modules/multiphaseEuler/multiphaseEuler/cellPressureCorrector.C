@@ -68,8 +68,9 @@ void Foam::solvers::multiphaseEuler::cellPressureCorrector()
         rAs.setSize(phases.size());
     }
 
-    PtrList<PtrList<volScalarField>> invADs;
-    PtrList<PtrList<surfaceScalarField>> invADfs;
+    PtrList<volVectorField> HVms(movingPhases.size());
+    PtrList<PtrList<volScalarField>> invADVs;
+    PtrList<PtrList<surfaceScalarField>> invADVfs;
     {
         PtrList<volScalarField> As(movingPhases.size());
         PtrList<surfaceScalarField> Afs(movingPhases.size());
@@ -109,7 +110,7 @@ void Foam::solvers::multiphaseEuler::cellPressureCorrector()
             }
         }
 
-        fluid.invADs(As, invADs, invADfs);
+        fluid.invADVs(As, HVms, invADVs, invADVfs);
     }
 
     volScalarField rho("rho", fluid.rho());
@@ -156,8 +157,8 @@ void Foam::solvers::multiphaseEuler::cellPressureCorrector()
             );
         }
 
-        alphaByADfs = invADfs & lalphafs;
-        FgByADfs = invADfs & Fgfs;
+        alphaByADfs = invADVfs & lalphafs;
+        FgByADfs = invADVfs & Fgfs;
     }
 
 
@@ -168,7 +169,6 @@ void Foam::solvers::multiphaseEuler::cellPressureCorrector()
     // --- Optional momentum predictor
     if (predictMomentum)
     {
-        InfoInFunction << endl;
         PtrList<volVectorField> HbyADs;
         {
             PtrList<volVectorField> Hs(movingPhases.size());
@@ -189,9 +189,14 @@ void Foam::solvers::multiphaseEuler::cellPressureCorrector()
                     )
                    *phase.U()().oldTime()
                 );
+
+                if (HVms.set(movingPhasei))
+                {
+                    Hs[movingPhasei] += HVms[movingPhasei];
+                }
             }
 
-            HbyADs = invADs & Hs;
+            HbyADs = invADVs & Hs;
         }
 
         forAll(movingPhases, movingPhasei)
@@ -253,6 +258,11 @@ void Foam::solvers::multiphaseEuler::cellPressureCorrector()
                    *phase.U()().oldTime()
                 );
 
+                if (HVms.set(movingPhasei))
+                {
+                    Hs[movingPhasei] += HVms[movingPhasei];
+                }
+
                 phiHs.set
                 (
                     movingPhasei,
@@ -260,8 +270,8 @@ void Foam::solvers::multiphaseEuler::cellPressureCorrector()
                 );
             }
 
-            HbyADs = invADs & Hs;
-            phiHbyADs = invADfs & phiHs;
+            HbyADs = invADVs & Hs;
+            phiHbyADs = invADVfs & phiHs;
         }
 
         forAll(movingPhases, movingPhasei)
@@ -418,12 +428,12 @@ void Foam::solvers::multiphaseEuler::cellPressureCorrector()
 
                     PtrList<volVectorField> dragCorrByADs
                     (
-                        invADs & dragCorrs
+                        invADVs & dragCorrs
                     );
 
                     PtrList<surfaceScalarField> dragCorrByADfs
                     (
-                        invADfs & dragCorrfs
+                        invADVfs & dragCorrfs
                     );
 
                     forAll(movingPhases, movingPhasei)
