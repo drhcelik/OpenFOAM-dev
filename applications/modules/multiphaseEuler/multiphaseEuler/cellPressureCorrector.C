@@ -45,11 +45,6 @@ void Foam::solvers::multiphaseEuler::cellPressureCorrector()
 {
     volScalarField& p(p_);
 
-    const phaseSystem::phaseModelPartialList& movingPhases
-    (
-        fluid.movingPhases()
-    );
-
     // Face volume fractions
     PtrList<surfaceScalarField> alphafs(phases.size());
     forAll(phases, phasei)
@@ -209,7 +204,7 @@ void Foam::solvers::multiphaseEuler::cellPressureCorrector()
 
         forAll(movingPhases, movingPhasei)
         {
-            phaseModel& phase = fluid_.movingPhases()[movingPhasei];
+            phaseModel& phase = movingPhases_[movingPhasei];
 
             phase.URef() =
                 HbyADs[movingPhasei]
@@ -338,7 +333,7 @@ void Foam::solvers::multiphaseEuler::cellPressureCorrector()
 
             forAll(movingPhases, movingPhasei)
             {
-                phaseModel& phase = fluid_.movingPhases()[movingPhasei];
+                phaseModel& phase = movingPhases_[movingPhasei];
 
                 phib +=
                     alphafs[phase.index()].boundaryField()
@@ -402,7 +397,7 @@ void Foam::solvers::multiphaseEuler::cellPressureCorrector()
 
                 forAll(movingPhases, movingPhasei)
                 {
-                    phaseModel& phase = fluid_.movingPhases()[movingPhasei];
+                    phaseModel& phase = movingPhases_[movingPhasei];
 
                     phase.phiRef() =
                         phiHbyADs[movingPhasei]
@@ -438,7 +433,7 @@ void Foam::solvers::multiphaseEuler::cellPressureCorrector()
 
                     forAll(movingPhases, movingPhasei)
                     {
-                        phaseModel& phase = fluid_.movingPhases()[movingPhasei];
+                        phaseModel& phase = movingPhases_[movingPhasei];
 
                         phase.URef() =
                             HbyADs[movingPhasei]
@@ -455,7 +450,7 @@ void Foam::solvers::multiphaseEuler::cellPressureCorrector()
                 {
                     forAll(movingPhases, movingPhasei)
                     {
-                        phaseModel& phase = fluid_.movingPhases()[movingPhasei];
+                        phaseModel& phase = movingPhases_[movingPhasei];
 
                         phase.URef() =
                             HbyADs[movingPhasei]
@@ -469,7 +464,7 @@ void Foam::solvers::multiphaseEuler::cellPressureCorrector()
 
                 forAll(movingPhases, movingPhasei)
                 {
-                    phaseModel& phase = fluid_.movingPhases()[movingPhasei];
+                    phaseModel& phase = movingPhases_[movingPhasei];
 
                     phase.URef().correctBoundaryConditions();
                     phase.correctUf();
