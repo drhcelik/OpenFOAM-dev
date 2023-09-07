@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2018-2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,21 +22,18 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::singleRegionConvergenceControl
+    Foam::vectorAndError
 
 Description
-    Single-region-specific derivation of the convergence control class
-
-SourceFiles
-    singleRegionConvergenceControl.C
+    Vector of scalarAndError-s.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef singleRegionConvergenceControl_H
-#define singleRegionConvergenceControl_H
+#ifndef vectorAndError_H
+#define vectorAndError_H
 
-#include "convergenceControl.H"
-#include "singleRegionSolutionControl.H"
+#include "scalarAndError.H"
+#include "Vector.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -44,67 +41,40 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-               Class singleRegionConvergenceControl Declaration
+                        Class vectorAndError Declaration
 \*---------------------------------------------------------------------------*/
 
-class singleRegionConvergenceControl
+class vectorAndError
 :
-    public convergenceControl
+    public Vector<scalarAndError>
 {
-protected:
-
-    // Protected data
-
-        //- Reference to the mesh
-        const fvMesh& mesh_;
-
-        //- List of residual data per field
-        List<residualData> residualControl_;
-
-
-    // Protected Member Functions
-
-        //- Read controls
-        virtual bool read();
-
-
 public:
-
-    // Static Data Members
-
-        //- Run-time type information
-        TypeName("singleRegionConvergenceControl");
-
 
     // Constructors
 
-        //- Construct from a solution control
-        singleRegionConvergenceControl
-        (
-            const singleRegionSolutionControl& control
-        );
-
-
-    //- Destructor
-    virtual ~singleRegionConvergenceControl();
+        //- Inherit Constructors
+        using Vector<scalarAndError>::Vector;
 
 
     // Member Functions
 
-        // IO
+        //- Return the value
+        inline Vector<scalar> value() const
+        {
+            return Vector<scalar>(x().value, y().value, z().value);
+        }
 
-            //- Print the residual controls
-            void printResidualControls() const;
-
-
-        // Evolution
-
-            //- Return true if residual controls are present
-            virtual bool hasResidualControls() const;
-
-            //- Return true if all convergence checks are satisfied
-            virtual convergenceData criteriaSatisfied() const;
+        //- Return the error
+        inline Vector<scalar> error() const
+        {
+            return Vector<scalar>(x().error, y().error, z().error);
+        }
 };
+
+
+//- Data associated with the vector-and-error type is contiguous
+template<>
+inline bool contiguous<vectorAndError>() { return true; }
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
