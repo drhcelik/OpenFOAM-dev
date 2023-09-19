@@ -8,29 +8,25 @@
 
 type            coded;
 
+// Load the library containing the 'coded' functionObject
 libs            ("libutilityFunctionObjects.so");
 
-name            R;
+name            strainRate;
 
 codeInclude
 #{
-    #include "volFields.H"
+    #include "fvcGrad.H"
 #};
 
 codeWrite
 #{
-    const tensor XY(1, 0, 0, 0, 1, 0, 0, 0, 0);
+    const volVectorField& U(mesh().lookupObject<volVectorField>("U"));
 
-    volScalarField
+    volScalarField::New
     (
-        IOobject
-        (
-            "R",
-            mesh().time().timeName(),
-            mesh()
-        ),
-        mag(XY & mesh().C())
-    ).write();
+        "strainRate",
+        sqrt(2.0)*mag(symm(fvc::grad(U)))
+    )->write();
 #};
 
 // ************************************************************************* //
