@@ -55,18 +55,19 @@ void Foam::IsothermalPhaseModel<BasePhaseModel>::correctThermo()
 {
     BasePhaseModel::correctThermo();
 
-    // Correct the thermo, but make sure that the temperature remains the same
-    // tmp<volScalarField> TCopy
-    // (
-    //     volScalarField::New
-    //     (
-    //         this->thermo().T().name() + ":Copy",
-    //         this->thermo().T()
-    //     )
-    // );
-    // this->thermo_->he() = this->thermo().he(this->fluidThermo().p(), TCopy);
-    // this->thermo_->correct();
-    // this->thermo_->T() = TCopy;
+    // Correct the thermo for pressure changes
+    // ensuring the temperature remains constant
+    tmp<volScalarField> TCopy
+    (
+        volScalarField::New
+        (
+            this->thermo().T().name() + ":Copy",
+            this->thermo().T()
+        )
+    );
+    this->thermo_->he() = this->thermo().he(this->fluidThermo().p(), TCopy);
+    this->thermo_->correct();
+    this->thermo_->T() = TCopy;
 }
 
 

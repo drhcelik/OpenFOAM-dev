@@ -25,9 +25,9 @@ Class
     Foam::IsothermalPhaseModel
 
 Description
-    Class which represents a phase for which the temperature (strictly energy)
-    remains constant. Returns an empty energy equation and does nothing when
-    correctThermo is called.
+    Class which represents a phase for which the temperature remains
+    constant. Returns an empty energy equation and updates the energy
+    corresponding to pressure changes only when correctThermo is called.
 
 SourceFiles
     IsothermalPhaseModel.C
