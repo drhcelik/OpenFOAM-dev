@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2017-2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,62 +23,54 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "checkMesh.H"
-#include "fvMesh.H"
-#include "polyMeshCheck.H"
-#include "addToRunTimeSelectionTable.H"
+#include "Airy.H"
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
-namespace Foam
-{
-namespace functionObjects
-{
-    defineTypeNameAndDebug(checkMesh, 0);
-    addToRunTimeSelectionTable(functionObject, checkMesh, dictionary);
-}
-}
-
-
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-Foam::functionObjects::checkMesh::checkMesh
+inline Foam::waveModels::AiryCoeffs Foam::waveModels::Airy::coeffs
 (
-    const word& name,
-    const Time& runTime,
-    const dictionary& dict
-)
-:
-    fvMeshFunctionObject(name, runTime, dict)
+    const scalar t
+) const
 {
-    read(dict);
+    return AiryCoeffs(depth_, amplitude_->value(t), length_, g());
 }
 
 
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-Foam::functionObjects::checkMesh::~checkMesh()
-{}
-
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-bool Foam::functionObjects::checkMesh::execute()
+inline Foam::waveModels::AiryCoeffs Foam::waveModels::Airy::coeffs() const
 {
-    if (mesh_.changing())
-    {
-        return meshCheck::checkMesh(mesh_, true);
-    }
-    else
-    {
-        return true;
-    }
+    return AiryCoeffs(depth_, amplitude(), length_, g());
 }
 
 
-bool Foam::functionObjects::checkMesh::write()
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+inline Foam::scalar Foam::waveModels::Airy::depth() const
 {
-    return true;
+    return depth_;
+}
+
+
+inline Foam::scalar Foam::waveModels::Airy::amplitude(const scalar t) const
+{
+    return amplitude_->value(t);
+}
+
+
+inline Foam::scalar Foam::waveModels::Airy::amplitude() const
+{
+    return amplitude_->value(great);
+}
+
+
+inline Foam::scalar Foam::waveModels::Airy::length() const
+{
+    return length_;
+}
+
+
+inline Foam::scalar Foam::waveModels::Airy::phase() const
+{
+    return phase_;
 }
 
 

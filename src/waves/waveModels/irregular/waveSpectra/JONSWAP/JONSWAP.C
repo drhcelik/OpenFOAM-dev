@@ -23,62 +23,86 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "checkMesh.H"
-#include "fvMesh.H"
-#include "polyMeshCheck.H"
+#include "JONSWAP.H"
+#include "mathematicalConstants.H"
 #include "addToRunTimeSelectionTable.H"
+
+using namespace Foam::constant::mathematical;
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace functionObjects
+namespace waveSpectra
 {
-    defineTypeNameAndDebug(checkMesh, 0);
-    addToRunTimeSelectionTable(functionObject, checkMesh, dictionary);
+    defineTypeNameAndDebug(JONSWAP, 0);
+    addToRunTimeSelectionTable(waveSpectrum, JONSWAP, dictionary);
 }
 }
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::functionObjects::checkMesh::checkMesh
+Foam::waveSpectra::JONSWAP::JONSWAP
 (
-    const word& name,
-    const Time& runTime,
-    const dictionary& dict
+    const JONSWAP& spectrum
 )
 :
-    fvMeshFunctionObject(name, runTime, dict)
-{
-    read(dict);
-}
+    waveSpectrum(spectrum),
+    U10_(spectrum.U10_),
+    F_(spectrum.F_)
+{}
+
+
+Foam::waveSpectra::JONSWAP::JONSWAP
+(
+    const dictionary& dict,
+    const scalar g
+)
+:
+    waveSpectrum(dict, g),
+    U10_(dict.lookup<scalar>("U10")),
+    F_(dict.lookup<scalar>("F"))
+{}
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-Foam::functionObjects::checkMesh::~checkMesh()
+Foam::waveSpectra::JONSWAP::~JONSWAP()
 {}
 
 
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-bool Foam::functionObjects::checkMesh::execute()
+Foam::tmp<Foam::scalarField> Foam::waveSpectra::JONSWAP::S
+(
+    const scalarField& f
+) const
 {
-    if (mesh_.changing())
-    {
-        return meshCheck::checkMesh(mesh_, true);
-    }
-    else
-    {
-        return true;
-    }
+    const scalar alpha = 0.076*pow(sqr(U10_)/(F_*g()), 0.22);
+    const scalarField w(twoPi*f);
+    const scalar wp = 22*pow(sqr(g())/(U10_*F_), 1.0/3.0);
+    const scalar gamma = 3.3;
+    const scalarField sigma(0.07 + 0.02*pos(w - wp));
+    const scalarField r(exp(- sqr(w - wp)/(2*sqr(sigma)*sqr(wp))));
+    return twoPi*alpha*sqr(g())/pow5(w)*exp(- 1.2*pow4(wp/w))*pow(gamma, r);
 }
 
 
-bool Foam::functionObjects::checkMesh::write()
+Foam::scalar Foam::waveSpectra::JONSWAP::fFraction(const scalar fraction) const
 {
-    return true;
+    const scalar wp = 22*pow(sqr(g())/(U10_*F_), 1.0/3.0);
+    const scalar f1 = wp/pow025(rootSmall/1.2)/twoPi;
+    return waveSpectrum::fFraction(fraction, f1);
+}
+
+
+void Foam::waveSpectra::JONSWAP::write(Ostream& os) const
+{
+    waveSpectrum::write(os);
+
+    writeEntry(os, "U10", U10_);
+    writeEntry(os, "F", F_);
 }
 
 

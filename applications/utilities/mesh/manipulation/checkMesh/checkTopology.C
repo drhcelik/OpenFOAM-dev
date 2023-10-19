@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2022 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -24,7 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "checkTopology.H"
-#include "polyMesh.H"
+#include "polyMeshCheck.H"
 #include "Time.H"
 #include "regionSplit.H"
 #include "cellSet.H"
@@ -42,7 +42,6 @@ Foam::label Foam::checkTopology
 (
     const polyMesh& mesh,
     const bool allTopology,
-    const bool allGeometry,
     const autoPtr<surfaceWriter>& surfWriter,
     const autoPtr<Foam::setWriter>& setWriter
 )
@@ -145,7 +144,7 @@ Foam::label Foam::checkTopology
 
     {
         pointSet points(mesh, "unusedPoints", mesh.nPoints()/100);
-        if (mesh.checkPoints(true, &points))
+        if (meshCheck::checkPoints(mesh, true, &points))
         {
             noFailedChecks++;
 
@@ -164,7 +163,7 @@ Foam::label Foam::checkTopology
 
     {
         faceSet faces(mesh, "upperTriangularFace", mesh.nFaces()/100);
-        if (mesh.checkUpperTriangular(true, &faces))
+        if (meshCheck::checkUpperTriangular(mesh, true, &faces))
         {
             noFailedChecks++;
         }
@@ -186,7 +185,7 @@ Foam::label Foam::checkTopology
 
     {
         faceSet faces(mesh, "outOfRangeFaces", mesh.nFaces()/100);
-        if (mesh.checkFaceVertices(true, &faces))
+        if (meshCheck::checkFaceVertices(mesh, true, &faces))
         {
             noFailedChecks++;
 
@@ -207,7 +206,7 @@ Foam::label Foam::checkTopology
     if (allTopology)
     {
         cellSet cells(mesh, "zipUpCells", mesh.nCells()/100);
-        if (mesh.checkCellsZipUp(true, &cells))
+        if (meshCheck::checkCellsZipUp(mesh, true, &cells))
         {
             noFailedChecks++;
 
@@ -229,7 +228,7 @@ Foam::label Foam::checkTopology
     if (allTopology)
     {
         faceSet faces(mesh, "edgeFaces", mesh.nFaces()/100);
-        if (mesh.checkFaceFaces(true, &faces))
+        if (meshCheck::checkFaceFaces(mesh, true, &faces))
         {
             noFailedChecks++;
         }
@@ -499,10 +498,6 @@ Foam::label Foam::checkTopology
         {
             Info<< setw(34) << "Surface topology";
         }
-        if (allGeometry)
-        {
-            Info<< " Bounding box";
-        }
         Info<< endl;
 
         forAll(patches, patchi)
@@ -553,25 +548,6 @@ Foam::label Foam::checkTopology
                             Info<< setw(34)
                                 << "multiply connected (shared edge)";
                         }
-                    }
-                }
-
-                if (allGeometry)
-                {
-                    const pointField& pts = pp.points();
-                    const labelList& mp = pp.meshPoints();
-
-                    if (returnReduce(mp.size(), sumOp<label>()) > 0)
-                    {
-                        boundBox bb(point::max, point::min);
-                        forAll(mp, i)
-                        {
-                            bb.min() = min(bb.min(), pts[mp[i]]);
-                            bb.max() = max(bb.max(), pts[mp[i]]);
-                        }
-                        reduce(bb.min(), minOp<vector>());
-                        reduce(bb.max(), maxOp<vector>());
-                        Info<< ' ' << bb;
                     }
                 }
                 Info<< endl;

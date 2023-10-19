@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2022 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,7 +25,7 @@ License
 
 #include "PatchTools.H"
 #include "checkGeometry.H"
-#include "polyMesh.H"
+#include "polyMeshCheck.H"
 #include "cellSet.H"
 #include "faceSet.H"
 #include "pointSet.H"
@@ -523,6 +523,39 @@ Foam::label Foam::checkGeometry
     Info<< "    Overall domain bounding box "
         << globalBb.min() << " " << globalBb.max() << endl;
 
+    if (allGeometry)
+    {
+        Info<< "    Patch bounding boxes" << endl;
+
+        const polyBoundaryMesh& patches = mesh.boundaryMesh();
+
+        forAll(patches, patchi)
+        {
+            const polyPatch& pp = patches[patchi];
+
+            if (!isA<processorPolyPatch>(pp))
+            {
+                Info<< "        " << setw(20) << pp.name();
+
+                const pointField& pts = pp.points();
+                const labelList& mp = pp.meshPoints();
+
+                if (returnReduce(mp.size(), sumOp<label>()) > 0)
+                {
+                    boundBox bb(point::max, point::min);
+                    forAll(mp, i)
+                    {
+                        bb.min() = min(bb.min(), pts[mp[i]]);
+                        bb.max() = max(bb.max(), pts[mp[i]]);
+                    }
+                    reduce(bb.min(), minOp<vector>());
+                    reduce(bb.max(), maxOp<vector>());
+                    Info<< ' ' << bb;
+                }
+            }
+            Info<< endl;
+        }
+    }
 
     // Min length
     scalar minDistSqr = magSqr(1e-6 * globalBb.span());
@@ -549,7 +582,13 @@ Foam::label Foam::checkGeometry
             )
          || (
                 validDirs == solDirs
-             && mesh.checkEdgeAlignment(true, validDirs, &nonAlignedPoints)
+             && meshCheck::checkEdgeAlignment
+                (
+                    mesh,
+                    true,
+                    validDirs,
+                    &nonAlignedPoints
+                )
             )
         )
         {
@@ -575,15 +614,16 @@ Foam::label Foam::checkGeometry
         }
     }
 
-    if (mesh.checkClosedBoundary(true)) noFailedChecks++;
+    if (meshCheck::checkClosedBoundary(mesh, true)) noFailedChecks++;
 
     {
         cellSet cells(mesh, "nonClosedCells", mesh.nCells()/100+1);
         cellSet aspectCells(mesh, "highAspectRatioCells", mesh.nCells()/100+1);
         if
         (
-            mesh.checkClosedCells
+            meshCheck::checkClosedCells
             (
+                mesh,
                 true,
                 &cells,
                 &aspectCells,
@@ -626,7 +666,7 @@ Foam::label Foam::checkGeometry
 
     {
         faceSet faces(mesh, "zeroAreaFaces", mesh.nFaces()/100+1);
-        if (mesh.checkFaceAreas(true, &faces))
+        if (meshCheck::checkFaceAreas(mesh, true, &faces))
         {
             noFailedChecks++;
 
@@ -648,7 +688,7 @@ Foam::label Foam::checkGeometry
 
     {
         cellSet cells(mesh, "zeroVolumeCells", mesh.nCells()/100+1);
-        if (mesh.checkCellVolumes(true, &cells))
+        if (meshCheck::checkCellVolumes(mesh, true, &cells))
         {
             noFailedChecks++;
 
@@ -670,7 +710,7 @@ Foam::label Foam::checkGeometry
 
     {
         faceSet faces(mesh, "nonOrthoFaces", mesh.nFaces()/100+1);
-        if (mesh.checkFaceOrthogonality(true, &faces))
+        if (meshCheck::checkFaceOrthogonality(mesh, true, &faces))
         {
             noFailedChecks++;
         }
@@ -692,7 +732,7 @@ Foam::label Foam::checkGeometry
 
     {
         faceSet faces(mesh, "wrongOrientedFaces", mesh.nFaces()/100 + 1);
-        if (mesh.checkFacePyramids(true, -small, &faces))
+        if (meshCheck::checkFacePyramids(mesh, true, -small, &faces))
         {
             noFailedChecks++;
 
@@ -715,7 +755,7 @@ Foam::label Foam::checkGeometry
 
     {
         faceSet faces(mesh, "skewFaces", mesh.nFaces()/100+1);
-        if (mesh.checkFaceSkewness(true, &faces))
+        if (meshCheck::checkFaceSkewness(mesh, true, &faces))
         {
             noFailedChecks++;
 
@@ -796,7 +836,7 @@ Foam::label Foam::checkGeometry
     {
         // Note use of nPoints since don't want edge construction.
         pointSet points(mesh, "shortEdges", mesh.nPoints()/1000 + 1);
-        if (mesh.checkEdgeLength(true, minDistSqr, &points))
+        if (meshCheck::checkEdgeLength(mesh, true, minDistSqr, &points))
         {
             // noFailedChecks++;
 
@@ -818,7 +858,7 @@ Foam::label Foam::checkGeometry
 
         label nEdgeClose = returnReduce(points.size(), sumOp<label>());
 
-        if (mesh.checkPointNearness(false, minDistSqr, &points))
+        if (meshCheck::checkPointNearness(mesh, false, minDistSqr, &points))
         {
             // noFailedChecks++;
 
@@ -843,7 +883,7 @@ Foam::label Foam::checkGeometry
     if (allGeometry)
     {
         faceSet faces(mesh, "concaveFaces", mesh.nFaces()/100 + 1);
-        if (mesh.checkFaceAngles(true, 10, &faces))
+        if (meshCheck::checkFaceAngles(mesh, true, 10, &faces))
         {
             // noFailedChecks++;
 
@@ -867,7 +907,7 @@ Foam::label Foam::checkGeometry
     if (allGeometry)
     {
         faceSet faces(mesh, "warpedFaces", mesh.nFaces()/100 + 1);
-        if (mesh.checkFaceFlatness(true, 0.8, &faces))
+        if (meshCheck::checkFaceFlatness(mesh, true, 0.8, &faces))
         {
             // noFailedChecks++;
 
@@ -890,7 +930,7 @@ Foam::label Foam::checkGeometry
     if (allGeometry)
     {
         cellSet cells(mesh, "underdeterminedCells", mesh.nCells()/100);
-        if (mesh.checkCellDeterminant(true, &cells))
+        if (meshCheck::checkCellDeterminant(mesh, true, &cells))
         {
             noFailedChecks++;
 
@@ -910,7 +950,7 @@ Foam::label Foam::checkGeometry
     if (allGeometry)
     {
         cellSet cells(mesh, "concaveCells", mesh.nCells()/100);
-        if (mesh.checkConcaveCells(true, &cells))
+        if (meshCheck::checkConcaveCells(mesh, true, &cells))
         {
             noFailedChecks++;
 
@@ -930,7 +970,7 @@ Foam::label Foam::checkGeometry
     if (allGeometry)
     {
         faceSet faces(mesh, "lowWeightFaces", mesh.nFaces()/100);
-        if (mesh.checkFaceWeight(true, 0.05, &faces))
+        if (meshCheck::checkFaceWeight(mesh, true, 0.05, &faces))
         {
             noFailedChecks++;
 
@@ -951,7 +991,7 @@ Foam::label Foam::checkGeometry
     if (allGeometry)
     {
         faceSet faces(mesh, "lowVolRatioFaces", mesh.nFaces()/100);
-        if (mesh.checkVolRatio(true, 0.01, &faces))
+        if (meshCheck::checkVolRatio(mesh, true, 0.01, &faces))
         {
             noFailedChecks++;
 

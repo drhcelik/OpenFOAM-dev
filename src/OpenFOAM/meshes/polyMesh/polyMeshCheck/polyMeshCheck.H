@@ -22,10 +22,9 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Namespace
-    Foam::polyMeshCheck
+    Foam::meshCheck
 
 Description
-
 
 SourceFiles
     polyMeshCheck.C
@@ -36,6 +35,7 @@ SourceFiles
 #define polyMeshCheck_H
 
 #include "polyMesh.H"
+#include "primitiveMeshCheck.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -43,11 +43,62 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                        Namespace polyMeshCheck Declaration
+                        Namespace meshCheck Declaration
 \*---------------------------------------------------------------------------*/
 
-namespace polyMeshCheck
+namespace meshCheck
 {
+    //- Check non-orthogonality
+    bool checkFaceOrthogonality
+    (
+        const polyMesh& mesh,
+        const bool report = false,
+        labelHashSet* setPtr = nullptr
+    );
+
+    //- Check face skewness
+    bool checkFaceSkewness
+    (
+        const polyMesh& mesh,
+        const bool report = false,
+        labelHashSet* setPtr = nullptr
+    );
+
+    //- Check edge alignment for 1D/2D cases
+    bool checkEdgeAlignment
+    (
+        const polyMesh& mesh,
+        const bool report,
+        const Vector<label>& directions,
+        labelHashSet* setPtr
+    );
+
+    bool checkCellDeterminant
+    (
+        const polyMesh& mesh,
+        const bool report,
+        labelHashSet* setPtr
+    );
+
+    //- Check for face weights
+    bool checkFaceWeight
+    (
+        const polyMesh& mesh,
+        const bool report,
+        const scalar minWeight = 0.05,
+        labelHashSet* setPtr = nullptr
+    );
+
+    //- Check for neighbouring cell volumes
+    bool checkVolRatio
+    (
+        const polyMesh& mesh,
+        const bool report,
+        const scalar minRatio = 0.01,
+        labelHashSet* setPtr = nullptr
+    );
+
+
     //- Check mesh topology for correctness.
     //  Returns false for no error.
     bool checkTopology(const polyMesh& mesh, const bool report = false);
