@@ -1,13 +1,13 @@
-polyMeshCheck/polyMeshCheck.C
-polyMeshCheck/polyMeshTools.C
-
 primitiveMeshCheck/primitiveMeshCheck.C
 primitiveMeshCheck/primitiveMeshCheckPointNearness.C
 primitiveMeshCheck/primitiveMeshCheckEdgeLength.C
-primitiveMeshCheck/primitiveMeshTools.C
 
-checkTools/checkTools.C
-checkTools/checkTopology.C
-checkTools/checkGeometry.C
+polyMeshCheck/polyMeshCheck.C
+polyMeshCheck/polyMeshCheckQuality.C
+
+mergeAndWrite/mergeAndWrite.C
+checkTopology.C
+checkGeometry.C
+checkMesh.C
 
 LIB = $(FOAM_LIBBIN)/libmeshCheck
