@@ -281,6 +281,7 @@ Foam::tmp<Foam::scalarField> Foam::meshCheck::volRatio
 bool Foam::meshCheck::checkFaceOrthogonality
 (
     const polyMesh& mesh,
+    const scalar nonOrthThreshold,
     const bool report,
     labelHashSet* setPtr
 )
@@ -305,7 +306,7 @@ bool Foam::meshCheck::checkFaceOrthogonality
 
     // Severe nonorthogonality threshold
     const scalar severeNonorthogonalityThreshold =
-        ::cos(degToRad(meshCheck::nonOrthThreshold));
+        ::cos(degToRad(nonOrthThreshold));
 
 
     scalar minDDotS = great;
@@ -374,7 +375,7 @@ bool Foam::meshCheck::checkFaceOrthogonality
         if (severeNonOrth > 0)
         {
             Info<< "   *Number of severely non-orthogonal (> "
-                << meshCheck::nonOrthThreshold << " degrees) faces: "
+                << nonOrthThreshold << " degrees) faces: "
                 << severeNonOrth << "." << endl;
         }
     }
@@ -404,6 +405,7 @@ bool Foam::meshCheck::checkFaceOrthogonality
 bool Foam::meshCheck::checkFaceSkewness
 (
     const polyMesh& mesh,
+    const scalar skewThreshold,
     const bool report,
     labelHashSet* setPtr
 )
@@ -441,7 +443,7 @@ bool Foam::meshCheck::checkFaceSkewness
     {
         // Check if the skewness vector is greater than the PN vector.
         // This does not cause trouble but is a good indication of a poor mesh.
-        if (skew[facei] > meshCheck::skewThreshold)
+        if (skew[facei] > skewThreshold)
         {
             if (setPtr)
             {
@@ -887,100 +889,6 @@ bool Foam::meshCheck::checkVolRatio
     }
 
     return false;
-}
-
-
-bool Foam::meshCheck::checkTopology(const polyMesh& mesh, const bool report)
-{
-    label noFailedChecks = 0;
-
-    if (checkPoints(mesh, report)) noFailedChecks++;
-    if (checkUpperTriangular(mesh, report)) noFailedChecks++;
-    if (checkCellsZipUp(mesh, report)) noFailedChecks++;
-    if (checkFaceVertices(mesh, report)) noFailedChecks++;
-    if (checkFaceFaces(mesh, report)) noFailedChecks++;
-
-    if (noFailedChecks == 0)
-    {
-        if (report)
-        {
-            Info<< "    Mesh topology OK." << endl;
-        }
-
-        return false;
-    }
-    else
-    {
-        if (report)
-        {
-            Info<< "    Failed " << noFailedChecks
-                << " mesh topology checks." << endl;
-        }
-
-        return true;
-    }
-}
-
-
-bool Foam::meshCheck::checkGeometry(const polyMesh& mesh, const bool report)
-{
-    label noFailedChecks = 0;
-
-    if (checkClosedBoundary(mesh, report)) noFailedChecks++;
-    if (checkClosedCells(mesh, report)) noFailedChecks++;
-    if (checkFaceAreas(mesh, report)) noFailedChecks++;
-    if (checkCellVolumes(mesh, report)) noFailedChecks++;
-    if (checkFaceOrthogonality(mesh, report)) noFailedChecks++;
-    if (checkFacePyramids(mesh, report)) noFailedChecks++;
-    if (checkFaceSkewness(mesh, report)) noFailedChecks++;
-
-    if (noFailedChecks == 0)
-    {
-        if (report)
-        {
-            Info<< "    Mesh geometry OK." << endl;
-        }
-
-        return false;
-    }
-    else
-    {
-        if (report)
-        {
-            Info<< "    Failed " << noFailedChecks
-                << " mesh geometry checks." << endl;
-        }
-
-        return true;
-    }
-}
-
-
-bool Foam::meshCheck::checkMesh(const polyMesh& mesh, const bool report)
-{
-    const label noFailedChecks =
-        checkTopology(mesh, report)
-      + checkGeometry(mesh, report);
-
-    if (noFailedChecks == 0)
-    {
-        if (report)
-        {
-            Info<< "Mesh OK." << endl;
-        }
-
-        return false;
-    }
-    else
-    {
-        if (report)
-        {
-            Info<< "    Failed " << noFailedChecks
-                << " mesh checks." << endl;
-        }
-
-        return true;
-    }
 }
 
 
