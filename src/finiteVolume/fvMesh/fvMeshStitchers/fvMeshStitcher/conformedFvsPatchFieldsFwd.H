@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2020-2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,46 +23,28 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "MPLICU.H"
-#include "slicedSurfaceFields.H"
-#include "upwind.H"
+#ifndef conformedFvsPatchFieldsFwd_H
+#define conformedFvsPatchFieldsFwd_H
+
+#include "fieldTypes.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    defineTypeNameAndDebug(MPLICU, 0);
 
-    surfaceInterpolationScheme<scalar>::addMeshFluxConstructorToTable<MPLICU>
-        addMPLICUScalarMeshFluxConstructorToTable_;
-}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+template<class Type> class conformedFvsPatchField;
 
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+makeFvsPatchTypeFieldTypedefs(conformed);
 
-Foam::tmp<Foam::surfaceScalarField> Foam::MPLICU::interpolate
-(
-    const VolField<scalar>& vf
-) const
-{
-    tmp<surfaceScalarField> tvff(upwind<scalar>(mesh(), phi_).interpolate(vf));
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    scalarField splicedTvff
-    (
-        slicedSurfaceScalarField
-        (
-            IOobject
-            (
-                "splicedTvff",
-                mesh().time().name(),
-                mesh()
-            ),
-            tvff,
-            false
-        ).splice()
-    );
+} // End namespace Foam
 
-    return surfaceAlpha(vf, phi_, splicedTvff, false, 1e-6);
-}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //
