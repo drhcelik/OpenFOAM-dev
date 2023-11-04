@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2013-2022 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,14 +23,14 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "pointPatchDist.H"
+#include "pointDist.H"
 #include "externalPointEdgePoint.H"
 #include "pointMesh.H"
 #include "PointEdgeWave.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::pointPatchDist::pointPatchDist
+Foam::pointDist::pointDist
 (
     const pointMesh& pMesh,
     const labelHashSet& patchIDs,
@@ -56,50 +56,100 @@ Foam::pointPatchDist::pointPatchDist
 }
 
 
+Foam::pointDist::pointDist
+(
+    const pointMesh& pMesh,
+    const labelHashSet& patchIDs,
+    const UPtrList<const labelList>& internalPoints,
+    const pointField& points
+)
+:
+    pointScalarField
+    (
+        IOobject
+        (
+            "pointDistance",
+            pMesh.db().time().name(),
+            pMesh.db()
+        ),
+        pMesh,
+        dimensionedScalar(dimLength, great)
+    ),
+    points_(points),
+    patchIDs_(patchIDs),
+    internalPoints_(internalPoints),
+    nUnset_(0)
+{
+    correct();
+}
+
+
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-Foam::pointPatchDist::~pointPatchDist()
+Foam::pointDist::~pointDist()
 {}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::pointPatchDist::correct()
+void Foam::pointDist::correct()
 {
     const pointBoundaryMesh& pbm = mesh().boundary();
 
-    label nPoints = 0;
+    label nPatchPoints = 0;
 
     forAllConstIter(labelHashSet, patchIDs_, iter)
     {
-        label patchi = iter.key();
-        nPoints += pbm[patchi].meshPoints().size();
+        const label patchi = iter.key();
+        nPatchPoints += pbm[patchi].meshPoints().size();
+    }
+
+    forAll(internalPoints_, i)
+    {
+        nPatchPoints += internalPoints_[i].size();
     }
 
     externalPointEdgePoint::trackingData td(points_);
 
     // Set initial changed points to all the patch points(if patch present)
-    List<externalPointEdgePoint> wallInfo(nPoints);
-    labelList wallPoints(nPoints);
-    nPoints = 0;
+    List<externalPointEdgePoint> patchPointsInfo(nPatchPoints);
+    labelList patchPoints(nPatchPoints);
+    nPatchPoints = 0;
 
+    // Add the patch points to the patchPointsInfo
     forAllConstIter(labelHashSet, patchIDs_, iter)
     {
-        label patchi = iter.key();
-        // Retrieve the patch now we have its index in patches.
-
+        const label patchi = iter.key();
         const labelList& mp = pbm[patchi].meshPoints();
 
-        forAll(mp, ppI)
+        forAll(mp, ppi)
         {
-            label meshPointi = mp[ppI];
-            wallPoints[nPoints] = meshPointi;
-            wallInfo[nPoints] = externalPointEdgePoint
+            const label meshPointi = mp[ppi];
+            patchPoints[nPatchPoints] = meshPointi;
+            patchPointsInfo[nPatchPoints] = externalPointEdgePoint
             (
                 td.points_[meshPointi],
-                0.0
+                0
             );
-            nPoints++;
+            nPatchPoints++;
+        }
+    }
+
+    // Add the internal points to the patchPointsInfo
+    forAll(internalPoints_, i)
+    {
+        const labelList& internalPointsi = internalPoints_[i];
+
+        forAll(internalPointsi, j)
+        {
+            const label meshPointi = internalPointsi[j];
+            patchPoints[nPatchPoints] = meshPointi;
+            patchPointsInfo[nPatchPoints] = externalPointEdgePoint
+            (
+                td.points_[meshPointi],
+                0
+            );
+            nPatchPoints++;
         }
     }
 
@@ -113,11 +163,11 @@ void Foam::pointPatchDist::correct()
     <
         externalPointEdgePoint,
         externalPointEdgePoint::trackingData
-    > wallCalc
+    > patchCalc
     (
         mesh()(),
-        wallPoints,
-        wallInfo,
+        patchPoints,
+        patchPointsInfo,
 
         allPointInfo,
         allEdgeInfo,
@@ -127,16 +177,26 @@ void Foam::pointPatchDist::correct()
 
     pointScalarField& psf = *this;
 
-
     forAll(allPointInfo, pointi)
     {
         if (allPointInfo[pointi].valid(td))
         {
-            psf[pointi] = Foam::sqrt(allPointInfo[pointi].distSqr());
+            psf[pointi] = sqrt(allPointInfo[pointi].distSqr());
         }
         else
         {
             nUnset_++;
+        }
+    }
+
+    forAll(internalPoints_, i)
+    {
+        const labelList& internalPointsi = internalPoints_[i];
+
+        forAll(internalPointsi, j)
+        {
+            const label meshPointi = internalPointsi[j];
+            psf[meshPointi] = 0;
         }
     }
 }

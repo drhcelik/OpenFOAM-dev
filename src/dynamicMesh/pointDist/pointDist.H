@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2013-2020 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2013-2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,18 +22,19 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::pointPatchDist
+    Foam::pointDist
 
 Description
-    Calculation of distance to nearest patch for all points
+    Calculates the distance to the specified sets of patch and internal points
+    or for all points
 
 SourceFiles
-    pointPatchDist.C
+    pointDist.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef pointPatchDist_H
-#define pointPatchDist_H
+#ifndef pointDist_H
+#define pointDist_H
 
 #include "pointFields.H"
 
@@ -45,10 +46,10 @@ namespace Foam
 class pointMesh;
 
 /*---------------------------------------------------------------------------*\
-                       Class pointPatchDist Declaration
+                       Class pointDist Declaration
 \*---------------------------------------------------------------------------*/
 
-class pointPatchDist
+class pointDist
 :
     public pointScalarField
 {
@@ -60,6 +61,9 @@ class pointPatchDist
         //- Set of patch IDs
         const labelHashSet patchIDs_;
 
+        //- Sets of internal points for which the distance is 0
+        const UPtrList<const labelList> internalPoints_;
+
         //- Number of unset points
         label nUnset_;
 
@@ -68,20 +72,31 @@ public:
 
     // Constructors
 
-        //- Construct from mesh and set of patches
-        pointPatchDist
+        //- Construct from mesh and set of patches and points
+        pointDist
         (
             const pointMesh& pMesh,
             const labelHashSet& patchIDs,
             const pointField& points
         );
 
+        //- Construct from mesh, set of patches,
+        //  sets of internal points for which the distance is 0
+        //  and points
+        pointDist
+        (
+            const pointMesh& pMesh,
+            const labelHashSet& patchIDs,
+            const UPtrList<const labelList>& internalPoints,
+            const pointField& points
+        );
+
         //- Disallow default bitwise copy construction
-        pointPatchDist(const pointPatchDist&) = delete;
+        pointDist(const pointDist&) = delete;
 
 
     //- Destructor
-    virtual ~pointPatchDist();
+    virtual ~pointDist();
 
 
     // Member Functions
@@ -103,7 +118,7 @@ public:
     // Member Operators
 
         //- Disallow default bitwise assignment
-        void operator=(const pointPatchDist&) = delete;
+        void operator=(const pointDist&) = delete;
 };
 
 
