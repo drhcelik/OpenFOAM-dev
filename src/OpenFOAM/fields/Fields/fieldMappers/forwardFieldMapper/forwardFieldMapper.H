@@ -22,15 +22,15 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::directFieldMapper
+    Foam::forwardFieldMapper
 
 Description
-    Direct field mapper
+    Forward field mapper
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef directFieldMapper_H
-#define directFieldMapper_H
+#ifndef forwardFieldMapper_H
+#define forwardFieldMapper_H
 
 #include "fieldMapper.H"
 
@@ -40,10 +40,10 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                      Class directFieldMapper Declaration
+                      Class forwardFieldMapper Declaration
 \*---------------------------------------------------------------------------*/
 
-class directFieldMapper
+class forwardFieldMapper
 :
     public fieldMapper
 {
@@ -51,9 +51,6 @@ class directFieldMapper
 
         //- Addressing from new back to old
         const labelUList& addressing_;
-
-        //- Does map contain any unmapped values
-        bool hasUnmapped_;
 
 
     // Private Member Functions
@@ -72,30 +69,15 @@ public:
     // Constructors
 
         //- Construct given addressing
-        directFieldMapper(const labelUList& addressing)
+        forwardFieldMapper(const labelUList& addressing)
         :
-            addressing_(addressing),
-            hasUnmapped_(false)
-        {
-            if (addressing_.size() && min(addressing_) < 0)
-            {
-                hasUnmapped_ = true;
-            }
-        }
+            addressing_(addressing)
+        {}
 
 
     //- Destructor
-    virtual ~directFieldMapper()
+    virtual ~forwardFieldMapper()
     {}
-
-
-    // Member Functions
-
-        //- Are there unmapped values? Do all elements get get a value?
-        virtual bool hasUnmapped() const
-        {
-            return hasUnmapped_;
-        }
 
 
     // Member Operators
