@@ -492,6 +492,16 @@ kkLOmega::kkLOmega
             1.17
         )
     ),
+    omegaMin_
+    (
+        dimensioned<scalar>::lookupOrAddToDict
+        (
+            "omegaMin",
+            coeffDict_,
+            dimless/dimTime,
+            small
+        )
+    ),
     kt_
     (
         IOobject
@@ -536,13 +546,13 @@ kkLOmega::kkLOmega
             runTime_.name(),
             mesh_
         ),
-        kt_*omega_ + D(kl_) + D(kt_)
+        kt_*omega_
     )
 {
     bound(kt_, kMin_);
     bound(kl_, kMin_);
     bound(omega_, omegaMin_);
-    bound(epsilon_, epsilonMin_);
+    epsilon_ = kt_*omega_ + D(kl_) + D(kt_);
 
     if (type == typeName)
     {
@@ -755,7 +765,6 @@ void kkLOmega::correct()
 
     // Update total fluctuation kinetic energy dissipation rate
     epsilon_ = kt_*omega_ + Dl + Dt;
-    bound(epsilon_, epsilonMin_);
 
 
     // Re-calculate turbulent viscosity
