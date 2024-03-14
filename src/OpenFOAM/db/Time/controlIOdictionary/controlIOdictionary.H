@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2024 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2024 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,99 +22,79 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::mergePolyMesh
+    Foam::controlIOdictionary
 
 Description
-    Merge meshes into a single mesh without stitching.
+    controlDict specific IOdictionary to provide automatic read-update for Time
 
 SourceFiles
-    mergePolyMesh.C
+    controlIOdictionary.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef mergePolyMesh_H
-#define mergePolyMesh_H
+#ifndef controlIOdictionary_H
+#define controlIOdictionary_H
 
-#include "polyMesh.H"
-#include "polyTopoChange.H"
+#include "IOdictionary.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
+// Forward declaration of classes
+class Time;
+
 /*---------------------------------------------------------------------------*\
-                        Class mergePolyMesh Declaration
+                     Class controlIOdictionary Declaration
 \*---------------------------------------------------------------------------*/
 
-class mergePolyMesh
+class controlIOdictionary
+:
+    public IOdictionary
 {
     // Private Data
 
-        //- The master mesh the other meshes are merged into
-        polyMesh& mesh_;
-
-        //- Topological change to accumulated all mesh changes
-        polyTopoChange meshMod_;
-
-        //- Patch names
-        DynamicList<word> patchNames_;
-
-        //- Patch dictionaries
-        DynamicList<dictionary> patchDicts_;
-
-        //- Point zone names
-        DynamicList<word> pointZoneNames_;
-
-        //- Zones of the added points
-        List<labelHashSet> pointZonesAddedPoints_;
-
-        //- Face zone names
-        DynamicList<word> faceZoneNames_;
-
-        //- Cell zone names
-        DynamicList<word> cellZoneNames_;
-
-
-    // Private Member Functions
-
-        //- Return patch index given a name and type
-        label patchIndex(const polyPatch&);
-
-        //- Return zone index given a list of active zones and a name
-        label zoneIndex(DynamicList<word>&, const word&);
+        //- Reference to Time to allow readDict() to be called
+        //  if the controlDict file changes
+        Time& time_;
 
 
 public:
 
-    //- Runtime type information
-    TypeName("mergePolyMesh");
-
-
     // Constructors
 
-        //- Construct from polyMesh
-        mergePolyMesh(polyMesh& mesh);
+        //- Construct for Time
+        controlIOdictionary
+        (
+            const IOobject& io,
+            Time& time
+        );
 
+        //- Construct for Time
+        controlIOdictionary
+        (
+            const IOobject& io,
+            const dictionary& dict,
+            Time& time
+        );
 
-    //- Destructor
-    virtual ~mergePolyMesh()
-    {}
+        //- Disallow default bitwise copy construction
+        controlIOdictionary(const controlIOdictionary&) = delete;
 
 
     // Member Functions
 
-        //- Add a mesh
-        void addMesh(const polyMesh& m);
+        // Read
 
-        //- Merge meshes
-        void merge();
+            //- Read the controlDict and update Time
+            bool read();
 
 
     // Member Operators
 
         //- Disallow default bitwise assignment
-        void operator=(const mergePolyMesh&) = delete;
+        void operator=(const controlIOdictionary&) = delete;
 };
 
 
