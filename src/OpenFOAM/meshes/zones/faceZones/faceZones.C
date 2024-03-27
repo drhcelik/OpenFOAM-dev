@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2018 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2024 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,28 +21,29 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Typedef
-    Foam::indirectPointList
-
-Description
-
 \*---------------------------------------------------------------------------*/
 
-#ifndef indirectPointList_H
-#define indirectPointList_H
+#include "faceZones.H"
 
-#include "point.H"
-#include "IndirectList.H"
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-namespace Foam
+Foam::boolList Foam::faceZones::zonesFlipFace
+(
+    const label facei,
+    const labelList& faceiZones
+)
 {
-    typedef IndirectList<point> indirectPointList;
+    labelList zones(whichZones(facei));
+    boolList flipFaces(zones.size());
+
+    forAll(zones, zi)
+    {
+        const faceZone& fz = this->operator[](zi);
+        flipFaces[zi] = fz.flipMap()[fz.localIndex(facei)];
+    }
+
+    return flipFaces;
 }
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

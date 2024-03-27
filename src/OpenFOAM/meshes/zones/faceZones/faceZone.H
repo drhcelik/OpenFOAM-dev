@@ -28,20 +28,18 @@ Description
     A subset of mesh faces organised as a primitive patch.
 
     For quick check whether a face belongs to the zone use the lookup
-    mechanism in meshFaceZones, where all the zoned faces are registered
+    mechanism in faceZones, where all the zoned faces are registered
     with their zone number.
 
 SourceFiles
     faceZone.C
-    faceZoneNew.C
 
 \*---------------------------------------------------------------------------*/
 
 #ifndef faceZone_H
 #define faceZone_H
 
-#include "zone.H"
-#include "meshFaceZonesFwd.H"
+#include "Zone.H"
 #include "boolList.H"
 #include "primitiveFacePatch.H"
 
@@ -50,11 +48,7 @@ SourceFiles
 namespace Foam
 {
 
-// Forward declaration of friend functions and operators
-
-class faceZone;
-Ostream& operator<<(Ostream&, const faceZone&);
-
+class faceZones;
 
 /*---------------------------------------------------------------------------*\
                           Class faceZone Declaration
@@ -62,7 +56,7 @@ Ostream& operator<<(Ostream&, const faceZone&);
 
 class faceZone
 :
-    public zone
+    public Zone<faceZone, faceZones>
 {
     // Private Data
 
@@ -77,9 +71,6 @@ protected:
         //- Flip map for all faces in the zone.  Set to true if the
         //  face needs to be flipped to achieve the correct orientation.
         boolList flipMap_;
-
-        //- Reference to zone list
-        const meshFaceZones& meshZones_;
 
 
         // Demand-driven private data
@@ -117,30 +108,15 @@ protected:
 
 public:
 
+    typedef faceZones ZonesType;
+
     // Static Data Members
 
         //- The name associated with the zone-labels dictionary entry
         static const char* const labelsName;
 
-
     //- Runtime type information
     TypeName("faceZone");
-
-
-    // Declare run-time constructor selection tables
-
-        declareRunTimeSelectionTable
-        (
-            autoPtr,
-            faceZone,
-            dictionary,
-            (
-                const word& name,
-                const dictionary& dict,
-                const meshFaceZones& mz
-            ),
-            (name, dict, mz)
-        );
 
 
     // Constructors
@@ -151,7 +127,7 @@ public:
             const word& name,
             const labelUList& addr,
             const boolList& fm,
-            const meshFaceZones& mz
+            const faceZones& mz
         );
 
         //- Construct from components, moving contents
@@ -160,7 +136,7 @@ public:
             const word& name,
             labelList&& addr,
             boolList&& fm,
-            const meshFaceZones&
+            const faceZones&
         );
 
         //- Construct from dictionary
@@ -168,7 +144,7 @@ public:
         (
             const word& name,
             const dictionary&,
-            const meshFaceZones&
+            const faceZones&
         );
 
         //- Construct given the original zone and resetting the
@@ -178,7 +154,7 @@ public:
             const faceZone&,
             const labelUList& addr,
             const boolList& fm,
-            const meshFaceZones&
+            const faceZones&
         );
 
         //- Construct given the original zone, resetting the
@@ -188,15 +164,14 @@ public:
             const faceZone&,
             labelList&& addr,
             boolList&& fm,
-            const meshFaceZones&
+            const faceZones&
         );
 
         //- Disallow default bitwise copy construction
         faceZone(const faceZone&) = delete;
 
-
         //- Construct and return a clone, resetting the mesh zones
-        virtual autoPtr<faceZone> clone(const meshFaceZones& mz) const
+        virtual autoPtr<faceZone> clone(const faceZones& mz) const
         {
             return autoPtr<faceZone>
             (
@@ -210,7 +185,7 @@ public:
         (
             const labelUList& addr,
             const boolList& fm,
-            const meshFaceZones& mz
+            const faceZones& mz
         ) const
         {
             return autoPtr<faceZone>
@@ -218,18 +193,6 @@ public:
                 new faceZone(*this, addr, fm, mz)
             );
         }
-
-
-    // Selectors
-
-        //- Return a pointer to a new face zone
-        //  created on freestore from dictionary
-        static autoPtr<faceZone> New
-        (
-            const word& name,
-            const dictionary&,
-            const meshFaceZones&
-        );
 
 
     //- Destructor
@@ -249,9 +212,6 @@ public:
 
         //- Return reference to primitive patch
         const primitiveFacePatch& operator()() const;
-
-        //- Return meshZones reference
-        const meshFaceZones& meshZones() const;
 
 
         // Addressing into mesh
@@ -292,9 +252,6 @@ public:
         //- Update zone using the given map
         virtual void topoChange(const polyTopoChangeMap&);
 
-        //- Write
-        virtual void write(Ostream&) const;
-
         //- Write dictionary
         virtual void writeDict(Ostream&) const;
 
@@ -306,12 +263,6 @@ public:
 
         //- Move assignment to zone, clearing demand-driven data
         void operator=(faceZone&&);
-
-
-    // I-O
-
-        //- Ostream Operator
-        friend Ostream& operator<<(Ostream&, const faceZone&);
 };
 
 

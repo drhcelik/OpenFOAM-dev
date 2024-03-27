@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2024 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -363,10 +363,10 @@ class vtkPVFoam
             wordList getZoneNames(const word& zoneType) const;
 
             //- Get non-empty zone names from mesh info
-            template<class ZoneType>
+            template<class ZoneType, class ZonesType>
             wordList getZoneNames
             (
-                const MeshZones<ZoneType, polyMesh>&
+                const Zones<ZoneType, ZonesType, polyMesh>&
             ) const;
 
             //- Add objects of Type to paraview array selection
