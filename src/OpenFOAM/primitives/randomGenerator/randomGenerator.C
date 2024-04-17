@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2012-2024 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2018-2024 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,54 +21,48 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Application
-    Test-BinSum
-
-Description
-    Test BinSum container
-
 \*---------------------------------------------------------------------------*/
 
-#include "List.H"
-#include "BinSum.H"
-#include "IOstreams.H"
 #include "randomGenerator.H"
-#include "scalarField.H"
+#include "uint64.H"
+#include "PstreamReduceOps.H"
 
-using namespace Foam;
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Foam::randomGenerator::randomGenerator(Istream& is)
+:
+    x_(pTraits<uint64_t>(is))
+{}
 
-int main(int argc, char *argv[])
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+Foam::scalar Foam::randomGenerator::globalScalar01()
 {
-    randomGenerator rndGen(0);
+    scalar value = - vGreat;
 
-    scalarField samples(10000000);
-    forAll(samples, i)
+    if (Pstream::master())
     {
-        samples[i] = rndGen.scalar01();
+        value = scalar01();
     }
 
-    const scalar min = 0;
-    const scalar max = 1;
-    const scalar delta = 0.1;
+    Pstream::scatter(value);
 
-    BinSum<scalar, scalarField> count(min, max, delta);
-    BinSum<scalar, scalarField> sum(min, max, delta);
+    return value;
+}
 
-    forAll(samples, i)
-    {
-        count.add(samples[i], 1);
-        sum.add(samples[i], samples[i]);
-    }
 
-    Info<< "sum    : " << sum << endl;
-    Info<< "count  : " << count << endl;
-    Info<< "average: " << sum/count << endl;
+// * * * * * * * * * * * * * * Friend Operators * * * * * * * * * * * * * * //
 
-    Info<< "End\n" << endl;
+Foam::Istream& Foam::operator>>(Istream& is, randomGenerator& rndGen)
+{
+    return is >> rndGen.x_;
+}
 
-    return 0;
+
+Foam::Ostream& Foam::operator<<(Ostream& os, const randomGenerator& rndGen)
+{
+    return os << rndGen.x_;
 }
 
 
