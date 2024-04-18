@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2018-2024 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2024 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,51 +23,28 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "randomGenerator.H"
-#include "uint64.H"
-#include "PstreamReduceOps.H"
+#include "DimensionedVectorField.H"
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+#define TEMPLATE template<class GeoMesh>
+#include "DimensionedFieldFunctionsM.C"
 
-Foam::randomGenerator::randomGenerator(Istream& is)
-:
-    x_(pTraits<uint64_t>(is))
-{}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-Foam::scalar Foam::randomGenerator::globalScalar01()
+namespace Foam
 {
-    scalar value = - vGreat;
 
-    if (Pstream::master())
-    {
-        value = scalar01();
-    }
+// * * * * * * * * * * * * * * * global functions  * * * * * * * * * * * * * //
 
-    Pstream::scatter(value);
-
-    return value;
-}
+UNARY_FUNCTION(vector, vector, normalised, normalised)
+UNARY_FUNCTION(vector, vector, perpendicular, perpendicular)
 
 
-// * * * * * * * * * * * * * * Friend Operators * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-Foam::Istream& Foam::operator>>(Istream& is, randomGenerator& rndGen)
-{
-    is >> rndGen.x_;
-    is.check("operator>>(Istream& is, randomGenerator& rndGen)");
-    return is;
-}
+} // End namespace Foam
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-Foam::Ostream& Foam::operator<<(Ostream& os, const randomGenerator& rndGen)
-{
-    os << rndGen.x_;
-    os.check("operator<<(Ostream& os, const randomGenerator& rndGen)");
-    return os;
-}
-
+#include "undefFieldFunctionsM.H"
 
 // ************************************************************************* //

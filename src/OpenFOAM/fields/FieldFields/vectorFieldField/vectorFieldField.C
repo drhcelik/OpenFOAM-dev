@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2018-2024 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2024 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,53 +21,33 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Description
+    Specialisation of FieldField<Field, T> for vector.
+
 \*---------------------------------------------------------------------------*/
 
-#include "randomGenerator.H"
-#include "uint64.H"
-#include "PstreamReduceOps.H"
+#include "vectorFieldField.H"
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+#define TEMPLATE template<template<class> class Field>
+#include "FieldFieldFunctionsM.C"
 
-Foam::randomGenerator::randomGenerator(Istream& is)
-:
-    x_(pTraits<uint64_t>(is))
-{}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-Foam::scalar Foam::randomGenerator::globalScalar01()
+namespace Foam
 {
-    scalar value = - vGreat;
 
-    if (Pstream::master())
-    {
-        value = scalar01();
-    }
+// * * * * * * * * * * * * * * * global functions  * * * * * * * * * * * * * //
 
-    Pstream::scatter(value);
-
-    return value;
-}
+UNARY_FUNCTION(vector, vector, normalised)
+UNARY_FUNCTION(vector, vector, perpendicular)
 
 
-// * * * * * * * * * * * * * * Friend Operators * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-Foam::Istream& Foam::operator>>(Istream& is, randomGenerator& rndGen)
-{
-    is >> rndGen.x_;
-    is.check("operator>>(Istream& is, randomGenerator& rndGen)");
-    return is;
-}
+} // End namespace Foam
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-Foam::Ostream& Foam::operator<<(Ostream& os, const randomGenerator& rndGen)
-{
-    os << rndGen.x_;
-    os.check("operator<<(Ostream& os, const randomGenerator& rndGen)");
-    return os;
-}
-
+#include "undefFieldFunctionsM.H"
 
 // ************************************************************************* //
