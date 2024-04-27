@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2019 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2024 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,13 +23,19 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "timeVaryingMappedFvPatchField.H"
+#include "Radial2.H"
+#include "vector2D.H"
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-namespace Foam
+template<class Type>
+inline Type Foam::Function2s::Radial<Type>::value
+(
+    const scalar x,
+    const scalar y
+) const
 {
-    defineTypeNameAndDebug(timeVaryingMapped, 0);
+    return value_->value(mag(vector2D(x, y)));
 }
 
 
