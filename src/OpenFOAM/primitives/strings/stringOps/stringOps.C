@@ -509,35 +509,28 @@ Foam::string& Foam::stringOps::inplaceExpandCodeString
                 if (ePtr)
                 {
                     OStringStream buf;
+                    bool compound = false;
 
-                    // If the variable type is not specified
-                    // check if it can be obtained from the single token type
-                    if (varType.empty())
+                    // Check if variable type can be obtained from the single
+                    // token type and if the token is a compound
+                    if (!ePtr->isDict())
                     {
-                        if (!ePtr->isDict())
+                        const primitiveEntry& pe =
+                            dynamicCast<const primitiveEntry>(*ePtr);
+
+                        // Check that the primitive entry is a single token
+                        if (pe.size() == 1)
                         {
-                            const primitiveEntry& pe =
-                                dynamicCast<const primitiveEntry>(*ePtr);
-
-                            // Check that the primitive entry is a single token
-                            if (pe.size() == 1)
+                            // If the variable type is not specified
+                            // obtain the variable type from the token type name
+                            if (varType.empty())
                             {
-                                const token& t = pe[0];
-
-                                // Map the token type to the variable type
-                                if (t.isScalar())
-                                {
-                                    varType = "scalar";
-                                }
-                                else if (t.isLabel())
-                                {
-                                    varType = "label";
-                                }
-                                else if (t.isString())
-                                {
-                                    varType = "string";
-                                }
+                                varType = pe[0].typeName();
                             }
+
+                            // Check if the token is a compound which can be
+                            // accessed directly
+                            compound = pe[0].isCompound();
                         }
                     }
 
@@ -551,9 +544,23 @@ Foam::string& Foam::stringOps::inplaceExpandCodeString
                             // code, rather than substituting its value. That
                             // way we don't need to recompile this string if the
                             // value changes.
-                            buf << dictVar
-                                << ".lookupScoped<" << varType << ">"
-                                << "(\"" << varName << "\", true, false)";
+                            //
+                            // Compound types have special handling
+                            // to return as constant reference rather than
+                            // constructing the container
+                            if (compound)
+                            {
+                                buf << dictVar
+                                    << ".lookupCompoundScoped<"
+                                    << varType << ">"
+                                    << "(\"" << varName << "\", true, false)";
+                            }
+                            else
+                            {
+                                buf << dictVar
+                                    << ".lookupScoped<" << varType << ">"
+                                    << "(\"" << varName << "\", true, false)";
+                            }
                         }
                         else
                         {
