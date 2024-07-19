@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::fv::constantIgnition
+    Foam::fv::sphericalbXiIgnition
 
 Description
     Simple constant rate ignition model for the Weller b-Xi combustion models
@@ -30,36 +30,43 @@ Description
 Usage
     Example usage:
     \verbatim
-    constantIgnition1
+    sphericalbXiIgnition1
     {
-        type            constantIgnition;
+        type            sphericalbXiIgnition;
 
         select          cellZone;
         cellZone        ignition;
 
+        start           0;
         duration        0.003;
         strength        2;
+
+        XiCorr
+        {
+            select          all;
+            sphereFraction  1;
+        }
     }
     \endverbatim
 
     Where:
     \table
-        Property     | Description             | Required    | Default value
-        duration     | Ignition duration       | yes         |
-        strength     | Ignition strength [1/s] | yes         |
+        Property       | Description             | Required  | Default value
+        start          | Ignition start time     | yes       |
+        duration       | Ignition duration       | yes       |
+        strength       | Ignition strength [1/s] | yes       |
+        sphereFraction | Kernel sphere fraction  | no        | 1
     \endtable
 
 SourceFiles
-    constantIgnition.C
+    sphericalbXiIgnition.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef constantIgnition_H
-#define constantIgnition_H
+#ifndef sphericalbXiIgnition_H
+#define sphericalbXiIgnition_H
 
-#include "fvModel.H"
-#include "fvCellSet.H"
-#include "XiFluid.H"
+#include "constantbXiIgnition.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -69,26 +76,18 @@ namespace fv
 {
 
 /*---------------------------------------------------------------------------*\
-               Class constantIgnition Declaration
+                     Class sphericalbXiIgnition Declaration
 \*---------------------------------------------------------------------------*/
 
-class constantIgnition
+class sphericalbXiIgnition
 :
-    public fvModel
+    public constantbXiIgnition
 {
     // Private Data
 
-        //- The XiFluid solver
-        const solvers::XiFluid& XiFluid_;
-
-        //- The set of ignition cells
-        fvCellSet set_;
-
-        //- Ignition duration
-        scalar duration_;
-
-        //- Ignition strength
-        scalar strength_;
+        //- Kernel sphere fraction
+        //  If the ignition is adjacent to n symmetry planes: 1/2^n
+        dimensionedScalar sphereFraction_;
 
 
     // Private Member Functions
@@ -96,17 +95,21 @@ class constantIgnition
         //- Non-virtual read
         void readCoeffs();
 
+        //- Return the area of the ignition kernel
+        //  calculated from the given kernel volume
+        virtual dimensionedScalar Ak(const dimensionedScalar& Vk) const;
+
 
 public:
 
     //- Runtime type information
-    TypeName("constantIgnition");
+    TypeName("sphericalbXiIgnition");
 
 
     // Constructors
 
         //- Construct from explicit source name and mesh
-        constantIgnition
+        sphericalbXiIgnition
         (
             const word& name,
             const word& modelType,
@@ -115,46 +118,13 @@ public:
         );
 
         //- Disallow default bitwise copy construction
-        constantIgnition
+        sphericalbXiIgnition
         (
-            const constantIgnition&
+            const sphericalbXiIgnition&
         ) = delete;
 
 
     // Member Functions
-
-        // Checks
-
-            //- Return the list of fields for which the option adds source term
-            //  to the transport equation
-            virtual wordList addSupFields() const;
-
-
-        // Add explicit and implicit contributions to compressible equation
-
-            //- Add ignition contribution to b equation
-            virtual void addSup
-            (
-                const volScalarField& rho,
-                const volScalarField& b,
-                fvMatrix<scalar>& eqn
-            ) const;
-
-
-        // Mesh motion
-
-            //- Update topology using the given map
-            virtual void topoChange(const polyTopoChangeMap&);
-
-            //- Update from another mesh using the given map
-            virtual void mapMesh(const polyMeshMap&);
-
-            //- Redistribute or update using the given distribution map
-            virtual void distribute(const polyDistributionMap&);
-
-            //- Update for mesh motion
-            virtual bool movePoints();
-
 
         // IO
 
@@ -165,7 +135,7 @@ public:
     // Member Operators
 
         //- Disallow default bitwise assignment
-        void operator=(const constantIgnition&) = delete;
+        void operator=(const sphericalbXiIgnition&) = delete;
 };
 
 
