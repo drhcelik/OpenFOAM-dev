@@ -22,51 +22,22 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::fv::planarbXiIgnition
+    Foam::fv::bXiIgnition
 
 Description
-    Simple constant rate ignition model for the Weller b-Xi combustion models
-
-Usage
-    Example usage:
-    \verbatim
-    planarbXiIgnition1
-    {
-        type            planarbXiIgnition;
-
-        select          cellZone;
-        cellZone        ignition;
-
-        start           0;
-        duration        0.003;
-        strength        2;
-
-        XiCorr
-        {
-            select          all;
-            area            1e-4;
-        }
-    }
-    \endverbatim
-
-    Where:
-    \table
-        Property     | Description             | Required    | Default value
-        start        | Ignition start time     | yes         |
-        duration     | Ignition duration       | yes         |
-        strength     | Ignition strength [1/s] | yes         |
-        area         | Cross-sectional area of the 1D mesh | yes       |
-    \endtable
+    Abstract base-class for ignition models
+    for the Weller b-Xi combustion models
 
 SourceFiles
-    planarbXiIgnition.C
+    bXiIgnition.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef planarbXiIgnition_H
-#define planarbXiIgnition_H
+#ifndef bXiIgnition_H
+#define bXiIgnition_H
 
-#include "constantbXiIgnition.H"
+#include "fvModel.H"
+#include "XiFluid.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -76,39 +47,29 @@ namespace fv
 {
 
 /*---------------------------------------------------------------------------*\
-                     Class planarbXiIgnition Declaration
+               Class bXiIgnition Declaration
 \*---------------------------------------------------------------------------*/
 
-class planarbXiIgnition
+class bXiIgnition
 :
-    public constantbXiIgnition
+    public fvModel
 {
     // Private Data
 
-        //- Cross-sectional area of the 1D mesh
-        dimensionedScalar area_;
-
-
-    // Private Member Functions
-
-        //- Non-virtual read
-        void readCoeffs();
-
-        //- Return the area of the ignition kernel
-        //  calculated from the given kernel volume
-        virtual dimensionedScalar Ak(const dimensionedScalar& Vk) const;
+        //- The XiFluid solver
+        const solvers::XiFluid& XiFluid_;
 
 
 public:
 
     //- Runtime type information
-    TypeName("planarbXiIgnition");
+    TypeName("bXiIgnition");
 
 
     // Constructors
 
         //- Construct from explicit source name and mesh
-        planarbXiIgnition
+        bXiIgnition
         (
             const word& name,
             const word& modelType,
@@ -117,24 +78,39 @@ public:
         );
 
         //- Disallow default bitwise copy construction
-        planarbXiIgnition
+        bXiIgnition
         (
-            const planarbXiIgnition&
+            const bXiIgnition&
         ) = delete;
 
 
     // Member Functions
 
-        // IO
+        // Checks
 
-            //- Read source dictionary
-            virtual bool read(const dictionary& dict);
+            //- Return the list of fields for which the option adds source term
+            //  to the transport equation
+            virtual wordList addSupFields() const;
+
+            virtual bool igniting() const = 0;
+
+            virtual bool ignited() const = 0;
+
+
+        // Add explicit and implicit contributions to compressible equation
+
+            virtual void XiCorr
+            (
+                volScalarField& Xi,
+                const volScalarField& b,
+                const volScalarField& mgb
+            ) const = 0;
 
 
     // Member Operators
 
         //- Disallow default bitwise assignment
-        void operator=(const planarbXiIgnition&) = delete;
+        void operator=(const bXiIgnition&) = delete;
 };
 
 

@@ -23,78 +23,72 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "planarbXiIgnition.H"
+#include "sphericalXiCorr.H"
 #include "addToRunTimeSelectionTable.H"
 
-// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    namespace fv
-    {
-        defineTypeNameAndDebug(planarbXiIgnition, 0);
-
-        addToRunTimeSelectionTable
-        (
-            fvModel,
-            planarbXiIgnition,
-            dictionary
-        );
-    }
+namespace XiCorrModels
+{
+    defineTypeNameAndDebug(spherical, 0);
+    addToRunTimeSelectionTable(XiCorrModel, spherical, dictionary);
+}
 }
 
 
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
-void Foam::fv::planarbXiIgnition::readCoeffs()
+bool Foam::XiCorrModels::spherical::readCoeffs(const dictionary& dict)
 {
-    const dictionary& XiCorrCoeffs(coeffs().subDict("XiCorr"));
-
-    area_.read(XiCorrCoeffs);
+    XiCorrModel::readCoeffs(dict);
+    sphereFraction_.readIfPresent(dict);
+    return true;
 }
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::fv::planarbXiIgnition::planarbXiIgnition
+Foam::XiCorrModels::spherical::spherical
 (
-    const word& name,
-    const word& modelType,
     const fvMesh& mesh,
     const dictionary& dict
 )
 :
-    constantbXiIgnition(name, modelType, mesh, dict),
-    area_("area", dimLength, 0)
+    XiCorrModel(mesh, dict),
+    sphereFraction_("sphereFraction", dimless, 1)
 {
-    readCoeffs();
+    readCoeffs(dict);
 }
 
 
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-Foam::dimensionedScalar Foam::fv::planarbXiIgnition::Ak
+Foam::XiCorrModels::spherical::~spherical()
+{}
+
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+Foam::dimensionedScalar Foam::XiCorrModels::spherical::Ak
 (
     const dimensionedScalar& Vk
 ) const
 {
-    return area_;
-}
+    // Radius of the ignition kernel
+    dimensionedScalar rk
+    (
+        pow
+        (
+            (3.0/4.0)*Vk
+           /(sphereFraction_*constant::mathematical::pi),
+            1.0/3.0
+        )
+    );
 
-
-bool Foam::fv::planarbXiIgnition::read(const dictionary& dict)
-{
-    if (constantbXiIgnition::read(dict))
-    {
-        readCoeffs();
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-
-    return false;
+    // Return area of the ignition kernel
+    return sphereFraction_*4*constant::mathematical::pi*sqr(rk);
 }
 
 

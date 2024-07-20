@@ -22,143 +22,121 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::fv::constantbXiIgnition
+    Foam::XiCorrModel
 
 Description
-    Simple constant rate ignition model for the Weller b-Xi combustion models
+    Base class for ignition kernel flame wrinkling \c Xi correction
 
 Usage
     Example usage:
     \verbatim
-    constantbXiIgnition1
+    XiCorr
     {
-        type            constantbXiIgnition;
-
-        select          cellZone;
-        cellZone        ignition;
-
-        XiCorr
-        {
-            select          all;
-        }
-
-        start           0;
-        duration        0.003;
-        strength        2;
+        type            <type>;
+        select          all;
+        bMin            0.05;
     }
     \endverbatim
 
     Where:
     \table
-        Property     | Description             | Required    | Default value
-        start        | Ignition start time     | yes         |
-        duration     | Ignition duration       | yes         |
-        strength     | Ignition strength [1/s] | yes         |
+        Property         | Description              | Required  | Default value
+        select           | Correction cell set selection | yes  |
+        bMin             | Min b below which no correction | no | 0.01
     \endtable
 
 SourceFiles
-    constantbXiIgnition.C
+    XiCorrModel.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef constantbXiIgnition_H
-#define constantbXiIgnition_H
+#ifndef XiCorrModel_H
+#define XiCorrModel_H
 
-#include "bXiIgnition.H"
 #include "fvCellSet.H"
+#include "volFieldsFwd.H"
+#include "runTimeSelectionTables.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace fv
-{
 
 /*---------------------------------------------------------------------------*\
-                     Class constantbXiIgnition Declaration
+                          Class XiCorrModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class constantbXiIgnition
-:
-    public bXiIgnition
+class XiCorrModel
 {
     // Private Data
 
-        //- The set of ignition cells
+        //- The set of Xi correction cells
         fvCellSet set_;
 
-        //- The set of Xi correction cells
-        fvCellSet XiCorrSet_;
-
-        //- Ignition start time
-        scalar start_;
-
-        //- Ignition duration
-        scalar duration_;
-
-        //- Ignition strength
-        scalar strength_;
+        //- Minimum b below which the Xi correction is not applied
+        //  Defaults to 0.01
+        scalar bMin_;
 
 
-    // Private Member Functions
+protected:
 
-        //- Non-virtual read
-        void readCoeffs();
-
-        //- Return the area of the ignition kernel
-        //  calculated from the given kernel volume
-        virtual dimensionedScalar Ak(const dimensionedScalar& Vk) const = 0;
+        //- Update coefficients from given dictionary
+        virtual bool readCoeffs(const dictionary& dict);
 
 
 public:
 
     //- Runtime type information
-    TypeName("constantbXiIgnition");
+    TypeName("XiCorrModel");
+
+
+    // Declare run-time constructor selection table
+
+        declareRunTimeSelectionTable
+        (
+            autoPtr,
+            XiCorrModel,
+            dictionary,
+            (const fvMesh& mesh, const dictionary& dict),
+            (mesh, dict)
+        );
 
 
     // Constructors
 
-        //- Construct from explicit source name and mesh
-        constantbXiIgnition
+        //- Construct from mesh and dictionary
+        XiCorrModel(const fvMesh& mesh, const dictionary& dict);
+
+        //- Disallow default bitwise copy construction
+        XiCorrModel(const XiCorrModel&) = delete;
+
+
+    // Selectors
+
+        //- Return a reference to the selected XiCorrModel model
+        static autoPtr<XiCorrModel> New
         (
-            const word& name,
-            const word& modelType,
             const fvMesh& mesh,
             const dictionary& dict
         );
 
-        //- Disallow default bitwise copy construction
-        constantbXiIgnition
-        (
-            const constantbXiIgnition&
-        ) = delete;
+
+    //- Destructor
+    virtual ~XiCorrModel();
 
 
     // Member Functions
 
-        // Checks
+        //- Return the area of the ignition kernel
+        //  calculated from the given kernel volume
+        virtual dimensionedScalar Ak(const dimensionedScalar& Vk) const = 0;
 
-            virtual bool igniting() const;
-
-            virtual bool ignited() const;
-
-
-        // Add explicit and implicit contributions to compressible equation
-
-            //- Add ignition contribution to b equation
-            virtual void addSup
-            (
-                const volScalarField& rho,
-                const volScalarField& b,
-                fvMatrix<scalar>& eqn
-            ) const;
-
-            virtual void XiCorr
-            (
-                volScalarField& Xi,
-                const volScalarField& b,
-                const volScalarField& mgb
-            ) const;
+        virtual void XiCorr
+        (
+            volScalarField& Xi,
+            const volScalarField& b,
+            const volScalarField& mgb
+        ) const;
 
 
         // Mesh motion
@@ -176,22 +154,21 @@ public:
             virtual bool movePoints();
 
 
-        // IO
+    // IO
 
-            //- Read source dictionary
-            virtual bool read(const dictionary& dict);
+        //- Update properties from the given XiProperties dictionary
+        bool read(const dictionary& XiProperties);
 
 
     // Member Operators
 
         //- Disallow default bitwise assignment
-        void operator=(const constantbXiIgnition&) = delete;
+        void operator=(const XiCorrModel&) = delete;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace fv
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

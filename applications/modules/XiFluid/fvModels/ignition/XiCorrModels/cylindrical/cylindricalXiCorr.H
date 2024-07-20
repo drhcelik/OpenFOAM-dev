@@ -22,126 +22,110 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::fv::sphericalbXiIgnition
+    Foam::XiCorrModels::cylindrical
 
 Description
-    Simple constant rate ignition model for the Weller b-Xi combustion models
+    Cylindrical ignition kernel flame-wrinkling correction model
 
 Usage
     Example usage:
     \verbatim
-    sphericalbXiIgnition1
+    XiCorr
     {
-        type            sphericalbXiIgnition;
-
-        select          cellZone;
-        cellZone        ignition;
-
-        start           0;
-        duration        0.003;
-        strength        2;
-
-        XiCorr
-        {
-            select          all;
-            sphereFraction  1;
-        }
+        type            cylindrical;
+        select          all;
+        thickness       0.001;
+        cylinderFraction 0.25;
     }
     \endverbatim
 
     Where:
     \table
-        Property       | Description             | Required  | Default value
-        start          | Ignition start time     | yes       |
-        duration       | Ignition duration       | yes       |
-        strength       | Ignition strength [1/s] | yes       |
-        sphereFraction | Kernel sphere fraction  | no        | 1
+        Property         | Description              | Required  | Default value
+        select           | Correction cell set selection | yes        |
+        thickness        | Thickness of the 2D mesh | yes       |
+        cylinderFraction | Kernel cylinder fraction | no        | 1
+        bMin             | Min b below which no correction | no | 0.01
     \endtable
 
 SourceFiles
-    sphericalbXiIgnition.C
+    cylindrical.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef sphericalbXiIgnition_H
-#define sphericalbXiIgnition_H
+#ifndef cylindricalXiCorr_H
+#define cylindricalXiCorr_H
 
-#include "constantbXiIgnition.H"
+#include "XiCorrModel.H"
+#include "dimensionedTypes.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace fv
+namespace XiCorrModels
 {
 
 /*---------------------------------------------------------------------------*\
-                     Class sphericalbXiIgnition Declaration
+                           Class cylindrical Declaration
 \*---------------------------------------------------------------------------*/
 
-class sphericalbXiIgnition
+class cylindrical
 :
-    public constantbXiIgnition
+    public XiCorrModel
 {
     // Private Data
 
-        //- Kernel sphere fraction
+        //- Thickness of the 2D mesh
+        dimensionedScalar thickness_;
+
+        //- Kernel cylinder fraction
         //  If the ignition is adjacent to n symmetry planes: 1/2^n
-        dimensionedScalar sphereFraction_;
+        dimensionedScalar cylinderFraction_;
 
 
-    // Private Member Functions
+protected:
 
-        //- Non-virtual read
-        void readCoeffs();
+        //- Update coefficients from given dictionary
+        virtual bool readCoeffs(const dictionary& dict);
+
+
+public:
+
+    //- Runtime type information
+    TypeName("cylindrical");
+
+
+    // Constructors
+
+        //- Construct from mesh and dictionary
+        cylindrical(const fvMesh& mesh, const dictionary& dict);
+
+        //- Disallow default bitwise copy construction
+        cylindrical(const cylindrical&) = delete;
+
+
+    //- Destructor
+    virtual ~cylindrical();
+
+
+    // Member Functions
 
         //- Return the area of the ignition kernel
         //  calculated from the given kernel volume
         virtual dimensionedScalar Ak(const dimensionedScalar& Vk) const;
 
 
-public:
-
-    //- Runtime type information
-    TypeName("sphericalbXiIgnition");
-
-
-    // Constructors
-
-        //- Construct from explicit source name and mesh
-        sphericalbXiIgnition
-        (
-            const word& name,
-            const word& modelType,
-            const fvMesh& mesh,
-            const dictionary& dict
-        );
-
-        //- Disallow default bitwise copy construction
-        sphericalbXiIgnition
-        (
-            const sphericalbXiIgnition&
-        ) = delete;
-
-
-    // Member Functions
-
-        // IO
-
-            //- Read source dictionary
-            virtual bool read(const dictionary& dict);
-
-
     // Member Operators
 
         //- Disallow default bitwise assignment
-        void operator=(const sphericalbXiIgnition&) = delete;
+        void operator=(const cylindrical&) = delete;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace fv
+} // End namespace XiCorrModels
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

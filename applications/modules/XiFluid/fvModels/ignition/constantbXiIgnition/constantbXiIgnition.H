@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::fv::cylindricalbXiIgnition
+    Foam::fv::constantbXiIgnition
 
 Description
     Simple constant rate ignition model for the Weller b-Xi combustion models
@@ -30,9 +30,9 @@ Description
 Usage
     Example usage:
     \verbatim
-    cylindricalbXiIgnition1
+    constantbXiIgnition1
     {
-        type            cylindricalbXiIgnition;
+        type            constantbXiIgnition;
 
         select          cellZone;
         cellZone        ignition;
@@ -43,32 +43,38 @@ Usage
 
         XiCorr
         {
+            type            spherical;
             select          all;
-            thickness       0.001;
-            cylinderFraction 0.25;
         }
     }
     \endverbatim
 
     Where:
     \table
-        Property         | Description              | Required  | Default value
-        start            | Ignition start time      | yes       |
-        duration         | Ignition duration        | yes       |
-        strength         | Ignition strength [1/s]  | yes       |
-        thickness        | Thickness of the 2D mesh | yes       |
-        cylinderFraction | Kernel cylinder fraction | no        | 1
+        Property     | Description                 | Required   | Default value
+        select       | Ignition cell set selection | yes        |
+        start        | Ignition start time         | yes        |
+        duration     | Ignition duration           | yes        |
+        strength     | Ignition strength [1/s]     | yes        |
+        XiCorr       | Flame-wrinkling correction  | yes        |
     \endtable
 
+See also
+    Foam::XiCorrModel
+    Foam::XiCorrModels::planar
+    Foam::XiCorrModels::cylindrical
+    Foam::XiCorrModels::spherical
+
 SourceFiles
-    cylindricalbXiIgnition.C
+    constantbXiIgnition.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef cylindricalbXiIgnition_H
-#define cylindricalbXiIgnition_H
+#ifndef constantbXiIgnition_H
+#define constantbXiIgnition_H
 
-#include "constantbXiIgnition.H"
+#include "bXiIgnition.H"
+#include "XiCorrModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -78,21 +84,28 @@ namespace fv
 {
 
 /*---------------------------------------------------------------------------*\
-                     Class cylindricalbXiIgnition Declaration
+                     Class constantbXiIgnition Declaration
 \*---------------------------------------------------------------------------*/
 
-class cylindricalbXiIgnition
+class constantbXiIgnition
 :
-    public constantbXiIgnition
+    public bXiIgnition
 {
     // Private Data
 
-        //- Thickness of the 2D mesh
-        dimensionedScalar thickness_;
+        //- The set of ignition cells
+        fvCellSet set_;
 
-        //- Kernel cylinder fraction
-        //  If the ignition is adjacent to n symmetry planes: 1/2^n
-        dimensionedScalar cylinderFraction_;
+        autoPtr<XiCorrModel> XiCorrModel_;
+
+        //- Ignition start time
+        scalar start_;
+
+        //- Ignition duration
+        scalar duration_;
+
+        //- Ignition strength
+        scalar strength_;
 
 
     // Private Member Functions
@@ -100,21 +113,17 @@ class cylindricalbXiIgnition
         //- Non-virtual read
         void readCoeffs();
 
-        //- Return the area of the ignition kernel
-        //  calculated from the given kernel volume
-        virtual dimensionedScalar Ak(const dimensionedScalar& Vk) const;
-
 
 public:
 
     //- Runtime type information
-    TypeName("cylindricalbXiIgnition");
+    TypeName("constantbXiIgnition");
 
 
     // Constructors
 
         //- Construct from explicit source name and mesh
-        cylindricalbXiIgnition
+        constantbXiIgnition
         (
             const word& name,
             const word& modelType,
@@ -123,13 +132,53 @@ public:
         );
 
         //- Disallow default bitwise copy construction
-        cylindricalbXiIgnition
+        constantbXiIgnition
         (
-            const cylindricalbXiIgnition&
+            const constantbXiIgnition&
         ) = delete;
 
 
     // Member Functions
+
+        // Checks
+
+            virtual bool igniting() const;
+
+            virtual bool ignited() const;
+
+
+        // Add explicit and implicit contributions to compressible equation
+
+            //- Add ignition contribution to b equation
+            virtual void addSup
+            (
+                const volScalarField& rho,
+                const volScalarField& b,
+                fvMatrix<scalar>& eqn
+            ) const;
+
+            virtual void XiCorr
+            (
+                volScalarField& Xi,
+                const volScalarField& b,
+                const volScalarField& mgb
+            ) const;
+
+
+        // Mesh motion
+
+            //- Update topology using the given map
+            virtual void topoChange(const polyTopoChangeMap&);
+
+            //- Update from another mesh using the given map
+            virtual void mapMesh(const polyMeshMap&);
+
+            //- Redistribute or update using the given distribution map
+            virtual void distribute(const polyDistributionMap&);
+
+            //- Update for mesh motion
+            virtual bool movePoints();
+
 
         // IO
 
@@ -140,7 +189,7 @@ public:
     // Member Operators
 
         //- Disallow default bitwise assignment
-        void operator=(const cylindricalbXiIgnition&) = delete;
+        void operator=(const constantbXiIgnition&) = delete;
 };
 
 
