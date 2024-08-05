@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2014-2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2014-2024 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -60,9 +60,6 @@ class plastic
 protected:
 
     // Protected data
-
-        //- Dictionary
-        dictionary plasticCoeffs_;
 
         //- Plastic viscosity coefficient
         dimensionedScalar plasticViscosityCoeff_;

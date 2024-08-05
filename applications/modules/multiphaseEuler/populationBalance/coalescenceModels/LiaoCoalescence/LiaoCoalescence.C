@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2021-2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2021-2024 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -63,14 +63,14 @@ LiaoCoalescence
 :
     coalescenceModel(popBal, dict),
     LiaoBase(popBal, dict),
-    PMax_(dimensionedScalar::lookupOrDefault("PMax", dict, dimless, 0.8)),
-    AH_(dimensionedScalar::lookupOrDefault("AH", dict, dimEnergy, 3.7e-20)),
-    CEff_(dimensionedScalar::lookupOrDefault("CEff", dict, dimless, 2.5)),
-    CTurb_(dimensionedScalar::lookupOrDefault("CTurb", dict, dimless, 1)),
-    CBuoy_(dimensionedScalar::lookupOrDefault("CBuoy", dict, dimless, 1)),
-    CShear_(dimensionedScalar::lookupOrDefault("CShear", dict, dimless, 1)),
-    CEddy_(dimensionedScalar::lookupOrDefault("CEddy", dict, dimless, 1)),
-    CWake_(dimensionedScalar::lookupOrDefault("CWake", dict, dimless, 1)),
+    PMax_("PMax", dimless, dict, 0.8),
+    AH_("AH", dimEnergy, dict, 3.7e-20),
+    CEff_("CEff", dimless, dict, 2.5),
+    CTurb_("CTurb", dimless, dict, 1),
+    CBuoy_("CBuoy", dimless, dict, 1),
+    CShear_("CShear", dimless, dict, 1),
+    CEddy_("CEddy", dimless, dict, 1),
+    CWake_("CWake", dimless, dict, 1),
     turbulence_(dict.lookup("turbulence")),
     buoyancy_(dict.lookup("buoyancy")),
     laminarShear_(dict.lookup("laminarShear")),
@@ -92,10 +92,7 @@ LiaoCoalescence
             Zero
         )
     ),
-    CPackMax_
-    (
-        dimensionedScalar::lookupOrDefault("CPackMax", dict, dimless, 1e5)
-    ),
+    CPackMax_("CPackMax", dimless, dict, 1e5),
     dCrit_
     (
         IOobject

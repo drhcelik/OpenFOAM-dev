@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2015-2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2015-2024 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -50,16 +50,7 @@ Foam::wallDampingModel::wallDampingModel
         interface.modelCast<wallDampingModel, dispersedPhaseInterface>()
     ),
     Cd_("Cd", dimless, dict),
-    zeroWallDist_
-    (
-        dimensionedScalar::lookupOrDefault
-        (
-            "zeroWallDist",
-            dict,
-            dimLength,
-            0
-        )
-    ),
+    zeroWallDist_("zeroWallDist", dimLength, dict, 0),
     zeroInNearWallCells_
     (
         dict.lookupOrDefault<Switch>("zeroInNearWallCells", false)

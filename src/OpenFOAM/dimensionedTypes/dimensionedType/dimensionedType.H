@@ -138,25 +138,28 @@ public:
         //- Construct from dictionary lookup with a given name and units
         dimensioned(const word&, const unitConversion&, const dictionary&);
 
+        //- Construct from dictionary lookup with a given name and dimensions
+        //  or if not found set to the given default value
+        dimensioned
+        (
+            const word&,
+            const dimensionSet&,
+            const dictionary&,
+            const Type&
+        );
+
+        //- Construct from dictionary lookup with a given name and units
+        //  or if not found set to the given default value
+        dimensioned
+        (
+            const word&,
+            const unitConversion&,
+            const dictionary&,
+            const Type&
+        );
+
 
     // Static member functions
-
-        //- Construct from dictionary, with default dimensions and value.
-        static dimensioned<Type> lookupOrDefault
-        (
-            const word&,
-            const dictionary&,
-            const dimensionSet& dims = dimless,
-            const Type& defaultValue = pTraits<Type>::zero
-        );
-
-        //- Construct from dictionary dimensionless with value.
-        static dimensioned<Type> lookupOrDefault
-        (
-            const word&,
-            const dictionary&,
-            const Type& defaultValue = pTraits<Type>::zero
-        );
 
         //- Construct from dictionary, with default value.
         //  If the value is not found, it is added into the dictionary.

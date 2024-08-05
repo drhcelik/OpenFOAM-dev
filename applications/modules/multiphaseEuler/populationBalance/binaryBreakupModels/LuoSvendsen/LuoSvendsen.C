@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2019-2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2019-2024 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -60,12 +60,9 @@ Foam::diameterModels::binaryBreakupModels::LuoSvendsen::LuoSvendsen
     gammaUpperReg2by11_(),
     gammaUpperReg5by11_(),
     gammaUpperReg8by11_(),
-    C4_(dimensionedScalar::lookupOrDefault("C4", dict, dimless, 0.923)),
-    beta_(dimensionedScalar::lookupOrDefault("beta", dict, dimless, 2.05)),
-    minEddyRatio_
-    (
-        dimensionedScalar::lookupOrDefault("minEddyRatio", dict, dimless, 11.4)
-    ),
+    C4_("C4", dimless, dict, 0.923),
+    beta_("beta", dimless, dict, 2.05),
+    minEddyRatio_("minEddyRatio", dimless, dict, 11.4),
     kolmogorovLengthScale_
     (
         IOobject
