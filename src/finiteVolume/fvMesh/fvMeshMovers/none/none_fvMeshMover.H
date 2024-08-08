@@ -22,27 +22,20 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::fvMeshMovers::inkJet
+    Foam::fvMeshMovers::none
 
 Description
-    Mesh motion specifically for the "pumping" system of an ink-jet
-    injector.
-
-    The set of points in the "pumping" region are compressed and expanded
-    sinusoidally to impose a sinusoidal variation of the flow at the
-    nozzle exit.
+    Dummy fvMeshMover which does not move the mesh points
 
 SourceFiles
-    inkJetFvMesh.C
+    none.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef fvMeshMoversInkJet_H
-#define fvMeshMoversInkJet_H
+#ifndef none_fvMeshMover_H
+#define none_fvMeshMover_H
 
 #include "fvMeshMover.H"
-#include "dictionary.H"
-#include "pointIOField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -52,65 +45,69 @@ namespace fvMeshMovers
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class inkJet Declaration
+                      Class fvMeshMovers::none Declaration
 \*---------------------------------------------------------------------------*/
 
-class inkJet
+class none
 :
     public fvMeshMover
 {
-    // Private Data
-
-        scalar amplitude_;
-        scalar frequency_;
-        scalar refPlaneX_;
-
-        pointIOField stationaryPoints_;
-
-        //- Optional list of vectorFields to update for mesh motion
-        //  For modern solvers using Uf and correctPhi to update the flux
-        //  after motion it is not necessary to specify a "velocityFields" list
-        velocityMotionCorrection velocityMotionCorrection_;
-
-
 public:
 
     //- Runtime type information
-    TypeName("inkJet");
+    TypeName("none");
 
 
     // Constructors
 
         //- Construct from fvMesh
-        inkJet(fvMesh& mesh);
+        none(fvMesh& mesh);
+
+        //- Construct from fvMesh and dictionary
+        none(fvMesh& mesh, const dictionary& dict);
 
         //- Disallow default bitwise copy construction
-        inkJet(const inkJet&) = delete;
+        none(const none&) = delete;
 
 
     //- Destructor
-    ~inkJet();
+    virtual ~none();
 
 
     // Member Functions
 
-        //- Update the mesh for both mesh motion and topology change
+        //- The mesh is static and does not change so return false
+        virtual bool dynamic() const
+        {
+            return false;
+        }
+
+        //- The mesh is static, which meets the criteria of a solid body motion
+        virtual bool solidBody() const
+        {
+            return true;
+        }
+
+        //- Dummy update function which does not change the mesh
         virtual bool update();
 
-        //- Update corresponding to the given map
-        virtual void topoChange(const polyTopoChangeMap&);
+        //-  Update local data for topology changes
+        virtual void topoChange(const polyTopoChangeMap&)
+        {}
 
         //- Update from another mesh using the given map
-        virtual void mapMesh(const polyMeshMap&);
+        virtual void mapMesh(const polyMeshMap&)
+        {}
 
         //- Update corresponding to the given distribution map
-        virtual void distribute(const polyDistributionMap&);
+        virtual void distribute(const polyDistributionMap&)
+        {}
 
 
     // Member Operators
 
         //- Disallow default bitwise assignment
-        void operator=(const inkJet&) = delete;
+        void operator=(const none&) = delete;
 };
 
 

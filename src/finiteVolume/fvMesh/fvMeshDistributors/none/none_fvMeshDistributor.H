@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2021-2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2021-2024 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,35 +22,35 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::fvMeshMovers::none
+    Foam::fvMeshDistributors::none
 
 Description
-    Dummy fvMeshMover which does not move the mesh points
+    Dummy fvMeshDistributor which does not move the mesh points
 
 SourceFiles
     none.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef fvMeshMoversNone_H
-#define fvMeshMoversNone_H
+#ifndef none_fvMeshDistributor_H
+#define none_fvMeshDistributor_H
 
-#include "fvMeshMover.H"
+#include "fvMeshDistributor.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace fvMeshMovers
+namespace fvMeshDistributors
 {
 
 /*---------------------------------------------------------------------------*\
-                      Class fvMeshMovers::none Declaration
+                        Class none Declaration
 \*---------------------------------------------------------------------------*/
 
 class none
 :
-    public fvMeshMover
+    public fvMeshDistributor
 {
 public:
 
@@ -63,12 +63,15 @@ public:
         //- Construct from fvMesh
         none(fvMesh& mesh);
 
+        //- Construct from fvMesh and dictionary
+        none(fvMesh& mesh, const dictionary& dict);
+
         //- Disallow default bitwise copy construction
         none(const none&) = delete;
 
 
     //- Destructor
-    virtual ~none();
+    ~none();
 
 
     // Member Functions
@@ -79,16 +82,10 @@ public:
             return false;
         }
 
-        //- The mesh is static, which meets the criteria of a solid body motion
-        virtual bool solidBody() const
-        {
-            return true;
-        }
-
         //- Dummy update function which does not change the mesh
         virtual bool update();
 
-        //-  Update local data for topology changes
+        //- Update corresponding to the given map
         virtual void topoChange(const polyTopoChangeMap&)
         {}
 
@@ -110,7 +107,7 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace fvMeshMovers
+} // End namespace fvMeshDistributors
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
