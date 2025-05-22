@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2021-2025 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2025 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,48 +23,29 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "cavitationModel.H"
-#include "constantPressure.H"
-#include "fvmSup.H"
+#ifndef zeroFixedValueFvPatchFieldsFwd_H
+#define zeroFixedValueFvPatchFieldsFwd_H
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#include "fvPatchField.H"
+#include "fieldTypes.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace compressible
-{
-    defineTypeNameAndDebug(cavitationModel, 0);
-    defineRunTimeSelectionTable(cavitationModel, dictionary);
-}
-}
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+template<class Type> class zeroFixedValueFvPatchField;
 
-Foam::compressible::cavitationModel::cavitationModel
-(
-    const dictionary& dict,
-    const compressibleTwoPhases& phases,
-    const label liquidIndex
-)
-:
-    phases_(phases),
-    liquidIndex_
-    (
-        liquidIndex != -1
-      ? liquidIndex
-      : phases.index(dict.lookup<word>("liquid"))
-    ),
-    saturationModel_(saturationPressureModel::New("pSat", dict))
-{}
+makePatchTypeFieldTypedefs(zeroFixedValue);
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-bool Foam::compressible::cavitationModel::read(const dictionary& dict)
-{
-    saturationModel_.reset(saturationPressureModel::New("pSat", dict).ptr());
+} // End namespace Foam
 
-    return true;
-}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+#endif
 
 // ************************************************************************* //

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2021-2025 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2025 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,48 +23,20 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "cavitationModel.H"
-#include "constantPressure.H"
-#include "fvmSup.H"
+#include "zeroFixedValueFvPatchFields.H"
+#include "addToRunTimeSelectionTable.H"
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace compressible
-{
-    defineTypeNameAndDebug(cavitationModel, 0);
-    defineRunTimeSelectionTable(cavitationModel, dictionary);
-}
-}
 
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+makeNullConstructablePatchFields(zeroFixedValue);
 
-Foam::compressible::cavitationModel::cavitationModel
-(
-    const dictionary& dict,
-    const compressibleTwoPhases& phases,
-    const label liquidIndex
-)
-:
-    phases_(phases),
-    liquidIndex_
-    (
-        liquidIndex != -1
-      ? liquidIndex
-      : phases.index(dict.lookup<word>("liquid"))
-    ),
-    saturationModel_(saturationPressureModel::New("pSat", dict))
-{}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-
-bool Foam::compressible::cavitationModel::read(const dictionary& dict)
-{
-    saturationModel_.reset(saturationPressureModel::New("pSat", dict).ptr());
-
-    return true;
-}
-
+} // End namespace Foam
 
 // ************************************************************************* //
