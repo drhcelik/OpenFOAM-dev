@@ -10,23 +10,22 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "system";
-    object      fvConstraints;
+    object      subsetMeshDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-source1
+zone
 {
-    type            fixedTemperature;
+    type invert;
 
-    timeStart       0.1;
-    duration        0.4;
-
-    cellZone        ignitionCells;
-
-    mode            uniform;
-
-    temperature     2000;
+    box
+    {
+        type        box;
+        zoneType    cell;
+        box         (0.375 0.375 0) (0.625 0.625 0.25);
+    }
 }
 
+patch   walls;
 
 // ************************************************************************* //

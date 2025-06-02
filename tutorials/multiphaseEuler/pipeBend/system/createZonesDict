@@ -9,23 +9,36 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    object      topoSetDict;
+    object      createZonesDict;
 }
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-actions
-(
-    {
-        name    ignitionCells;
-        type    cellSet;
-        action  new;
+beforeBend_1d
+{
+    type        box;
+    zoneType    cell;
+    box         (-0.03 0.35 -0.03) (0.03 0.37 0.03);
+}
 
-        source  sphereToCell;
-        centre  (0.125 0.375 0.05);
-        radius  0.005;
-    }
-);
+afterBend_1d
+{
+    type        box;
+    zoneType    cell;
+    box         (-0.03 0.43 0.09) (0.03 0.48 0.11);
+}
 
+afterBend_5d
+{
+    type        box;
+    zoneType    cell;
+    box         (-0.03 0.43 0.25) (0.03 0.48 0.27);
+}
+
+afterBend_9d
+{
+    type        box;
+    zoneType    cell;
+    box         (-0.03 0.43 0.41) (0.03 0.48 0.43);
+}
 
 // ************************************************************************* //

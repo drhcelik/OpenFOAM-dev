@@ -9,24 +9,19 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    location    "system";
-    object      fvConstraints;
+    object      createZonesDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-source1
+rotating
 {
-    type            fixedTemperature;
+    type        cylinder;
+    zoneType    cell;
 
-    timeStart       0.1;
-    duration        0.4;
-
-    cellZone        ignitionCells;
-
-    mode            uniform;
-
-    temperature     2000;
+    point1      (0 0 -1);
+    point2      (0 0 1);
+    radius      #calc
+        "$<scalar>blockMeshDict!convertToMeters * $<scalar>blockMeshDict!R";
 }
-
 
 // ************************************************************************* //

@@ -9,24 +9,22 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    location    "system";
-    object      fvConstraints;
+    object      createZonesDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-source1
+actuationDisk1
 {
-    type            fixedTemperature;
-
-    timeStart       0.1;
-    duration        0.4;
-
-    cellZone        ignitionCells;
-
-    mode            uniform;
-
-    temperature     2000;
+    type        box;
+    zoneType    cell;
+    box         (581850.5 4785805 1061) (581850.8 4785815 1071);
 }
 
+actuationDisk2
+{
+    type        box;
+    zoneType    cell;
+    box         (581754 4785658 1065) (581754.4 4785668 1075);
+}
 
 // ************************************************************************* //

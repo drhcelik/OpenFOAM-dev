@@ -9,24 +9,15 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    location    "system";
-    object      fvConstraints;
+    object      createZonesDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-source1
+injection
 {
-    type            fixedTemperature;
-
-    timeStart       0.1;
-    duration        0.4;
-
-    cellZone        ignitionCells;
-
-    mode            uniform;
-
-    temperature     2000;
+    type        box;
+    zoneType    cell;
+    box         (0 0.04 0) (0.1 0.05 0.1);
 }
-
 
 // ************************************************************************* //

@@ -46,6 +46,19 @@ const Foam::NamedEnum<Foam::zoneGenerator::zoneTypes, 3>
     Foam::zoneGenerator::zoneTypesNames;
 
 
+template<>
+const char* Foam::NamedEnum<Foam::zoneGenerator::zoneTypesAll, 4>::names[] =
+{
+    "point",
+    "cell",
+    "face",
+    "all"
+};
+
+const Foam::NamedEnum<Foam::zoneGenerator::zoneTypesAll, 4>
+    Foam::zoneGenerator::zoneTypesAllNames;
+
+
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
 Foam::labelList Foam::zoneGenerator::indices(const boolList& selected)
@@ -107,13 +120,14 @@ Foam::zoneGenerator::New
     const dictionary& dict
 )
 {
+    const word type(dict.lookup("type"));
+
     if (debug)
     {
         InfoInFunction
-            << "Constructing " << typeName << " " << name << endl;
+            << "Constructing " << typeName
+            << " " << name << " of type " << type << endl;
     }
-
-    const word type(dict.lookup("type"));
 
     typename dictionaryConstructorTable::iterator cstrIter =
         dictionaryConstructorTablePtr_->find(type);
@@ -143,13 +157,14 @@ Foam::zoneGenerator::New
     const dictionary& dict
 )
 {
+    const word type(dict.lookup("type"));
+
     if (debug)
     {
         InfoInFunction
-            << "Constructing " << typeName << " " << name << endl;
+            << "Constructing " << typeName
+            << " " << name << " of type " << type << endl;
     }
-
-    const word type(dict.lookup("type"));
 
     typename dictionaryConstructorTable::iterator cstrIter =
         dictionaryConstructorTablePtr_->find(type);
@@ -211,25 +226,21 @@ Foam::zoneGenerator::New
         {
             // If an empty keyword is present assume it is a zone name
             // and add a zone lookup
+            dictionary zoneDict(name, dict);
+            zoneDict.add
+            (
+                primitiveEntry
+                (
+                    "type",
+                    zoneGenerators::lookup::typeName,
+                    iter().startLineNumber(),
+                    iter().startLineNumber()
+                )
+            );
+
             return autoPtr<zoneGenerator>
             (
-                new zoneGenerators::lookup
-                (
-                    name,
-                    mesh,
-                    dictionary
-                    (
-                        name,
-                        dict,
-                        primitiveEntry
-                        (
-                            "type",
-                            zoneGenerators::lookup::typeName,
-                            iter().startLineNumber(),
-                            iter().startLineNumber()
-                        )
-                    )
-                )
+                new zoneGenerators::lookup(name, mesh, zoneDict)
             );
         }
     }
