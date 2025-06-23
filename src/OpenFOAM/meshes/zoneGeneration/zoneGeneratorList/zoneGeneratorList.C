@@ -32,7 +32,7 @@ License
 void Foam::zoneGeneratorList::read
 (
     const dictionary& dict,
-    const bool zonesGenerator
+    const bool topLevel
 )
 {
     setSize(dict.size());
@@ -51,32 +51,34 @@ void Foam::zoneGeneratorList::read
                 (
                     i,
                     name,
-                    zoneGenerator::New(name, mesh_, iter().dict()).ptr()
+                    zoneGenerator::New(name, mesh_, iter().dict())
                 );
             }
             else
             {
-                if (zonesGenerator)
+                if (topLevel)
                 {
                     // If the type is not specified
                     // assume the zoneGenerator type is the same as the name
-                    dictionary zoneDict(dict, iter().dict());
-                    zoneDict.add
-                    (
-                        primitiveEntry
-                        (
-                            "type",
-                            name,
-                            iter().startLineNumber(),
-                            iter().startLineNumber()
-                        )
-                    );
-
                     this->set
                     (
                         i,
                         name,
-                        zoneGenerator::New(name, mesh_, zoneDict).ptr()
+                        zoneGenerator::New
+                        (
+                            name,
+                            mesh_,
+                            dictionary
+                            (
+                                iter().dict(),
+                                primitiveEntry
+                                (
+                                    "type",
+                                    name,
+                                    iter().startLineNumber()
+                                )
+                            )
+                        )
                     );
                 }
                 else
@@ -95,7 +97,7 @@ void Foam::zoneGeneratorList::read
         }
         else if (!iter().stream().size())
         {
-            if (zonesGenerator)
+            if (topLevel)
             {
                 // If an empty keyword is present assume it is a
                 // zoneGenerator type and add to the list
@@ -115,7 +117,6 @@ void Foam::zoneGeneratorList::read
                             (
                                 "type",
                                 name,
-                                iter().startLineNumber(),
                                 iter().startLineNumber()
                             )
                         )
@@ -142,7 +143,6 @@ void Foam::zoneGeneratorList::read
                             (
                                 "type",
                                 zoneGenerators::lookup::typeName,
-                                iter().startLineNumber(),
                                 iter().startLineNumber()
                             )
                         )
@@ -170,12 +170,73 @@ Foam::zoneGeneratorList::zoneGeneratorList(const polyMesh& mesh)
 Foam::zoneGeneratorList::zoneGeneratorList
 (
     const polyMesh& mesh,
-    const dictionary& dict
+    const dictionary& dict,
+    const bool topLevel
 )
 :
     zoneGeneratorList(mesh)
 {
-    read(dict);
+    read(dict, topLevel);
+}
+
+
+Foam::zoneGeneratorList::zoneGeneratorList
+(
+    const polyMesh& mesh,
+    const dictionary& dict,
+    const word& zoneName,
+    const word& zonesName
+)
+:
+    zoneGeneratorList(mesh)
+{
+    if (dict.found(zoneName) && dict.found(zonesName))
+    {
+        FatalIOErrorInFunction(dict)
+            << "Both " << zoneName << " and " << zonesName << " specified"
+            << exit(FatalIOError);
+    }
+
+    if (dict.found(zoneName))
+    {
+        if (dict.isDict(zoneName))
+        {
+            append
+            (
+                zoneName,
+                zoneGenerator::New(zoneName, mesh_, dict.subDict(zoneName))
+            );
+        }
+        else
+        {
+            ITstream& zoneStream(dict.lookup(zoneName));
+            const word name(zoneStream);
+            append
+            (
+                name,
+                new zoneGenerators::lookup
+                (
+                    name,
+                    mesh,
+                    dictionary
+                    (
+                        name,
+                        dict,
+                        primitiveEntry
+                        (
+                            "type",
+                            zoneGenerators::lookup::typeName,
+                            zoneStream.lineNumber()
+                        )
+                    )
+                )
+            );
+        }
+    }
+    else if (dict.found(zonesName))
+    {
+        read(dict.subDict(zonesName));
+    }
 }
 
 

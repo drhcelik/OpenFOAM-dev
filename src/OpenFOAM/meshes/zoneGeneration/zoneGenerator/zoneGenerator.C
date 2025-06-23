@@ -35,23 +35,6 @@ namespace Foam
     defineRunTimeSelectionTable(zoneGenerator, dictionary);
 }
 
-const Foam::NamedEnum<Foam::zoneGenerator::zoneTypes, 3>
-Foam::zoneGenerator::zoneTypesNames
-{
-    "point",
-    "cell",
-    "face"
-};
-
-const Foam::NamedEnum<Foam::zoneGenerator::zoneTypesAll, 4>
-Foam::zoneGenerator::zoneTypesAllNames
-{
-    "point",
-    "cell",
-    "face",
-    "all"
-};
-
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
@@ -181,11 +164,22 @@ Foam::zoneGenerator::New
     const dictionary& dict
 )
 {
-    // Copy the dictionary and add the zoneType entry
-    dictionary zoneDict(dict);
-    zoneDict.add("zoneType", zoneTypesNames[zoneType]);
-
-    return New(name, mesh, zoneDict);
+    return New
+    (
+        name,
+        mesh,
+        // Copy the dictionary and add the zoneType entry
+        dictionary
+        (
+            dict,
+            primitiveEntry
+            (
+                "zoneType",
+                zoneTypesNames[zoneType],
+                dict.endLineNumber()
+            )
+        )
+    );
 }
 
 
@@ -226,21 +220,24 @@ Foam::zoneGenerator::New
         {
             // If an empty keyword is present assume it is a zone name
             // and add a zone lookup
-            dictionary zoneDict(name, dict);
-            zoneDict.add
-            (
-                primitiveEntry
-                (
-                    "type",
-                    zoneGenerators::lookup::typeName,
-                    iter().startLineNumber(),
-                    iter().startLineNumber()
-                )
-            );
-
             return autoPtr<zoneGenerator>
             (
-                new zoneGenerators::lookup(name, mesh, zoneDict)
+                new zoneGenerators::lookup
+                (
+                    name,
+                    mesh,
+                    dictionary
+                    (
+                        name,
+                        dict,
+                        primitiveEntry
+                        (
+                            "type",
+                            zoneGenerators::lookup::typeName,
+                            iter().startLineNumber()
+                        )
+                    )
+                )
             );
         }
     }
