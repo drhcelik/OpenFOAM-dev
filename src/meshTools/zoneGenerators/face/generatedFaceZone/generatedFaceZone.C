@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2025 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2022-2025 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,17 +23,61 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+#include "generatedFaceZone.H"
+#include "polyMesh.H"
+#include "containsPoints.H"
 
-inline Foam::label Foam::fvCellZone::nGlobalCells() const
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+Foam::generatedFaceZone::generatedFaceZone
+(
+    const polyMesh& mesh,
+    const dictionary& dict
+)
+:
+    mesh_(mesh)
 {
-    return nGlobalCells_;
+    read(dict);
 }
 
 
-inline Foam::scalar Foam::fvCellZone::V() const
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+
+Foam::generatedFaceZone::~generatedFaceZone()
+{}
+
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+void Foam::generatedFaceZone::movePoints()
 {
-    return V_;
+    faceZone_.movePoints();
+}
+
+
+void Foam::generatedFaceZone::topoChange(const polyTopoChangeMap& map)
+{
+    faceZone_.topoChange(map);
+}
+
+
+void Foam::generatedFaceZone::mapMesh(const polyMeshMap& map)
+{
+    faceZone_.mapMesh(map);
+}
+
+
+void Foam::generatedFaceZone::distribute(const polyDistributionMap& map)
+{
+    faceZone_.distribute(map);
+}
+
+
+bool Foam::generatedFaceZone::read(const dictionary& dict)
+{
+    faceZone_.read("faceZone", zoneTypes::face, mesh_, dict);
+
+    return true;
 }
 
 

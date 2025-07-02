@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2025 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2021-2025 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,17 +23,31 @@ License
 
 \*---------------------------------------------------------------------------*/
 
+#include "polyMesh.H"
+
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-inline Foam::label Foam::fvCellZone::nGlobalCells() const
+inline const Foam::word& Foam::generatedFaceZone::name() const
 {
-    return nGlobalCells_;
+    return faceZone_.fZone().name();
 }
 
 
-inline Foam::scalar Foam::fvCellZone::V() const
+inline const Foam::faceZone& Foam::generatedFaceZone::zone() const
 {
-    return V_;
+    return faceZone_.fZone();
+}
+
+
+inline Foam::label Foam::generatedFaceZone::nFaces() const
+{
+    return faceZone_.fZone().size();
+}
+
+
+inline Foam::label Foam::generatedFaceZone::facei(const label i) const
+{
+    return faceZone_.fZone()[i];
 }
 
 

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2025 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2025 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,18 +23,49 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+#include "noneStateLagrangianLabelFieldSource.H"
+#include "addToRunTimeSelectionTable.H"
 
-inline Foam::label Foam::fvCellZone::nGlobalCells() const
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+
+Foam::noneStateLagrangianLabelFieldSource::
+~noneStateLagrangianLabelFieldSource()
+{}
+
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+Foam::tmp<Foam::LagrangianSubLabelField>
+Foam::noneStateLagrangianLabelFieldSource::value
+(
+    const LagrangianInjection& injection,
+    const LagrangianSubMesh& subMesh
+) const
 {
-    return nGlobalCells_;
+    return
+        LagrangianSubLabelField::New
+        (
+            internalField().name() + ":" + injection.name(),
+            subMesh,
+            dimensioned<label>
+            (
+                name(LagrangianState::none),
+                internalDimensions(),
+                static_cast<label>(LagrangianState::none)
+            )
+        );
 }
 
 
-inline Foam::scalar Foam::fvCellZone::V() const
-{
-    return V_;
-}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+namespace Foam
+{
+    makeNullConstructableLagrangianTypeFieldSource
+    (
+        LagrangianLabelFieldSource,
+        noneStateLagrangianLabelFieldSource
+    );
+}
 
 // ************************************************************************* //

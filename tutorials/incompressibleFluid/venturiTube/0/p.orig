@@ -8,25 +8,35 @@
 FoamFile
 {
     format      ascii;
-    class       dictionary;
-    location    "constant";
-    object      zonesGenerator;
+    class       volScalarField;
+    object      p;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-cylinderHead
-{
-    type        cylinderHeadPoints;
-}
+dimensions      [0 2 -2 0 0 0 0];
 
-ignition
-{
-    type        sphere;
-    zoneType    cell;
-    moveUpdate  true;
+internalField   uniform 0;
 
-    centre      (0.03 0.002 0.091);
-    radius      0.001;
+boundaryField
+{
+    inlet
+    {
+        type            zeroGradient;
+    }
+
+    outlet
+    {
+        type            totalPressure;
+        p0              uniform 0;
+        value           uniform 0;
+    }
+
+    wall
+    {
+        type            zeroGradient;
+    }
+
+    #includeEtc "caseDicts/setConstraintTypes"
 }
 
 // ************************************************************************* //

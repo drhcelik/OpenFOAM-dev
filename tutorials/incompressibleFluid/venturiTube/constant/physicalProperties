@@ -9,24 +9,12 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    location    "constant";
-    object      zonesGenerator;
+    object      physicalProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-cylinderHead
-{
-    type        cylinderHeadPoints;
-}
+viscosityModel  constant;
 
-ignition
-{
-    type        sphere;
-    zoneType    cell;
-    moveUpdate  true;
-
-    centre      (0.03 0.002 0.091);
-    radius      0.001;
-}
+nu              [0 2 -1 0 0 0 0] 4e-05;
 
 // ************************************************************************* //
