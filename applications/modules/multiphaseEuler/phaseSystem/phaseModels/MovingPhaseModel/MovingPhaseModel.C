@@ -30,6 +30,7 @@ License
 #include "wallFvPatch.H"
 #include "noSlipFvPatchVectorField.H"
 #include "slipFvPatchFields.H"
+#include "partialSlipFvPatchFields.H"
 
 #include "fvmDdt.H"
 #include "fvmDiv.H"
@@ -135,10 +136,11 @@ Foam::wordList Foam::MovingPhaseModel<BasePhaseModel>::alphaPhiTypes
                 isType<fixedValueFvPatchVectorField>(UPf)
              && gSum(UPf) == vector::zero
             )
-            // Check for all wall types
-         || isA<wallFvPatch>(this->mesh().boundary()[patchi])
+            // Check for wall patch type
+         || isType<wallFvPatch>(this->mesh().boundary()[patchi])
          || isA<noSlipFvPatchVectorField>(UPf)
          || isA<slipFvPatchVectorField>(UPf)
+         || isA<partialSlipFvPatchVectorField>(UPf)
         )
         {
             alphaPhiTypes[patchi] = zeroFixedValueFvsPatchScalarField::typeName;
