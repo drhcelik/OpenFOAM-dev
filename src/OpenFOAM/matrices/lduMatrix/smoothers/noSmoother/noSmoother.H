@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) YEAR OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,60 +21,75 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::noSmoother
+
 Description
-    Template for use with codeBlock.
+    A lduMatrix::smoother that does nothing. Not on the selection table. Only
+    used by GAMG in the event that the coarsest mesh is a single cell.
+
+SourceFiles
+    noSmoother.C
 
 \*---------------------------------------------------------------------------*/
 
-#include "dictionaryEntry.H"
-#include "fieldTypes.H"
-#include "Ostream.H"
-#include "Pstream.H"
-#include "read.H"
-#include "unitConversion.H"
+#ifndef noSmoother_H
+#define noSmoother_H
 
-//{{{ begin codeInclude
-${codeInclude}
-//}}} end codeInclude
+#include "lduMatrix.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-// * * * * * * * * * * * * * * * Local Functions * * * * * * * * * * * * * * //
+/*---------------------------------------------------------------------------*\
+                     Class noSmoother Declaration
+\*---------------------------------------------------------------------------*/
 
-//{{{ begin localCode
-${localCode}
-//}}} end localCode
-
-
-// * * * * * * * * * * * * * * * Global Functions  * * * * * * * * * * * * * //
-
-extern "C"
+class noSmoother
+:
+    public lduMatrix::smoother
 {
-    #define CODE_BLOCK_STREAM_FUNCTION(index)                                  \
-        void CAT3(${typeName}, _, index)                                       \
-        (                                                                      \
-            Ostream& os,                                                       \
-            const dictionary& dict                                             \
-        )
 
-    #define CODE_BLOCK_DICT_FUNCTION(index)                                    \
-        void CAT3(${typeName}, _, index)                                       \
-        (                                                                      \
-            dictionary& dict,                                                  \
-            Istream& is                                                        \
-        )
+public:
 
-//{{{ begin code
-    ${code}
-//}}} end code
-}
+    //- Runtime type information
+    TypeName("no");
+
+
+    // Constructors
+
+        //- Construct from components
+        noSmoother
+        (
+            const word& fieldName,
+            const lduMatrix& matrix,
+            const FieldField<Field, scalar>& interfaceBouCoeffs,
+            const FieldField<Field, scalar>& interfaceIntCoeffs,
+            const lduInterfaceFieldPtrsList& interfaces
+        );
+
+
+    // Member Functions
+
+        //- Smooth the solution for a given number of sweeps
+        virtual void smooth
+        (
+            scalarField& psi,
+            const scalarField& Source,
+            const direction cmpt,
+            const label nSweeps
+        ) const;
+};
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //
