@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2024-2025 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,31 +23,28 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "wallBoiling.H"
+#include "phaseSurfaceCondensation.H"
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-inline const Foam::phaseModel& Foam::fv::wallBoiling::liquid() const
+inline const Foam::phaseModel&
+Foam::fv::phaseSurfaceCondensation::liquid() const
 {
     return liquid_;
 }
 
 
-inline const Foam::phaseModel& Foam::fv::wallBoiling::vapour() const
+inline const Foam::phaseModel&
+Foam::fv::phaseSurfaceCondensation::vapour() const
 {
     return vapour_;
 }
 
 
-inline const Foam::volScalarField& Foam::fv::wallBoiling::alphatLiquid() const
+inline const Foam::phaseModel&
+Foam::fv::phaseSurfaceCondensation::solid() const
 {
-    return alphatLiquid_;
-}
-
-
-inline const Foam::volScalarField& Foam::fv::wallBoiling::alphatVapour() const
-{
-    return alphatVapour_;
+    return solid_;
 }
 
 
