@@ -10,36 +10,35 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "system";
-    object      functions;
+    object      fvConstraints;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#includeFunc heatFlux(executeControl=timeStep)
+limitp
+{
+    type       limitPressure;
 
-#includeFunc specieFlux(O2, schemesField=Yi_h, executeControl=timeStep)
+    min        8e4;
+    max        1.2e5;
+}
 
-#includeFunc specieFlux(CH4, schemesField=Yi_h, executeControl=timeStep)
+limitTgas
+{
+    type            limitTemperature;
+    cellZone        all;
+    min             273;
+    max             453;
+    phase           gas;
+}
 
-#includeFunc specieFlux(N2, schemesField=Yi_h, executeControl=timeStep)
+limitTliquid
+{
+    type            limitTemperature;
+    cellZone        all;
+    min             273;
+    max             453;
+    phase           liquid;
+}
 
-#includeFunc patchFlux
-(
-    name=membraneSleeveFluxes,
-    patch=membraneSleeve,
-    heatFlux,
-    specieFlux(O2),
-    specieFlux(CH4),
-    specieFlux(N2)
-)
-
-#includeFunc patchFlux
-(
-    name=membranePipeFluxes,
-    patch=membranePipe,
-    heatFlux,
-    specieFlux(O2),
-    specieFlux(CH4),
-    specieFlux(N2)
-)
 
 // ************************************************************************* //

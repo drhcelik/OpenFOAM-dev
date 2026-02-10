@@ -14,32 +14,10 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#includeFunc heatFlux(executeControl=timeStep)
-
-#includeFunc specieFlux(O2, schemesField=Yi_h, executeControl=timeStep)
-
-#includeFunc specieFlux(CH4, schemesField=Yi_h, executeControl=timeStep)
-
-#includeFunc specieFlux(N2, schemesField=Yi_h, executeControl=timeStep)
-
-#includeFunc patchFlux
-(
-    name=membraneSleeveFluxes,
-    patch=membraneSleeve,
-    heatFlux,
-    specieFlux(O2),
-    specieFlux(CH4),
-    specieFlux(N2)
-)
-
-#includeFunc patchFlux
-(
-    name=membranePipeFluxes,
-    patch=membranePipe,
-    heatFlux,
-    specieFlux(O2),
-    specieFlux(CH4),
-    specieFlux(N2)
-)
+#includeFunc cellMaxMag(name=fieldMax, executeAtStart=no, p, U.gas, U.liquid, log=yes)
+#includeFunc cellMinMag(name=fieldMin, executeAtStart=no, p, U.gas, U.liquid, log=yes)
+#includeFunc yPlus(name=yPlus, phase=gas, executeAtStart=no, log=yes)
+#includeFunc patchFlowRate(name=inflow, patch=inlet, alphaRhoPhi.gas, alphaRhoPhi.liquid, log=yes)
+#includeFunc patchFlowRate(name=outflow, patch=outlet, alphaRhoPhi.gas, alphaRhoPhi.liquid, log=yes)
 
 // ************************************************************************* //

@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2024-2026 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,54 +22,47 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::functionObjects::specieFlux
+    Foam::functionObjects::energyFlux
 
 Description
-    These functions calculate the specie-flux and write it as a
-    surfaceScalarField called 'specie<Type>Flux(<specieName>)'. There are
-    three such functions; specieAdvectiveFlux and specieDiffusiveFlux return
-    the advective and diffusive parts of the flux, respectively, and
-    specieFlux returns the total combined flux.
+    These functions calculate the energy-flux and write it as a
+    surfaceScalarField. There are three such functions; energyAdvectiveFlux and
+    heatFlux return the advective and diffusive parts of the energy flux,
+    respectively, and energyFlux returns the total combined flux.
 
     Example of function object specification:
     \verbatim
-    specieFlux
+    energyFlux
     {
-        type    specieFlux; // specieAdvectiveFlux, specieDiffusiveFlux
+        type    energyFlux; // energyAdvectiveFlux, heatFlux
         libs    ("libfieldFunctionObjects.so");
-        field   NH3;
     }
     \endverbatim
 
     Or, using the standard configuration:
     \verbatim
-    #includeFunc specieFlux(NH3)
+    #includeFunc energyFlux
     \endverbatim
 
 Usage
     \table
         Property     | Description                | Required | Default value
-        type         | Type name: specieFlux, \\
-                       specieAdvectiveFlux, or \\
-                       specieDiffusiveFlux        | yes      |
-        field        | Name of the specie/mass \\
-                       fraction field             | yes      |
-        schemesField | Name of the field from \\
-                       which schemes are taken    | no       | Yi
+        type         | Type name: energyFlux, \\
+                       energyAdvectiveFlux, or \\
+                       heatFlux                   | yes      |
         phase        | Name of the phase          | no       |
         region       | Region to be evaluated     | no       | default region
     \endtable
 
 SourceFiles
-    specieFlux.C
+    energyFlux.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef specieFlux_H
-#define specieFlux_H
+#ifndef energyFlux_functionObject_H
+#define energyFlux_functionObject_H
 
 #include "fieldExpression.H"
-#include "volFieldsFwd.H"
 #include "surfaceFieldsFwd.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -77,16 +70,16 @@ SourceFiles
 namespace Foam
 {
 
-class fluidThermophysicalTransportModel;
+class thermophysicalTransportModel;
 
 namespace functionObjects
 {
 
 /*---------------------------------------------------------------------------*\
-                          Class specieFluxBase Declaration
+                         Class energyFluxBase Declaration
 \*---------------------------------------------------------------------------*/
 
-class specieFluxBase
+class energyFluxBase
 :
     public fieldExpression
 {
@@ -95,88 +88,93 @@ class specieFluxBase
         //- Name of field from which schemes are taken
         const word schemesField_;
 
+        //- The name of the phase
+        word phaseName_;
+
 
     // Private Member Functions
 
-        //- Calculate the specie flux field and return true if successful
+        //- Calculate the specie flux field
         virtual bool calc();
 
         //- Calculate the specie flux field
         virtual tmp<surfaceScalarField> calc
         (
-            const fluidThermophysicalTransportModel& ttm,
-            const volScalarField& Yi
-        ) = 0;
+            const thermophysicalTransportModel& ttm
+        ) const = 0;
 
 
 protected:
 
     // Protected Member Functions
 
-        //- Return the advective flux
-        tmp<surfaceScalarField> calcPhiYif
+        //- Return the advective energy flux
+        tmp<surfaceScalarField> calcPhihs
         (
-            const fluidThermophysicalTransportModel& ttm,
-            const volScalarField& Yi
+            const thermophysicalTransportModel& ttm
         ) const;
 
-        //- Return the diffusive flux
-        tmp<surfaceScalarField> calcJ
+        //- Return the heat flux
+        tmp<surfaceScalarField> calcQ
         (
-            const fluidThermophysicalTransportModel& ttm,
-            const volScalarField& Yi
+            const thermophysicalTransportModel& ttm
         ) const;
+
 
 public:
-
 
     // Constructors
 
         //- Construct from Time and dictionary
-        specieFluxBase
+        energyFluxBase
         (
             const word& name,
             const Time& runTime,
-            const dictionary& dict,
+            const dictionary&,
             const word& typeName
         );
 
 
     //- Destructor
-    virtual ~specieFluxBase();
+    virtual ~energyFluxBase();
+
+
+    // Member Functions
+
+        //- Read the data
+        virtual bool read(const dictionary&);
 };
 
 
 /*---------------------------------------------------------------------------*\
-                       Class specieFlux Declaration
+                          Class energyFlux Declaration
 \*---------------------------------------------------------------------------*/
 
-class specieFlux
+class energyFlux
 :
-    public specieFluxBase
+    public energyFluxBase
 {
 private:
 
     // Private Member Functions
 
-        //- Calculate the specie flux field
+        //- Calculate the energy flux field
         virtual tmp<surfaceScalarField> calc
         (
-            const fluidThermophysicalTransportModel& ttm,
-            const volScalarField& Yi
-        );
+            const thermophysicalTransportModel& ttm
+        ) const;
 
 
 public:
 
     //- Runtime type information
-    TypeName("specieFlux");
+    TypeName("energyFlux");
 
 
     // Constructors
 
         //- Construct from Time and dictionary
-        specieFlux
+        energyFlux
         (
             const word& name,
             const Time& runTime,
@@ -186,35 +184,34 @@ public:
 
 
 /*---------------------------------------------------------------------------*\
-                       Class specieAdvectiveFlux Declaration
+                      Class energyAdvectiveFlux Declaration
 \*---------------------------------------------------------------------------*/
 
-class specieAdvectiveFlux
+class energyAdvectiveFlux
 :
-    public specieFluxBase
+    public energyFluxBase
 {
 private:
 
     // Private Member Functions
 
-        //- Calculate the specie flux field
+        //- Calculate the energy flux field
         virtual tmp<surfaceScalarField> calc
         (
-            const fluidThermophysicalTransportModel& ttm,
-            const volScalarField& Yi
-        );
+            const thermophysicalTransportModel& ttm
+        ) const;
 
 
 public:
 
     //- Runtime type information
-    TypeName("specieAdvectiveFlux");
+    TypeName("energyAdvectiveFlux");
 
 
     // Constructors
 
         //- Construct from Time and dictionary
-        specieAdvectiveFlux
+        energyAdvectiveFlux
         (
             const word& name,
             const Time& runTime,
@@ -224,35 +221,34 @@ public:
 
 
 /*---------------------------------------------------------------------------*\
-                       Class specieDiffusiveFlux Declaration
+                          Class heatFlux Declaration
 \*---------------------------------------------------------------------------*/
 
-class specieDiffusiveFlux
+class heatFlux
 :
-    public specieFluxBase
+    public energyFluxBase
 {
 private:
 
     // Private Member Functions
 
-        //- Calculate the specie flux field
+        //- Calculate the heat flux field
         virtual tmp<surfaceScalarField> calc
         (
-            const fluidThermophysicalTransportModel& ttm,
-            const volScalarField& Yi
-        );
+            const thermophysicalTransportModel& ttm
+        ) const;
 
 
 public:
 
     //- Runtime type information
-    TypeName("specieDiffusiveFlux");
+    TypeName("heatFlux");
 
 
     // Constructors
 
         //- Construct from Time and dictionary
-        specieDiffusiveFlux
+        heatFlux
         (
             const word& name,
             const Time& runTime,

@@ -10,36 +10,30 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "system";
-    object      functions;
+    object      setFieldsDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#includeFunc heatFlux(executeControl=timeStep)
+defaultValues
+{
+    alpha.gas       1;
+    alpha.liquid    0;
+    alpha.solid     0;
+}
 
-#includeFunc specieFlux(O2, schemesField=Yi_h, executeControl=timeStep)
+zones
+{
+    dryer
+    {
+        type            lookup;
 
-#includeFunc specieFlux(CH4, schemesField=Yi_h, executeControl=timeStep)
-
-#includeFunc specieFlux(N2, schemesField=Yi_h, executeControl=timeStep)
-
-#includeFunc patchFlux
-(
-    name=membraneSleeveFluxes,
-    patch=membraneSleeve,
-    heatFlux,
-    specieFlux(O2),
-    specieFlux(CH4),
-    specieFlux(N2)
-)
-
-#includeFunc patchFlux
-(
-    name=membranePipeFluxes,
-    patch=membranePipe,
-    heatFlux,
-    specieFlux(O2),
-    specieFlux(CH4),
-    specieFlux(N2)
-)
+        values
+        {
+            alpha.gas       0.8;
+            alpha.liquid    0;
+            alpha.solid     0.2;
+        }
+    }
+}
 
 // ************************************************************************* //

@@ -10,36 +10,15 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "system";
-    object      functions;
+    object      createZonesDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#includeFunc heatFlux(executeControl=timeStep)
-
-#includeFunc specieFlux(O2, schemesField=Yi_h, executeControl=timeStep)
-
-#includeFunc specieFlux(CH4, schemesField=Yi_h, executeControl=timeStep)
-
-#includeFunc specieFlux(N2, schemesField=Yi_h, executeControl=timeStep)
-
-#includeFunc patchFlux
-(
-    name=membraneSleeveFluxes,
-    patch=membraneSleeve,
-    heatFlux,
-    specieFlux(O2),
-    specieFlux(CH4),
-    specieFlux(N2)
-)
-
-#includeFunc patchFlux
-(
-    name=membranePipeFluxes,
-    patch=membranePipe,
-    heatFlux,
-    specieFlux(O2),
-    specieFlux(CH4),
-    specieFlux(N2)
-)
+dryer
+{
+    type        box;
+    zoneType    cell;
+    box         (0.4 0 0) (0.6 0.2 0.2);
+}
 
 // ************************************************************************* //

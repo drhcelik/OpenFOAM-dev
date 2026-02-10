@@ -10,36 +10,13 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "system";
-    object      functions;
+    object      decomposeParDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#includeFunc heatFlux(executeControl=timeStep)
+numberOfSubdomains 4;
 
-#includeFunc specieFlux(O2, schemesField=Yi_h, executeControl=timeStep)
+method          scotch;
 
-#includeFunc specieFlux(CH4, schemesField=Yi_h, executeControl=timeStep)
-
-#includeFunc specieFlux(N2, schemesField=Yi_h, executeControl=timeStep)
-
-#includeFunc patchFlux
-(
-    name=membraneSleeveFluxes,
-    patch=membraneSleeve,
-    heatFlux,
-    specieFlux(O2),
-    specieFlux(CH4),
-    specieFlux(N2)
-)
-
-#includeFunc patchFlux
-(
-    name=membranePipeFluxes,
-    patch=membranePipe,
-    heatFlux,
-    specieFlux(O2),
-    specieFlux(CH4),
-    specieFlux(N2)
-)
 
 // ************************************************************************* //
