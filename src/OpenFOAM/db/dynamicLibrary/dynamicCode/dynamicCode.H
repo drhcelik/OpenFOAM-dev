@@ -25,7 +25,7 @@ Class
     Foam::dynamicCode
 
 Description
-    Extension of dynamicCodeContext providing code compilation
+    Encapsulation of dynamic code dictionaries and functionality
 
 SourceFiles
     dynamicCode.C
@@ -35,28 +35,32 @@ SourceFiles
 #ifndef dynamicCode_H
 #define dynamicCode_H
 
+#include "dictionary.H"
 #include "HashTable.H"
-#include "DynamicList.H"
-#include "dynamicCodeContext.H"
+#include "SHA1Digest.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-// Forward declaration of classes
-class ISstream;
-class OSstream;
-
 /*---------------------------------------------------------------------------*\
-                         Class dynamicCode Declaration
+                     Class dynamicCode Declaration
 \*---------------------------------------------------------------------------*/
 
 class dynamicCode
 {
     // Private Data
 
-        const dynamicCodeContext& context_;
+        //- Top-level directory name for copy/compiling
+        static const word topDirName;
+
+        //- Name of the code template sub-directory
+        //  Used when locating the codeTemplateName via Foam::findEtcFile
+        static const fileName codeTemplateDirName;
+
+        //- Root of the LIB target for Make/files
+        static const char* const libTargetRoot;
 
         //- Root for dynamic code compilation
         fileName codeRoot_;
@@ -70,61 +74,50 @@ class dynamicCode
         //- Name for code subdirectory
         word codeDirName_;
 
-        //- Files to copy and filter
-        DynamicList<fileName> compileFiles_;
+        //- Keywords associated with source code
+        const wordList& codeKeys_;
+
+        //- Name of the dictionary variables in the source code
+        const wordList& codeDictVars_;
+
+        //- Options file name
+        const word& optionsFileName_;
+
+        //- Files to copy and filter and compile
+        const wordList& compileFiles_;
 
         //- Files to copy and filter
-        DynamicList<fileName> copyFiles_;
+        const wordList& copyFiles_;
 
-        //- Variables to use during filtering
-        HashTable<string> filterVars_;
+        //- Code strings
+        //  Stored to write for restart
+        List<verbatimString> codeStrings_;
 
+        //- Variable substitutions
+        mutable HashTable<string> varSubstitutions_;
 
-    // Private Static Data
+        //- Code key substitutions
+        HashTable<string> codeKeySubstitutions_;
 
-        //- Root of the LIB target for Make/files
-        static const char* const libTargetRoot;
+        //- Optional "codeOptions" string
+        //  Stored to write for restart
+        verbatimString optionsString_;
 
-        //- Top-level directory name for copy/compiling
-        static const word topDirName;
+        //- Optional "codeOptions" entry
+        string options_;
 
-        //- Name of the code template sub-directory
-        //  Used when locating the codeTemplateName via Foam::findEtcFile
-        static const fileName codeTemplateDirName;
+        //- Optional "codeLibs" string
+        //  Stored to write for restart
+        verbatimString libsString_;
+
+        //- Optional "codeLibs" entry
+        string libs_;
+
+        //- Calculated SHA1Digest
+        SHA1Digest sha1_;
 
 
     // Private Member Functions
-
-        //- Copy lines while expanding variables
-        static void copyAndFilter
-        (
-            ISstream&,
-            OSstream&,
-            const HashTable<string>& mapping
-        );
-
-        //- Resolve code-templates via Foam::findConfigFile
-        static bool resolveTemplates
-        (
-            const UList<fileName>& templateNames,
-            DynamicList<fileName>& resolvedFiles,
-            DynamicList<fileName>& badFiles
-        );
-
-        //- Write SHA1 value as C-comment
-        bool writeCommentSHA1(Ostream&) const;
-
-        //- Copy/create Make/files prior to compilation
-        bool createMakeFiles() const;
-
-        //- Copy/create Make/options prior to compilation
-        bool createMakeOptions() const;
-
-        //- Write digest to Make/SHA1Digest
-        bool writeDigest(const std::string&) const;
-
-        //- Verify if the copied code is up-to-date, based on Make/SHA1Digest
-        bool upToDate(const SHA1Digest& sha1) const;
 
         //- Path for SHA1Digest
         //  Corresponds to codePath()/Make/SHA1Digest
@@ -144,22 +137,85 @@ class dynamicCode
         //  Corresponds to topDirName/codeDirName()
         fileName codeRelPath() const;
 
+        //- Add a \#line directive to the start of the given source string that
+        //  compilation messages are meaningful
+        static void addLineDirective
+        (
+            string&,
+            const label lineNum,
+            const fileName& name
+        );
+
+        //- Write SHA1 value as C-comment
+        void writeCommentSHA1(Ostream&) const;
+
+        //- Copy lines while expanding variables
+        static void copyAndFilter
+        (
+            ISstream&,
+            OSstream&,
+            const HashTable<string>& mapping
+        );
+
+        //- Resolve code-templates via Foam::findConfigFile
+        static bool resolveTemplates
+        (
+            const wordList& templateNames,
+            DynamicList<fileName>& resolvedFiles,
+            DynamicList<fileName>& badFiles
+        );
+
+        //- Copy/create Make/files prior to compilation
+        bool createMakeFiles() const;
+
+        //- Copy/create Make/options prior to compilation
+        bool createMakeOptions() const;
+
+        //- Write digest to Make/SHA1Digest
+        bool writeDigest() const;
+
+        //- Verify if the copied code is up-to-date, based on Make/SHA1Digest
+        bool upToDate(const SHA1Digest& sha1) const;
+
 
 public:
 
+    // Static Data Members
+
+        //- Flag if system operations are allowed
+        static int allowSystemOperations;
+
+
     // Constructors
 
-        //- Construct for a specified code name and code directory name
-        //  Defaults to using the sha1 for the code directory name
+        //- Construct from the context and code dictionaries
+        //  and lists of which entries correspond to code
         dynamicCode
         (
-            const dynamicCodeContext& context,
+            const dictionary& contextDict,
+            const dictionary& codeDict,
             const word& codeName,
-            const word& codeDirName = word::null
+            const word& codeDirName,
+            const wordList& codeKeys,
+            const wordList& codeDictVars,
+            const word& optionsFileName,
+            const wordList& compileFiles,
+            const wordList& copyFiles
         );
 
-        //- Disallow default bitwise copy construction
-        dynamicCode(const dynamicCode&) = delete;
+        //- Construct from the context dictionary also containing the code
+        //  and lists of which entries correspond
+        dynamicCode
+        (
+            const dictionary& contextDict,
+            const word& codeName,
+            const word& codeDirName,
+            const wordList& codeKeys,
+            const wordList& codeDictVars,
+            const word& optionsFileName,
+            const wordList& compileFiles,
+            const wordList& copyFiles
+        );
 
 
     // Static Member functions
@@ -191,24 +247,6 @@ public:
         //- Resolve code-template via Foam::findConfigFile
         static fileName resolveTemplate(const fileName& templateName);
 
-        //- Filter code with context
-        void filter();
-
-        //- Add a file template name, which will be found and filtered
-        void addCompileFile(const fileName& name);
-
-        //- Add a file template name, which will be found and filtered
-        void addCopyFile(const fileName& name);
-
-        //- Define a filter variable
-        void setFilterVariable(const word& key, const std::string& value);
-
-        //- Return SHA1 digest calculated from include, options, code
-        const SHA1Digest& sha1() const
-        {
-            return context_.sha1();
-        }
-
         //- Verify if the copied code is up-to-date, based on Make/SHA1Digest
         bool upToDate() const;
 
@@ -218,11 +256,21 @@ public:
         //- Compile a libso
         bool wmakeLibso() const;
 
+        void read
+        (
+            const dictionary& contextDict,
+            const dictionary& codeDict
+        );
 
-    // Member Operators
+        void read(const dictionary& contextDict);
 
-        //- Disallow default bitwise assignment
-        void operator=(const dynamicCode&) = delete;
+        //- Write the code for restart
+        void write(Ostream& os) const;
+
+        void setFilterVariable(const word& key, const string& value) const
+        {
+            varSubstitutions_.set(key, value);
+        }
 };
 
 

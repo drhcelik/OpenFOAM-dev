@@ -62,11 +62,15 @@ const Foam::wordList Foam::functionEntries::codeStream::codeDictVars
     {"dict", word::null, word::null}
 );
 
-const Foam::word Foam::functionEntries::codeStream::codeOptions =
-    "codeStreamOptions";
+const Foam::word Foam::functionEntries::codeStream::codeOptions
+(
+    "codeStreamOptions"
+);
 
-const Foam::word Foam::functionEntries::codeStream::codeTemplateC =
-    "codeStreamTemplate.C";
+const Foam::wordList Foam::functionEntries::codeStream::compileFiles
+{
+    "codeStreamTemplate.C"
+};
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
@@ -147,23 +151,25 @@ void* Foam::functionEntries::codeStream::compile
     const dictionary& contextDict,
     const dictionary& codeDict,
     const word& codeOptions,
-    const word& codeTemplateC,
+    const wordList& compileFiles,
     word& codeName
 )
 {
     // Get code, codeInclude, ...
-    const dynamicCodeContext context
+    // codeName: codeStream + _<sha1>
+    // codeDir : _<sha1>
+    dynamicCode dynCode
     (
         contextDict,
         codeDict,
+        typeName.remove('#'),
+        word::null,
         codeKeys,
         codeDictVars,
-        codeOptions
+        codeOptions,
+        compileFiles,
+        wordList::null()
     );
-
-    // codeName: codeStream + _<sha1>
-    // codeDir : _<sha1>
-    dynamicCode dynCode(context, typeName.remove('#'));
 
     // Load library if not already loaded
     // Version information is encoded in the libPath (encoded with the SHA1)
@@ -205,12 +211,6 @@ void* Foam::functionEntries::codeStream::compile
         {
             if (!dynCode.upToDate())
             {
-                // Filter with the context
-                dynCode.filter();
-
-                // Compile filtered C template
-                dynCode.addCompileFile(codeTemplateC);
-
                 if (!dynCode.copyOrCreateFiles(true))
                 {
                     FatalIOErrorInFunction
@@ -349,6 +349,7 @@ void* Foam::functionEntries::codeStream::compile
     }
 
     codeName = dynCode.codeName();
+
     return lib;
 }
 
@@ -367,7 +368,7 @@ Foam::functionEntries::codeStream::getFunction
         contextDict,
         codeDict,
         codeOptions,
-        codeTemplateC,
+        compileFiles,
         codeName
     );
 

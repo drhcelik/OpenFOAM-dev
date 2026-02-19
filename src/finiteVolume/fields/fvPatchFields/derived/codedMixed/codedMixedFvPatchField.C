@@ -24,7 +24,6 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "codedMixedFvPatchField.H"
-#include "dynamicCode.H"
 #include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -41,39 +40,23 @@ const Foam::wordList Foam::codedMixedFvPatchField<Type>::codeDictVars
     {word::null, word::null, word::null}
 );
 
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+template<class Type>
+const Foam::word Foam::codedMixedFvPatchField<Type>::codeOptions
+(
+    "codedMixedFvPatchFieldOptions"
+);
 
 template<class Type>
-void Foam::codedMixedFvPatchField<Type>::prepare(dynamicCode& dynCode) const
+const Foam::wordList Foam::codedMixedFvPatchField<Type>::compileFiles
 {
-    dynCode.setFilterVariable("typeName", codeName());
+    "codedMixedFvPatchFieldTemplate.C"
+};
 
-    // Set TemplateType and FieldType filter variables
-    // (for fvPatchField)
-    word fieldType(pTraits<Type>::typeName);
-
-    // Template type for fvPatchField
-    dynCode.setFilterVariable("TemplateType", fieldType);
-
-    // Name for fvPatchField - eg, ScalarField, VectorField, ...
-    fieldType[0] = toupper(fieldType[0]);
-    dynCode.setFilterVariable("FieldType", fieldType + "Field");
-
-    // Compile filtered C template
-    dynCode.addCompileFile("codedMixedFvPatchFieldTemplate.C");
-
-    // Copy filtered H template
-    dynCode.addCopyFile("codedMixedFvPatchFieldTemplate.H");
-
-    // Make verbose if debugging
-    dynCode.setFilterVariable("verbose", Foam::name(bool(debug)));
-
-    if (debug)
-    {
-        Info<<"compile " << codeName() << " sha1: " << dynCode.sha1() << endl;
-    }
-}
+template<class Type>
+const Foam::wordList Foam::codedMixedFvPatchField<Type>::copyFiles
+{
+    "codedMixedFvPatchFieldTemplate.H"
+};
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -87,8 +70,32 @@ Foam::codedMixedFvPatchField<Type>::codedMixedFvPatchField
 )
 :
     mixedFvPatchField<Type>(p, iF, dict),
-    codedBase(dict, codeKeys, codeDictVars, "codedMixedFvPatchFieldOptions")
+    codedBase
+    (
+        dict,
+        codeKeys,
+        codeDictVars,
+        codeOptions,
+        compileFiles,
+        copyFiles
+    )
 {
+    setFilterVariable("typeName", codeName());
+
+    // Set TemplateType and FieldType filter variables
+    // (for fvPatchField)
+    word fieldType(pTraits<Type>::typeName);
+
+    // Template type for fvPatchField
+    setFilterVariable("TemplateType", fieldType);
+
+    // Name for fvPatchField - eg, ScalarField, VectorField, ...
+    fieldType[0] = toupper(fieldType[0]);
+    setFilterVariable("FieldType", fieldType + "Field");
+
+    // Make verbose if debugging
+    setFilterVariable("verbose", Foam::name(bool(debug)));
+
     // Compile the library containing user-defined fvPatchField
     updateLibrary(dict);
 }

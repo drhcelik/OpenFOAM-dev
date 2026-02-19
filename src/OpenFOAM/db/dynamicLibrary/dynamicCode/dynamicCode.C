@@ -27,34 +27,54 @@ License
 #include "stringOps.H"
 #include "IFstream.H"
 #include "OFstream.H"
+#include "OSHA1stream.H"
 #include "OSspecific.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+
+int Foam::dynamicCode::allowSystemOperations
+(
+    Foam::debug::infoSwitch("allowSystemOperations", 0)
+);
 
 const Foam::fileName Foam::dynamicCode::codeTemplateDirName
 (
     "codeTemplates/dynamicCode"
 );
 
+const Foam::word Foam::dynamicCode::topDirName("dynamicCode");
+
 const char* const Foam::dynamicCode::libTargetRoot
 (
     "LIB = $(PWD)/../platforms/$(WM_OPTIONS)/lib/lib"
 );
 
-const Foam::word Foam::dynamicCode::topDirName("dynamicCode");
 
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
-
-Foam::word Foam::dynamicCode::libraryBaseName(const fileName& libPath)
+Foam::fileName Foam::dynamicCode::codeRelPath() const
 {
-    word libName(libPath.name(true));
-    libName.erase(0, 3);    // Remove leading 'lib' from name
-    return libName;
+    return topDirName/codeDirName_;
 }
 
 
-// * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * //
+void Foam::dynamicCode::addLineDirective
+(
+    string& code,
+    const label lineNum,
+    const fileName& name
+)
+{
+    code = "#line " + Foam::name(lineNum) + " \"" + name + "\"\n" + code;
+}
+
+
+void Foam::dynamicCode::writeCommentSHA1(Ostream& os) const
+{
+    os  << "# dynamicCode:\n# SHA1 = ";
+    os.writeQuoted(sha1_.str(), false) << "\n\n";
+}
+
 
 void Foam::dynamicCode::copyAndFilter
 (
@@ -94,23 +114,9 @@ void Foam::dynamicCode::copyAndFilter
 }
 
 
-Foam::fileName Foam::dynamicCode::resolveTemplate
-(
-    const fileName& templateName
-)
-{
-    return findConfigFile
-    (
-        templateName,
-        codeTemplateDirName,
-        "system"
-    );
-}
-
-
 bool Foam::dynamicCode::resolveTemplates
 (
-    const UList<fileName>& templateNames,
+    const wordList& templateNames,
     DynamicList<fileName>& resolvedFiles,
     DynamicList<fileName>& badFiles
 )
@@ -125,7 +131,7 @@ bool Foam::dynamicCode::resolveTemplates
             findConfigFile
             (
                 templateName,
-                codeTemplateDirName,
+                dynamicCode::codeTemplateDirName,
                 "system"
             )
         );
@@ -142,20 +148,6 @@ bool Foam::dynamicCode::resolveTemplates
     }
 
     return allOkay;
-}
-
-
-bool Foam::dynamicCode::writeCommentSHA1(Ostream& os) const
-{
-    const bool hasSHA1 = filterVars_.found("SHA1sum");
-
-    if (hasSHA1)
-    {
-        os  << "# dynamicCode:\n# SHA1 = ";
-        os.writeQuoted(filterVars_["SHA1sum"], false) << "\n\n";
-    }
-
-    return hasSHA1;
 }
 
 
@@ -186,10 +178,10 @@ bool Foam::dynamicCode::createMakeFiles() const
     // Write compile files
     forAll(compileFiles_, fileI)
     {
-        os.writeQuoted(compileFiles_[fileI].name(), false) << nl;
+        os.writeQuoted(compileFiles_[fileI], false) << nl;
     }
 
-    os  << nl << libTargetRoot << codeName_ << nl;
+    os  << nl << dynamicCode::libTargetRoot << codeName_ << nl;
 
     return true;
 }
@@ -202,16 +194,20 @@ bool Foam::dynamicCode::createMakeOptions() const
         return false;
     }
 
-    const fileName optionsFile(resolveTemplate(context_.codeOptionsFileName_));
+    // Read the options template file
+    const fileName optionsFile
+    (
+        dynamicCode::resolveTemplate(optionsFileName_)
+    );
 
-    verbatimString codeOptions;
-    verbatimString codeLibs;
+    verbatimString options;
+    verbatimString libs;
 
-    if (!context_.codeOptionsFileName_.empty())
+    if (!optionsFileName_.empty())
     {
         const fileName optionsFile
         (
-            resolveTemplate(context_.codeOptionsFileName_)
+            dynamicCode::resolveTemplate(optionsFileName_)
         );
 
         if (!optionsFile.empty())
@@ -226,13 +222,13 @@ bool Foam::dynamicCode::createMakeOptions() const
 
             dictionary optionsDict(is);
 
-            codeOptions = optionsDict.lookupOrDefault<verbatimString>
+            options = optionsDict.lookupOrDefault<verbatimString>
             (
                 "codeOptions",
                 verbatimString::null
             );
 
-            codeLibs = optionsDict.lookupOrDefault<verbatimString>
+            libs = optionsDict.lookupOrDefault<verbatimString>
             (
                 "codeLibs",
                 verbatimString::null
@@ -241,16 +237,16 @@ bool Foam::dynamicCode::createMakeOptions() const
         else
         {
             FatalErrorInFunction
-                << "Cannot find options file " << context_.codeOptionsFileName_
+                << "Cannot find options file " << optionsFileName_
                 << exit(FatalError);
         }
     }
 
-    if
-    (
-        context_.options_.empty() && codeOptions.empty()
-     && context_.libs_.empty() && codeLibs.empty()
-    )
+    // Add the code specific options and libs
+    options += options_;
+    libs += libs_;
+
+    if (options.empty() && libs.empty())
     {
         return false;
     }
@@ -269,24 +265,20 @@ bool Foam::dynamicCode::createMakeOptions() const
 
     writeCommentSHA1(os);
 
-    os.writeQuoted
-    (
-        codeOptions + context_.options_ + "\n\n" + codeLibs + context_.libs_,
-        false
-    ) << nl;
+    os.writeQuoted(options + "\n\n" + libs, false) << nl;
 
     return true;
 }
 
 
-bool Foam::dynamicCode::writeDigest(const std::string& sha1) const
+bool Foam::dynamicCode::writeDigest() const
 {
     const fileName file(digestFile());
     mkDir(file.path());
 
     OFstream os(file);
     os  << '_';
-    os.writeQuoted(sha1, false) << nl;
+    os.writeQuoted(sha1_.str(), false) << nl;
 
     return os.good();
 }
@@ -305,37 +297,114 @@ bool Foam::dynamicCode::upToDate(const SHA1Digest& sha1) const
 }
 
 
-Foam::fileName Foam::dynamicCode::codeRelPath() const
-{
-    return topDirName/codeDirName_;
-}
-
-
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::dynamicCode::dynamicCode
 (
-    const dynamicCodeContext& context,
+    const dictionary& contextDict,
+    const dictionary& codeDict,
     const word& codeName,
-    const word& codeDirName
+    const word& codeDirName,
+    const wordList& codeKeys,
+    const wordList& codeDictVars,
+    const word& optionsFileName,
+    const wordList& compileFiles,
+    const wordList& copyFiles
 )
 :
-    context_(context),
-    codeRoot_(stringOps::expandEnvVar("$FOAM_CASE")/topDirName),
+    codeRoot_
+    (
+        stringOps::expandEnvVar("$FOAM_CASE")/topDirName
+    ),
     libSubDir_(stringOps::expandEnvVar("platforms/$WM_OPTIONS/lib")),
-    codeName_(codeName + context.sha1().str(true)),
-    codeDirName_
+    codeKeys_(codeKeys),
+    codeDictVars_(codeDictVars),
+    optionsFileName_(optionsFileName),
+    compileFiles_(compileFiles),
+    copyFiles_(copyFiles),
+    codeStrings_(codeKeys.size())
+{
+    if (isAdministrator())
+    {
+        FatalIOErrorInFunction(contextDict)
+            << "This code should not be executed by someone with administrator"
+            << " rights due to security reasons." << nl
+            << "(it writes a shared library which then gets loaded "
+            << "using dlopen)"
+            << exit(FatalIOError);
+    }
+
+    if (!allowSystemOperations)
+    {
+        FatalIOErrorInFunction(contextDict)
+            << "Loading a shared library using case-supplied code is not"
+            << " enabled by default" << nl
+            << "because of security issues. If you trust the code you can"
+            << " enable this" << nl
+            << "facility be adding to the InfoSwitches setting in the system"
+            << " controlDict:" << nl << nl
+            << "    allowSystemOperations 1" << nl << nl
+            << "The system controlDict is either" << nl << nl
+            << "    ~/.OpenFOAM/$WM_PROJECT_VERSION/controlDict" << nl << nl
+            << "or" << nl << nl
+            << "    $WM_PROJECT_DIR/etc/controlDict" << nl
+            << endl
+            << exit(FatalIOError);
+    }
+
+    read(contextDict, codeDict);
+
+    const word sha1Str(sha1_.str());
+
+    codeName_ = codeName + '_' + sha1Str;
+
+    codeDirName_ =
     (
         codeDirName.empty()
-      ? word(context.sha1().str(true))
+      ? word('_' + sha1Str)
       : codeDirName
-    ),
-    filterVars_
-    {
-        {"typeName", codeName_},
-        {"SHA1sum", SHA1Digest().str()}
-    }
+    );
+
+    varSubstitutions_.set("typeName", codeName_);
+    varSubstitutions_.set("SHA1sum", sha1Str);
+}
+
+
+Foam::dynamicCode::dynamicCode
+(
+    const dictionary& contextDict,
+    const word& codeName,
+    const word& codeDirName,
+    const wordList& codeKeys,
+    const wordList& codeDictVars,
+    const word& codeOptionsFileName,
+    const wordList& compileFiles,
+    const wordList& copyFiles
+)
+:
+    dynamicCode
+    (
+        contextDict,
+        contextDict,
+        codeName,
+        codeDirName,
+        codeKeys,
+        codeDictVars,
+        codeOptionsFileName,
+        compileFiles,
+        copyFiles
+    )
 {}
+
+
+// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
+
+Foam::word Foam::dynamicCode::libraryBaseName(const fileName& libPath)
+{
+    word libName(libPath.name(true));
+    libName.erase(0, 3);    // Remove leading 'lib' from name
+    return libName;
+}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
@@ -346,39 +415,104 @@ Foam::fileName Foam::dynamicCode::libRelPath() const
 }
 
 
-void Foam::dynamicCode::filter()
-{
-    compileFiles_.clear();
-    copyFiles_.clear();
-
-    forAllConstIter(HashTable<string>, context_.code(), iter)
-    {
-        setFilterVariable(iter.key(), iter());
-    }
-
-    setFilterVariable("SHA1sum", context_.sha1().str());
-}
-
-
-void Foam::dynamicCode::addCompileFile(const fileName& name)
-{
-    compileFiles_.append(name);
-}
-
-
-void Foam::dynamicCode::addCopyFile(const fileName& name)
-{
-    copyFiles_.append(name);
-}
-
-
-void Foam::dynamicCode::setFilterVariable
+void Foam::dynamicCode::read
 (
-    const word& key,
-    const std::string& value
+    const dictionary& contextDict,
+    const dictionary& codeDict
 )
 {
-    filterVars_.set(key, value);
+    // Expand all dictionary entries. Note that this removes any leading or
+    // trailing whitespace, which is necessary for compilation options, and
+    // doesn't hurt for everything else
+    List<const entry*> codePtrs(codeKeys_.size(), nullptr);
+    codeKeySubstitutions_.clear();
+    forAll(codeKeys_, i)
+    {
+        const word& key = codeKeys_[i];
+        codePtrs[i] = codeDict.lookupEntryPtr(key, false, false);
+        if (codePtrs[i])
+        {
+            codeStrings_[i] = verbatimString(codePtrs[i]->stream());
+            stringOps::inplaceExpandCodeString
+            (
+                codeStrings_[i],
+                contextDict, // Lookup variables from the context dictionary
+                codeDictVars_[i]
+            );
+            codeKeySubstitutions_.insert(key, codeStrings_[i]);
+        }
+        else
+        {
+            codeKeySubstitutions_.insert(key, "");
+        }
+    }
+
+    // Code options
+    const entry* optionsPtr =
+        codeDict.lookupEntryPtr("codeOptions", false, false);
+    if (optionsPtr)
+    {
+        optionsString_ = verbatimString(optionsPtr->stream());
+        stringOps::inplaceExpandCodeString
+        (
+            optionsString_,
+            contextDict,
+            word::null
+        );
+        options_ = stringOps::trim(optionsString_);
+    }
+
+    // Code libs
+    const entry* libsPtr = codeDict.lookupEntryPtr("codeLibs", false, false);
+    if (libsPtr)
+    {
+        libsString_ = verbatimString(libsPtr->stream());
+        stringOps::inplaceExpandCodeString
+        (
+            libsString_,
+            contextDict,
+            word::null
+        );
+        libs_ = stringOps::trim(libsString_);
+    }
+
+    // Calculate SHA1 digest from all entries
+    OSHA1stream os;
+    forAllConstIter(HashTable<string>, codeKeySubstitutions_, iter)
+    {
+        os << iter();
+    }
+    os << options_ << libs_;
+    sha1_ = os.digest();
+
+    // Add line directives after calculating SHA1
+    forAll(codeKeys_, i)
+    {
+        if (codePtrs[i])
+        {
+            const word& key = codeKeys_[i];
+            addLineDirective
+            (
+                codeKeySubstitutions_[key],
+                codePtrs[i]->startLineNumber(),
+                codeDict.name()
+            );
+        }
+    }
+}
+
+
+Foam::fileName Foam::dynamicCode::resolveTemplate
+(
+    const fileName& templateName
+)
+{
+    return findConfigFile
+    (
+        templateName,
+        codeTemplateDirName,
+        "system"
+    );
 }
 
 
@@ -389,14 +523,33 @@ bool Foam::dynamicCode::copyOrCreateFiles(const bool verbose) const
         Info<< "Creating new library in " << libRelPath() << endl;
     }
 
-    const label nFiles = compileFiles_.size() + copyFiles_.size();
+    HashTable<string> filterVars(varSubstitutions_);
+
+    // Collect all the filter variables
+    forAllConstIter(HashTable<string>, codeKeySubstitutions_, iter)
+    {
+        filterVars.set(iter.key(), iter());
+    }
+
+    const label nFiles =
+        compileFiles_.size() + copyFiles_.size();
 
     DynamicList<fileName> resolvedFiles(nFiles);
     DynamicList<fileName> badFiles(nFiles);
 
     // Resolve template, or add to bad-files
-    resolveTemplates(compileFiles_, resolvedFiles, badFiles);
-    resolveTemplates(copyFiles_, resolvedFiles, badFiles);
+    dynamicCode::resolveTemplates
+    (
+        compileFiles_,
+        resolvedFiles,
+        badFiles
+    );
+    dynamicCode::resolveTemplates
+    (
+        copyFiles_,
+        resolvedFiles,
+        badFiles
+    );
 
     if (!badFiles.empty())
     {
@@ -440,7 +593,7 @@ bool Foam::dynamicCode::copyOrCreateFiles(const bool verbose) const
         }
 
         // Copy lines while expanding variables
-        copyAndFilter(is, os, filterVars_);
+        dynamicCode::copyAndFilter(is, os, filterVars);
     }
 
 
@@ -448,7 +601,7 @@ bool Foam::dynamicCode::copyOrCreateFiles(const bool verbose) const
     createMakeFiles();
     createMakeOptions();
 
-    writeDigest(filterVars_["SHA1sum"]);
+    writeDigest();
 
     return true;
 }
@@ -471,7 +624,35 @@ bool Foam::dynamicCode::wmakeLibso() const
 
 bool Foam::dynamicCode::upToDate() const
 {
-    return upToDate(context_.sha1());
+    return upToDate(sha1_);
+}
+
+
+void Foam::dynamicCode::read(const dictionary& contextDict)
+{
+    read(contextDict, contextDict);
+}
+
+
+void Foam::dynamicCode::write(Ostream& os) const
+{
+    forAll(codeStrings_, i)
+    {
+        if (codeStrings_[i] != verbatimString::null)
+        {
+            writeEntry(os, codeKeys_[i], codeStrings_[i]);
+        }
+    }
+
+    if (optionsString_ != verbatimString::null)
+    {
+        writeEntry(os, "codeOptions", optionsString_);
+    }
+
+    if (libsString_ != verbatimString::null)
+    {
+        writeEntry(os, "codeLibs", libsString_);
+    }
 }
 
 

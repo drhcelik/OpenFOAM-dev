@@ -53,7 +53,8 @@ class codedBase
         //- Name of the dynamically generated CodedType
         const word codeName_;
 
-        dynamicCodeContext codeContext_;
+        //- The dynamicCode class
+        dynamicCode dynCode_;
 
         //- Previously loaded library
         mutable fileName oldLibPath_;
@@ -90,11 +91,8 @@ class codedBase
             const dictionary& dict
         ) const;
 
-        //- Create library for the given dynamicCode
-        void createLibrary(const dictionary& dict, dynamicCode&) const;
-
-        //- Adapt the context for the current object
-        virtual void prepare(dynamicCode&) const = 0;
+        //- Create library
+        void createLibrary(const dictionary& dict) const;
 
 
 public:
@@ -112,7 +110,9 @@ public:
             const dictionary& dict,
             const wordList& codeKeys,
             const wordList& codeDictVars,
-            const word& codeOptionsFileName
+            const word& codeOptionsFileName,
+            const wordList& compileFiles,
+            const wordList& copyFiles
         );
 
         //- Construct from dictionary
@@ -121,7 +121,9 @@ public:
             const dictionary& dict,
             const wordList& codeKeys,
             const wordList& codeDictVars,
-            const word& codeOptionsFileName
+            const word& codeOptionsFileName,
+            const wordList& compileFiles,
+            const wordList& copyFiles
         );
 
         //- Copy constructor
@@ -146,6 +148,12 @@ public:
 
         //- Write the code for restart
         void write(Ostream& os) const;
+
+        //- Define a filter variable
+        void setFilterVariable(const word& key, const string& value) const
+        {
+            dynCode_.setFilterVariable(key, value);
+        }
 
 
     // Member Operators

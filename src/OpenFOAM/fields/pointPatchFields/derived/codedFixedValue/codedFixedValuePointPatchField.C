@@ -43,43 +43,23 @@ const Foam::wordList Foam::codedFixedValuePointPatchField<Type>::codeDictVars
     {word::null, word::null, word::null}
 );
 
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+template<class Type>
+const Foam::word Foam::codedFixedValuePointPatchField<Type>::codeOptions
+(
+    "codedFixedValuePointPatchFieldOptions"
+);
 
 template<class Type>
-void Foam::codedFixedValuePointPatchField<Type>::prepare
-(
-    dynamicCode& dynCode
-) const
+const Foam::wordList Foam::codedFixedValuePointPatchField<Type>::compileFiles
 {
-    // Take no chances - typeName must be identical to codeName()
-    dynCode.setFilterVariable("typeName", codeName());
+    "codedFixedValuePointPatchFieldTemplate.C"
+};
 
-    // Set TemplateType and FieldType filter variables
-    // (for pointPatchField)
-    word fieldType(pTraits<Type>::typeName);
-
-    // Template type for pointPatchField
-    dynCode.setFilterVariable("TemplateType", fieldType);
-
-    // Name for pointPatchField - eg, ScalarField, VectorField, ...
-    fieldType[0] = toupper(fieldType[0]);
-    dynCode.setFilterVariable("FieldType", fieldType + "Field");
-
-    // Compile filtered C template
-    dynCode.addCompileFile("codedFixedValuePointPatchFieldTemplate.C");
-
-    // Copy filtered H template
-    dynCode.addCopyFile("codedFixedValuePointPatchFieldTemplate.H");
-
-    // Make verbose if debugging
-    dynCode.setFilterVariable("verbose", Foam::name(bool(debug)));
-
-    if (debug)
-    {
-        Info<<"compile " << codeName() << " sha1: " << dynCode.sha1() << endl;
-    }
-}
+template<class Type>
+const Foam::wordList Foam::codedFixedValuePointPatchField<Type>::copyFiles
+{
+    "codedFixedValuePointPatchFieldTemplate.H"
+};
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -98,9 +78,28 @@ Foam::codedFixedValuePointPatchField<Type>::codedFixedValuePointPatchField
         dict,
         codeKeys,
         codeDictVars,
-        "codedFixedValuePointPatchFieldOptions"
+        codeOptions,
+        compileFiles,
+        copyFiles
     )
 {
+    // Take no chances - typeName must be identical to codeName()
+    setFilterVariable("typeName", codeName());
+
+    // Set TemplateType and FieldType filter variables
+    // (for pointPatchField)
+    word fieldType(pTraits<Type>::typeName);
+
+    // Template type for pointPatchField
+    setFilterVariable("TemplateType", fieldType);
+
+    // Name for pointPatchField - eg, ScalarField, VectorField, ...
+    fieldType[0] = toupper(fieldType[0]);
+    setFilterVariable("FieldType", fieldType + "Field");
+
+    // Make verbose if debugging
+    setFilterVariable("verbose", Foam::name(bool(debug)));
+
     // Compile the library containing user-defined pointPatchField
     updateLibrary(dict);
 }

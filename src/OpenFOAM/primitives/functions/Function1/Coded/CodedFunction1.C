@@ -24,7 +24,6 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "CodedFunction1.H"
-#include "dynamicCode.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -40,31 +39,23 @@ const Foam::wordList Foam::Function1s::Coded<Type>::codeDictVars
     {word::null, word::null}
 );
 
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+template<class Type>
+const Foam::word Foam::Function1s::Coded<Type>::codeOptions
+(
+    "codedFunction1Options"
+);
 
 template<class Type>
-void Foam::Function1s::Coded<Type>::prepare(dynamicCode& dynCode) const
+const Foam::wordList Foam::Function1s::Coded<Type>::compileFiles
 {
-    dynCode.setFilterVariable("typeName", codeName());
+    "codedFunction1Template.C"
+};
 
-    // Set TemplateType filter variables
-    dynCode.setFilterVariable("TemplateType", pTraits<Type>::typeName);
-
-    // Compile filtered C template
-    dynCode.addCompileFile("codedFunction1Template.C");
-
-    // Copy filtered H template
-    dynCode.addCopyFile("codedFunction1Template.H");
-
-    // Make verbose if debugging
-    dynCode.setFilterVariable("verbose", Foam::name(bool(debug)));
-
-    if (debug)
-    {
-        Info<<"compile " << codeName() << " sha1: " << dynCode.sha1() << endl;
-    }
-}
+template<class Type>
+const Foam::wordList Foam::Function1s::Coded<Type>::copyFiles
+{
+    "codedFunction1Template.H"
+};
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -78,9 +69,25 @@ Foam::Function1s::Coded<Type>::Coded
 )
 :
     Function1<Type>(name),
-    codedBase(dict, codeKeys, codeDictVars, "codedFunction1Options"),
+    codedBase
+    (
+        dict,
+        codeKeys,
+        codeDictVars,
+        codeOptions,
+        compileFiles,
+        copyFiles
+    ),
     units_(units)
 {
+    setFilterVariable("typeName", codeName());
+
+    // Set TemplateType filter variables
+    setFilterVariable("TemplateType", pTraits<Type>::typeName);
+
+    // Make verbose if debugging
+    setFilterVariable("verbose", Foam::name(bool(debug)));
+
     this->updateLibrary(dict);
 
     dictionary redirectDict(dict);

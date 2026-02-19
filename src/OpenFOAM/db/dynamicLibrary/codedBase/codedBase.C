@@ -24,7 +24,6 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "codedBase.H"
-#include "dynamicCode.H"
 #include "dlLibraryTable.H"
 #include "regIOobject.H"
 #include "OSspecific.H"
@@ -220,11 +219,7 @@ Foam::verbatimString Foam::codedBase::expandCodeString
 }
 
 
-void Foam::codedBase::createLibrary
-(
-    const dictionary& dict,
-    dynamicCode& dynCode
-) const
+void Foam::codedBase::createLibrary(const dictionary& dict) const
 {
     const bool create =
         Pstream::master()
@@ -233,30 +228,25 @@ void Foam::codedBase::createLibrary
     if (create)
     {
         // Write files for new library
-        if (!dynCode.upToDate())
+        if (!dynCode_.upToDate())
         {
-            // Filter with the context
-            dynCode.filter();
-
-            prepare(dynCode);
-
-            if (!dynCode.copyOrCreateFiles(true))
+            if (!dynCode_.copyOrCreateFiles(true))
             {
                 FatalIOErrorInFunction
                 (
                     dict
                 )   << "Failed writing files for" << nl
-                    << dynCode.libRelPath() << nl
+                    << dynCode_.libRelPath() << nl
                     << exit(FatalIOError);
             }
         }
 
-        if (!dynCode.wmakeLibso())
+        if (!dynCode_.wmakeLibso())
         {
             FatalIOErrorInFunction
             (
                 dict
-            )   << "Failed wmake " << dynCode.libRelPath() << nl
+            )   << "Failed wmake " << dynCode_.libRelPath() << nl
                 << exit(FatalIOError);
         }
     }
@@ -264,7 +254,7 @@ void Foam::codedBase::createLibrary
     // All processes must wait for compile to finish
     if (regIOobject::fileModificationSkew > 0)
     {
-        const fileName libPath = dynCode.libPath();
+        const fileName libPath = dynCode_.libPath();
 
         // Determine and communicate the master file size. Scattering
         // blocks the other processes until the master has finished
@@ -337,11 +327,23 @@ Foam::codedBase::codedBase
     const dictionary& dict,
     const wordList& codeKeys,
     const wordList& codeDictVars,
-    const word& codeOptionsFileName
+    const word& codeOptionsFileName,
+    const wordList& compileFiles,
+    const wordList& copyFiles
 )
 :
     codeName_(codeName(name)),
-    codeContext_(dict, codeKeys, codeDictVars, codeOptionsFileName)
+    dynCode_
+    (
+        dict,
+        codeName_,
+        codeName_,
+        codeKeys,
+        codeDictVars,
+        codeOptionsFileName,
+        compileFiles,
+        copyFiles
+    )
 {}
 
 
@@ -350,7 +352,9 @@ Foam::codedBase::codedBase
     const dictionary& dict,
     const wordList& codeKeys,
     const wordList& codeDictVars,
-    const word& codeOptionsFileName
+    const word& codeOptionsFileName,
+    const wordList& compileFiles,
+    const wordList& copyFiles
 )
 :
     codedBase
@@ -359,7 +363,9 @@ Foam::codedBase::codedBase
         dict,
         codeKeys,
         codeDictVars,
-        codeOptionsFileName
+        codeOptionsFileName,
+        compileFiles,
+        copyFiles
     )
 {}
 
@@ -367,7 +373,7 @@ Foam::codedBase::codedBase
 Foam::codedBase::codedBase(const codedBase& cb)
 :
     codeName_(cb.codeName_),
-    codeContext_(cb.codeContext_)
+    dynCode_(cb.dynCode_)
 {}
 
 
@@ -387,11 +393,7 @@ const Foam::word& Foam::codedBase::codeName() const
 
 bool Foam::codedBase::updateLibrary(const dictionary& dict) const
 {
-    // codeName: name + _<sha1>
-    // codeDir : name
-    dynamicCode dynCode(codeContext_, codeName_, codeName_);
-    const fileName libPath = dynCode.libPath();
-
+    const fileName libPath = dynCode_.libPath();
 
     // The correct library was already loaded => we are done
     if (libs.findLibrary(libPath))
@@ -412,11 +414,11 @@ bool Foam::codedBase::updateLibrary(const dictionary& dict) const
     );
 
     // Try loading an existing library (avoid compilation when possible)
-    if (!loadLibrary(libPath, dynCode.codeName(), dict))
+    if (!loadLibrary(libPath, dynCode_.codeName(), dict))
     {
-        createLibrary(dict, dynCode);
+        createLibrary(dict);
 
-        if (!loadLibrary(libPath, dynCode.codeName(), dict))
+        if (!loadLibrary(libPath, dynCode_.codeName(), dict))
         {
             FatalIOErrorInFunction(dict)
                 << "Failed to load " << libPath << exit(FatalIOError);
@@ -432,7 +434,7 @@ bool Foam::codedBase::updateLibrary(const dictionary& dict) const
 
 void Foam::codedBase::read(const dictionary& dict)
 {
-    codeContext_.read(dict);
+    dynCode_.read(dict);
 }
 
 
@@ -443,7 +445,7 @@ void Foam::codedBase::write(Ostream& os) const
         writeEntry(os, "name", codeName());
     }
 
-    codeContext_.write(os);
+    dynCode_.write(os);
 }
 
 

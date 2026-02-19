@@ -34,6 +34,8 @@ const Foam::wordList Foam::compileTemplate::codeKeys(wordList::null());
 
 const Foam::wordList Foam::compileTemplate::codeDictVars(wordList::null());
 
+Foam::wordList Foam::compileTemplate::compileFiles_(wordList::null());
+
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
@@ -70,7 +72,6 @@ Foam::dictionary Foam::compileTemplate::optionsDict
 
 void Foam::compileTemplate::setFilterVariable
 (
-    dynamicCode& dynCode,
     const Pair<word>& substitution
 ) const
 {
@@ -103,29 +104,7 @@ void Foam::compileTemplate::setFilterVariable
         }
     }
 
-    dynCode.setFilterVariable(name, type);
-}
-
-
-void Foam::compileTemplate::prepare(dynamicCode& dynCode) const
-{
-    dynCode.setFilterVariable("typeName", codeName());
-
-    forAll(substitutions_, i)
-    {
-        setFilterVariable(dynCode, substitutions_[i]);
-    }
-
-    // Compile filtered C template
-    dynCode.addCompileFile(templateName_ + "Template.C");
-
-    // Make verbose if debugging
-    dynCode.setFilterVariable("verbose", Foam::name(bool(debug)));
-
-    if (debug)
-    {
-        Info<<"compile " << codeName() << " sha1: " << dynCode.sha1() << endl;
-    }
+    codedBase::setFilterVariable(name, type);
 }
 
 
@@ -144,12 +123,25 @@ Foam::compileTemplate::compileTemplate
         optionsDict(templateName),
         codeKeys,
         codeDictVars,
-        word::null
+        word::null,
+        compileFiles_,
+        wordList::null()
     ),
-    templateName_(templateName),
     substitutions_(substitutions),
     dict_(optionsDict(templateName))
 {
+    compileFiles_ = {templateName + "Template.C"};
+
+    codedBase::setFilterVariable("typeName", codeName());
+
+    forAll(substitutions_, i)
+    {
+        setFilterVariable(substitutions_[i]);
+    }
+
+    // Make verbose if debugging
+    codedBase::setFilterVariable("verbose", Foam::name(bool(debug)));
+
     this->updateLibrary(dict_);
 }
 

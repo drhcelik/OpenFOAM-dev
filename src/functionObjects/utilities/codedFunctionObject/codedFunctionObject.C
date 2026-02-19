@@ -27,7 +27,6 @@ License
 #include "volFields.H"
 #include "dictionary.H"
 #include "Time.H"
-#include "dynamicCode.H"
 #include "stringOps.H"
 #include "addToRunTimeSelectionTable.H"
 
@@ -70,28 +69,23 @@ const Foam::wordList Foam::codedFunctionObject::codeDictVars
     word::null,
 };
 
+const Foam::word Foam::codedFunctionObject::codeOptions
+(
+    "codedFunctionObjectOptions"
+);
 
-// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
-
-void Foam::codedFunctionObject::prepare(dynamicCode& dynCode) const
+const Foam::wordList Foam::codedFunctionObject::compileFiles
 {
-    dynCode.setFilterVariable("typeName", codeName());
+    "codedFunctionObjectTemplate.C"
+};
 
-    // Compile filtered C template
-    dynCode.addCompileFile("codedFunctionObjectTemplate.C");
+const Foam::wordList Foam::codedFunctionObject::copyFiles
+{
+    "codedFunctionObjectTemplate.H"
+};
 
-    // Copy filtered H template
-    dynCode.addCopyFile("codedFunctionObjectTemplate.H");
 
-    // Make verbose if debugging
-    dynCode.setFilterVariable("verbose", Foam::name(bool(debug)));
-
-    if (debug)
-    {
-        Info<<"compile " << codeName() << " sha1: " << dynCode.sha1() << endl;
-    }
-}
-
+// * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * //
 
 void Foam::codedFunctionObject::updateLibrary(const dictionary& dict)
 {
@@ -121,8 +115,22 @@ Foam::codedFunctionObject::codedFunctionObject
 )
 :
     functionObject(name, time, dict),
-    codedBase(name, dict, codeKeys, codeDictVars, "codedFunctionObjectOptions")
+    codedBase
+    (
+        name,
+        dict,
+        codeKeys,
+        codeDictVars,
+        codeOptions,
+        compileFiles,
+        copyFiles
+    )
 {
+    setFilterVariable("typeName", codeName());
+
+    // Make verbose if debugging
+    setFilterVariable("verbose", Foam::name(bool(debug)));
+
     updateLibrary(dict);
 }
 
