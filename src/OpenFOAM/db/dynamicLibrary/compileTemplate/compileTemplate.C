@@ -70,10 +70,10 @@ Foam::dictionary Foam::compileTemplate::optionsDict
 }
 
 
-void Foam::compileTemplate::setFilterVariable
+void Foam::compileTemplate::setSubstitution
 (
     const Pair<word>& substitution
-) const
+)
 {
     const word& name(substitution.first());
     word type(substitution.second());
@@ -104,7 +104,7 @@ void Foam::compileTemplate::setFilterVariable
         }
     }
 
-    codedBase::setFilterVariable(name, type);
+    varSubstitutions().set(name, type);
 }
 
 
@@ -132,15 +132,13 @@ Foam::compileTemplate::compileTemplate
 {
     compileFiles_ = {templateName + "Template.C"};
 
-    codedBase::setFilterVariable("typeName", codeName());
-
     forAll(substitutions_, i)
     {
-        setFilterVariable(substitutions_[i]);
+        setSubstitution(substitutions_[i]);
     }
 
     // Make verbose if debugging
-    codedBase::setFilterVariable("verbose", Foam::name(bool(debug)));
+    varSubstitutions().set("verbose", Foam::name(bool(debug)));
 
     this->updateLibrary(dict_);
 }

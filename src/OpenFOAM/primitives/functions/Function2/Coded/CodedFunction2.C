@@ -81,13 +81,14 @@ Foam::Function2s::Coded<Type>::Coded
     ),
     units_(units)
 {
-    setFilterVariable("typeName", codeName());
-
-    // Set TemplateType filter variables
-    setFilterVariable("TemplateType", pTraits<Type>::typeName);
-
-    // Make verbose if debugging
-    setFilterVariable("verbose", Foam::name(bool(debug)));
+    // Set variable substitutions
+    varSubstitutions().set
+    (
+        {
+            {"TemplateType", pTraits<Type>::typeName},
+            {"verbose", Foam::name(bool(debug))}
+        }
+    );
 
     this->updateLibrary(dict);
 

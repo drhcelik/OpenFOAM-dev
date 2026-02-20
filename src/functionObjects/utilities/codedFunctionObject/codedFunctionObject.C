@@ -126,10 +126,8 @@ Foam::codedFunctionObject::codedFunctionObject
         copyFiles
     )
 {
-    setFilterVariable("typeName", codeName());
-
-    // Make verbose if debugging
-    setFilterVariable("verbose", Foam::name(bool(debug)));
+    // Set verbose if debugging
+    varSubstitutions().set("verbose", Foam::name(bool(debug)));
 
     updateLibrary(dict);
 }

@@ -28,6 +28,8 @@ License
 #include "IFstream.H"
 #include "OFstream.H"
 #include "OSHA1stream.H"
+#include "Pstream.H"
+#include "regIOobject.H"
 #include "OSspecific.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -37,12 +39,17 @@ int Foam::dynamicCode::allowSystemOperations
     Foam::debug::infoSwitch("allowSystemOperations", 0)
 );
 
+int Foam::dynamicCode::debug(Foam::debug::debugSwitch("dynamicCode", 0));
+
 const Foam::fileName Foam::dynamicCode::codeTemplateDirName
 (
     "codeTemplates/dynamicCode"
 );
 
-const Foam::word Foam::dynamicCode::topDirName("dynamicCode");
+const Foam::word Foam::dynamicCode::topDirName
+(
+    "dynamicCode"
+);
 
 const char* const Foam::dynamicCode::libTargetRoot
 (
@@ -52,12 +59,6 @@ const char* const Foam::dynamicCode::libTargetRoot
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-Foam::fileName Foam::dynamicCode::codeRelPath() const
-{
-    return topDirName/codeDirName_;
-}
-
-
 void Foam::dynamicCode::addLineDirective
 (
     string& code,
@@ -66,13 +67,6 @@ void Foam::dynamicCode::addLineDirective
 )
 {
     code = "#line " + Foam::name(lineNum) + " \"" + name + "\"\n" + code;
-}
-
-
-void Foam::dynamicCode::writeCommentSHA1(Ostream& os) const
-{
-    os  << "# dynamicCode:\n# SHA1 = ";
-    os.writeQuoted(sha1_.str(), false) << "\n\n";
 }
 
 
@@ -173,15 +167,13 @@ bool Foam::dynamicCode::createMakeFiles() const
                 << exit(FatalError);
     }
 
-    writeCommentSHA1(os);
-
     // Write compile files
     forAll(compileFiles_, fileI)
     {
         os.writeQuoted(compileFiles_[fileI], false) << nl;
     }
 
-    os  << nl << dynamicCode::libTargetRoot << codeName_ << nl;
+    os  << nl << dynamicCode::libTargetRoot << codeSha1Name_ << nl;
 
     return true;
 }
@@ -263,8 +255,6 @@ bool Foam::dynamicCode::createMakeOptions() const
                 << exit(FatalError);
     }
 
-    writeCommentSHA1(os);
-
     os.writeQuoted(options + "\n\n" + libs, false) << nl;
 
     return true;
@@ -281,19 +271,6 @@ bool Foam::dynamicCode::writeDigest() const
     os.writeQuoted(sha1_.str(), false) << nl;
 
     return os.good();
-}
-
-
-bool Foam::dynamicCode::upToDate(const SHA1Digest& sha1) const
-{
-    const fileName file(digestFile());
-
-    if (!exists(file, false, true) || SHA1Digest(IFstream(file)()) != sha1)
-    {
-        return false;
-    }
-
-    return true;
 }
 
 
@@ -317,6 +294,7 @@ Foam::dynamicCode::dynamicCode
         stringOps::expandEnvVar("$FOAM_CASE")/topDirName
     ),
     libSubDir_(stringOps::expandEnvVar("platforms/$WM_OPTIONS/lib")),
+    codeName_(codeName),
     codeKeys_(codeKeys),
     codeDictVars_(codeDictVars),
     optionsFileName_(optionsFileName),
@@ -356,7 +334,7 @@ Foam::dynamicCode::dynamicCode
 
     const word sha1Str(sha1_.str());
 
-    codeName_ = codeName + '_' + sha1Str;
+    codeSha1Name_ = codeName_ + '_' + sha1Str;
 
     codeDirName_ =
     (
@@ -366,6 +344,7 @@ Foam::dynamicCode::dynamicCode
     );
 
     varSubstitutions_.set("typeName", codeName_);
+    varSubstitutions_.set("uniqueFunctionName", codeSha1Name_);
     varSubstitutions_.set("SHA1sum", sha1Str);
 }
 
@@ -397,23 +376,7 @@ Foam::dynamicCode::dynamicCode
 {}
 
 
-// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
-
-Foam::word Foam::dynamicCode::libraryBaseName(const fileName& libPath)
-{
-    word libName(libPath.name(true));
-    libName.erase(0, 3);    // Remove leading 'lib' from name
-    return libName;
-}
-
-
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-Foam::fileName Foam::dynamicCode::libRelPath() const
-{
-    return codeRelPath()/libSubDir_/"lib" + codeName_ + ".so";
-}
-
 
 void Foam::dynamicCode::read
 (
@@ -499,6 +462,14 @@ void Foam::dynamicCode::read
             );
         }
     }
+}
+
+
+Foam::word Foam::dynamicCode::libraryBaseName(const fileName& libPath)
+{
+    word libName(libPath.name(true));
+    libName.erase(0, 3);    // Remove leading 'lib' from name
+    return libName;
 }
 
 
@@ -624,7 +595,123 @@ bool Foam::dynamicCode::wmakeLibso() const
 
 bool Foam::dynamicCode::upToDate() const
 {
-    return upToDate(sha1_);
+    const fileName file(digestFile());
+
+    if (!exists(file, false, true) || SHA1Digest(IFstream(file)()) != sha1_)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+void Foam::dynamicCode::createLibrary
+(
+    const dictionary& dict,
+    const bool masterOnlyRead
+) const
+{
+    const bool create =
+        Pstream::master()
+     || (regIOobject::fileModificationSkew <= 0);   // Not NFS
+
+    if (create)
+    {
+        // Write files for new library
+        if (!upToDate())
+        {
+            if (!copyOrCreateFiles(true))
+            {
+                FatalIOErrorInFunction
+                (
+                    dict
+                )   << "Failed writing files for" << nl
+                    << libRelPath() << nl
+                    << exit(FatalIOError);
+            }
+        }
+
+        if (!wmakeLibso())
+        {
+            FatalIOErrorInFunction
+            (
+                dict
+            )   << "Failed wmake " << libRelPath() << nl
+                << exit(FatalIOError);
+        }
+    }
+
+    // All processes must wait for compile to finish
+    // Only block if not master only reading of a global dictionary
+    if
+    (
+       !masterOnlyRead
+     && regIOobject::fileModificationSkew > 0
+    )
+    {
+        const fileName libPath = this->libPath();
+
+        // Determine and communicate the master file size. Scattering
+        // blocks the other processes until the master has finished
+        // compiling.
+        off_t masterSize = Pstream::master() ? fileSize(libPath) : -1;
+        Pstream::scatter(masterSize);
+
+        // Determine the local file size. This may be incorrect if NFS is
+        // taking its time, in which case we wait and try again.
+        off_t mySize = Pstream::master() ? masterSize : fileSize(libPath);
+
+        if (debug)
+        {
+            Pout<< endl<< "on processor " << Pstream::myProcNo()
+                << " have masterSize:" << masterSize
+                << " and localSize:" << mySize
+                << endl;
+        }
+
+        if (mySize < masterSize)
+        {
+            if (debug)
+            {
+                Pout<< "Local file " << libPath
+                    << " not of same size (" << mySize
+                    << ") as master ("
+                    << masterSize << "). Waiting for "
+                    << regIOobject::fileModificationSkew
+                    << " seconds." << endl;
+            }
+            sleep(regIOobject::fileModificationSkew);
+
+            // Recheck local size
+            mySize = Foam::fileSize(libPath);
+
+            if (mySize < masterSize)
+            {
+                FatalIOErrorInFunction
+                (
+                    dict
+                )   << "Cannot read (NFS mounted) library " << nl
+                    << libPath << nl
+                    << "on processor " << Pstream::myProcNo()
+                    << " detected size " << mySize
+                    << " whereas master size is " << masterSize
+                    << " bytes." << nl
+                    << "If your case is not NFS mounted"
+                    << " (so distributed) set fileModificationSkew"
+                    << " to 0"
+                    << exit(FatalIOError);
+            }
+        }
+
+        if (debug)
+        {
+            Pout<< endl<< "on processor " << Pstream::myProcNo()
+                << " after waiting: have masterSize:" << masterSize
+                << " and localSize:" << mySize
+                << endl;
+        }
+    }
 }
 
 
@@ -636,6 +723,8 @@ void Foam::dynamicCode::read(const dictionary& contextDict)
 
 void Foam::dynamicCode::write(Ostream& os) const
 {
+    writeEntry(os, "name", codeName_);
+
     forAll(codeStrings_, i)
     {
         if (codeStrings_[i] != verbatimString::null)

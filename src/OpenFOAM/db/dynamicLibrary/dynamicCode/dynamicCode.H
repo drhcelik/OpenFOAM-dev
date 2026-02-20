@@ -71,6 +71,9 @@ class dynamicCode
         //- Name for code
         word codeName_;
 
+        //- Unique name for code with the SHA1 appendedm
+        word codeSha1Name_;
+
         //- Name for code subdirectory
         word codeDirName_;
 
@@ -94,7 +97,7 @@ class dynamicCode
         List<verbatimString> codeStrings_;
 
         //- Variable substitutions
-        mutable HashTable<string> varSubstitutions_;
+        HashTable<string> varSubstitutions_;
 
         //- Code key substitutions
         HashTable<string> codeKeySubstitutions_;
@@ -135,7 +138,10 @@ class dynamicCode
 
         //- Path for specified code name relative to \$FOAM_CASE
         //  Corresponds to topDirName/codeDirName()
-        fileName codeRelPath() const;
+        fileName codeRelPath() const
+        {
+            return topDirName/codeDirName_;
+        }
 
         //- Add a \#line directive to the start of the given source string that
         //  compilation messages are meaningful
@@ -145,9 +151,6 @@ class dynamicCode
             const label lineNum,
             const fileName& name
         );
-
-        //- Write SHA1 value as C-comment
-        void writeCommentSHA1(Ostream&) const;
 
         //- Copy lines while expanding variables
         static void copyAndFilter
@@ -174,9 +177,6 @@ class dynamicCode
         //- Write digest to Make/SHA1Digest
         bool writeDigest() const;
 
-        //- Verify if the copied code is up-to-date, based on Make/SHA1Digest
-        bool upToDate(const SHA1Digest& sha1) const;
-
 
 public:
 
@@ -184,6 +184,8 @@ public:
 
         //- Flag if system operations are allowed
         static int allowSystemOperations;
+
+        static int debug;
 
 
     // Constructors
@@ -218,12 +220,6 @@ public:
         );
 
 
-    // Static Member functions
-
-        //- Return the library basename without leading 'lib' or trailing '.so'
-        static word libraryBaseName(const fileName& libPath);
-
-
     // Member Functions
 
         //- Return the code-name
@@ -232,17 +228,34 @@ public:
             return codeName_;
         }
 
+        //- Return the unique code name
+        const word& codeSha1Name() const
+        {
+            return codeSha1Name_;
+        }
+
         //- Library path for specified code name
-        //  Corresponds to codeRoot()/libSubDir()/lib\<codeName\>.so
+        //  Corresponds to codeRoot()/libSubDir()/lib\<codeSha1Name\>.so
         fileName libPath() const
         {
-            return codeRoot_/libSubDir_/"lib" + codeName_ + ".so";
+            return codeRoot_/libSubDir_/"lib" + codeSha1Name_ + ".so";
         }
 
         //- Library path for specified code name relative to \$FOAM_CASE
         //  Corresponds to
-        //  dynamicCode/codeDirName()/libSubDir()/lib\<codeName\>.so
-        fileName libRelPath() const;
+        //  dynamicCode/codeDirName()/libSubDir()/lib\<codeSha1Name\>.so
+        fileName libRelPath() const
+        {
+            return codeRelPath()/libSubDir_/"lib" + codeSha1Name_ + ".so";
+        }
+
+        HashTable<string>& varSubstitutions()
+        {
+            return varSubstitutions_;
+        }
+
+        //- Return the library basename without leading 'lib' or trailing '.so'
+        static word libraryBaseName(const fileName& libPath);
 
         //- Resolve code-template via Foam::findConfigFile
         static fileName resolveTemplate(const fileName& templateName);
@@ -256,21 +269,18 @@ public:
         //- Compile a libso
         bool wmakeLibso() const;
 
-        void read
+        void createLibrary
         (
-            const dictionary& contextDict,
-            const dictionary& codeDict
-        );
+            const dictionary& dict,
+            const bool masterOnlyRead = false
+        ) const;
+
+        void read(const dictionary& contextDict, const dictionary& codeDict);
 
         void read(const dictionary& contextDict);
 
         //- Write the code for restart
         void write(Ostream& os) const;
-
-        void setFilterVariable(const word& key, const string& value) const
-        {
-            varSubstitutions_.set(key, value);
-        }
 };
 
 
