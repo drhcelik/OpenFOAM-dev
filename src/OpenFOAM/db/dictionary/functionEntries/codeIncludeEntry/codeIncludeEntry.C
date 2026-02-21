@@ -34,6 +34,7 @@ namespace Foam
 namespace functionEntries
 {
     defineFunctionTypeNameAndDebug(codeIncludeEntry, 0);
+    addToRunTimeSelectionTable(functionEntry, codeIncludeEntry, dictionary);
 }
 }
 
@@ -60,6 +61,20 @@ Foam::functionEntries::codeIncludeEntry::codeIncludeEntry
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+bool Foam::functionEntries::codeIncludeEntry::execute
+(
+    dictionary& parentDict,
+    Istream& is
+)
+{
+    FatalIOErrorInFunction(is)
+        << typeName
+        << " can only be used within #codeBlock...#endCodeBlock"
+        << exit(FatalIOError);
+    return false;
+}
+
 
 void Foam::functionEntries::codeIncludeEntry::addCodeInclude
 (

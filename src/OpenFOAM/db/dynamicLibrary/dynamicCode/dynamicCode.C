@@ -24,22 +24,26 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "dynamicCode.H"
+#include "OSHA1stream.H"
+#include "dlLibraryTable.H"
+#include "regIOobject.H"
+#include "Pstream.H"
 #include "stringOps.H"
 #include "IFstream.H"
 #include "OFstream.H"
-#include "OSHA1stream.H"
-#include "Pstream.H"
-#include "regIOobject.H"
 #include "OSspecific.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+
+namespace Foam
+{
+    defineTypeNameAndDebug(dynamicCode, 0);
+}
 
 int Foam::dynamicCode::allowSystemOperations
 (
     Foam::debug::infoSwitch("allowSystemOperations", 0)
 );
-
-int Foam::dynamicCode::debug(Foam::debug::debugSwitch("dynamicCode", 0));
 
 const Foam::fileName Foam::dynamicCode::codeTemplateDirName
 (
@@ -603,6 +607,22 @@ bool Foam::dynamicCode::upToDate() const
     }
 
     return true;
+}
+
+
+void* Foam::dynamicCode::loadLibrary(const fileName& libPath) const
+{
+    // Cached access to dl libs.
+    // Guarantees clean up upon destruction of Time.
+    if (libs.open(libPath, false))
+    {
+        return libs.findLibrary(libPath);
+    }
+    else
+    {
+        // Uncached opening of libPath. Do not complain if cannot be loaded
+        return dlOpen(libPath, false);
+    }
 }
 
 
