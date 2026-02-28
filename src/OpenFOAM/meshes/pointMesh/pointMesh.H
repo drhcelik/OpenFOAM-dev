@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2025 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -86,6 +86,9 @@ public:
         //- Boundary mesh type
         typedef pointBoundaryMesh BoundaryMesh;
 
+        //- Zone type
+        typedef pointZone Zone;
+
         //- Patch field type
         template<class Type>
         using PatchField = pointPatchField<Type>;
@@ -130,6 +133,12 @@ public:
         static label size(const Mesh& mesh)
         {
             return mesh.GeoMesh<polyMesh>::mesh_.nPoints();
+        }
+
+        //- Return point locations
+        const pointField& C() const
+        {
+            return GeoMesh<polyMesh>::mesh_.points();
         }
 
         //- Return reference to boundary mesh

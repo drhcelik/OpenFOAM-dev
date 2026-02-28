@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2024 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -52,6 +52,9 @@ public:
 
     // Public typedefs
 
+        //- Zone type
+        typedef faceZone Zone;
+
         //- Patch field type
         template<class Type>
         using PatchField = fvsPatchField<Type>;
@@ -82,12 +85,6 @@ public:
         static label size(const Mesh& mesh)
         {
             return mesh.nInternalFaces();
-        }
-
-        //- Return face centres
-        const surfaceVectorField& C()
-        {
-            return mesh_.Cf();
         }
 };
 
