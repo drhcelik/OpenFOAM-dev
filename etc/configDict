@@ -137,6 +137,12 @@ UnitSets
         kcal        [J]                 4184;
         cSt         [m^2/s]             1e-6;
         cP          [kg/m/s]            1e-3;
+
+        // Imperial units
+        in          [mm]                25.4;
+        ft          [in]                12;
+        yd          [ft]                3;
+        mi          [yd]                1760;
     }
 
     USCSCoeffs
