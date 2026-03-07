@@ -647,10 +647,6 @@ meshes/treeBoundBox/treeBoundBox.C
 meshTools = meshes/meshTools
 $(meshTools)/matchPoints.C
 
-fields/UniformDimensionedFields/uniformDimensionedFields.C
-
-fields/UniformGeometricFields/uniformGeometricFields.C
-
 Fields = fields/Fields
 
 $(Fields)/fieldMappers/fieldMapper/fieldMapper.C
@@ -723,6 +719,12 @@ $(derivedPointPatchFields)/codedFixedValue/codedFixedValuePointPatchFields.C
 
 fields/GeometricFields/pointFields/pointFields.C
 
+fields/DimensionedFields/DimensionedFieldFunctions/makeDimensionedPointFieldFunctions.C
+
+fields/UniformDimensionedFields/uniformDimensionedFields.C
+
+fields/UniformGeometricFields/uniformGeometricFields.C
+
 meshes/bandCompression/bandCompression.C
 meshes/preservePatchTypes/preservePatchTypes.C
 
@@ -740,6 +742,7 @@ algorithms/dynamicIndexedOctree/dynamicIndexedOctreeName.C
 algorithms/dynamicIndexedOctree/dynamicTreeDataPoint.C
 algorithms/polygonTriangulate/polygonTriangulate.C
 algorithms/solutionControl/solutionControl.C
+algorithms/boundSphere/boundSphere.C
 
 distributions/distribution/distribution.C
 distributions/distribution/distributionNew.C
