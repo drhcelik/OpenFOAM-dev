@@ -34,7 +34,7 @@ internalField
 
         // Linear ramp over the interface thickness
         tmp<volScalarField::Internal> r =
-            min(max(0.5 + (z - h)/t, scalar(0)), scalar(1));
+            min(max(0.5 + (h - z)/t, scalar(0)), scalar(1));
 
         // Smooth cosine function for the volume fraction
         field = (1 - cos(constant::mathematical::pi*r))/2;
