@@ -239,6 +239,10 @@ public:
                 return *this;
             }
 
+            //- Removed inherited IOobject::db() parent objectRegistry function
+            //  use parent() instead
+            const objectRegistry& db() const = delete;
+
 
         // Edit
 
