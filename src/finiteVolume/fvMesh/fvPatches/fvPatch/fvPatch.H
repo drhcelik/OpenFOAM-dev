@@ -45,6 +45,7 @@ SourceFiles
 #include "primitiveFields.H"
 #include "SubField.H"
 #include "fvPatchFieldsFwd.H"
+#include "SlicedDimensionedField.H"
 #include "autoPtr.H"
 #include "runTimeSelectionTables.H"
 
@@ -72,6 +73,9 @@ class fvPatch
 
         //- Reference to boundary mesh
         const fvBoundaryMesh& boundaryMesh_;
+
+        //- Dimensioned face centres
+        mutable autoPtr<SlicedDimensionedField<vector, fvPatch>> CPtr_;
 
 
 public:
@@ -201,11 +205,8 @@ public:
             //- Return face centres
             const vectorField& Cf() const;
 
-            //- Return face centres
-            const vectorField& C() const
-            {
-                return Cf();
-            }
+            //- Return dimensioned face centres
+            const DimensionedField<vector, fvPatch>& C() const;
 
             //- Return neighbour cell centres
             tmp<vectorField> Cn() const;
