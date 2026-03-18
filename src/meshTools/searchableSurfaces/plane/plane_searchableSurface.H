@@ -28,6 +28,10 @@ Description
     Surface geometry of an infinite plane, which can be used with
     snappyHexMesh.
 
+    The searchable plane is considered to be a closed surface, as if it were
+    actually a locally flat part of an infinitely large sphere. Points behind
+    the plane (relative to the normal) are therefore taken to be inside.
+
 Usage
     \table
         Property  | Description                             | Required
@@ -43,7 +47,7 @@ Usage
     \verbatim
         type       plane;
         point      (10 10 10);
-        normal     (0  1  0);
+        normal     (0 1 0);
     \endverbatim
 
 See also
