@@ -45,7 +45,7 @@ Foam::ReactingLookupTableInjection<CloudType>::ReactingLookupTableInjection
         IOobject
         (
             inputFileName_,
-            owner.parent().time().constant(),
+            owner.time().constant(),
             owner.parent(),
             IOobject::MUST_READ,
             IOobject::NO_WRITE

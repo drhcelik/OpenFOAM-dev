@@ -52,7 +52,7 @@ Foam::PatchFlowRateInjection<CloudType>::PatchFlowRateInjection
             this->coeffDict().found("volumeRatio")
           ? "volumeRatio"
           : "concentration",
-            this->owner().parent().time().userUnits(),
+            this->owner().time().userUnits(),
             dimless,
             this->coeffDict()
         )
@@ -64,7 +64,7 @@ Foam::PatchFlowRateInjection<CloudType>::PatchFlowRateInjection
       ? Function1<scalar>::New
         (
             "massRatio",
-            this->owner().parent().time().userUnits(),
+            this->owner().time().userUnits(),
             dimless,
             this->coeffDict()
         )

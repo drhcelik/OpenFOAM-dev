@@ -48,7 +48,7 @@ Foam::PackingModels::Implicit<CloudType>::Implicit
         IOobject
         (
             this->owner().name() + ":alpha",
-            this->owner().parent().time().name(),
+            this->owner().time().name(),
             this->owner().mesh(),
             IOobject::NO_READ,
             IOobject::NO_WRITE
@@ -112,7 +112,7 @@ void Foam::PackingModels::Implicit<CloudType>::cacheFields(const bool store)
     if (store)
     {
         const fvMesh& mesh = this->owner().mesh();
-        const dimensionedScalar deltaT = this->owner().parent().time().deltaT();
+        const dimensionedScalar deltaT = this->owner().time().deltaT();
         const word& cloudName = this->owner().name();
 
         const dimensionedVector& g = this->owner().g();
@@ -150,7 +150,7 @@ void Foam::PackingModels::Implicit<CloudType>::cacheFields(const bool store)
             IOobject
             (
                 cloudName + ":rho",
-                this->owner().parent().time().name(),
+                this->owner().time().name(),
                 mesh,
                 IOobject::NO_READ,
                 IOobject::NO_WRITE
@@ -172,7 +172,7 @@ void Foam::PackingModels::Implicit<CloudType>::cacheFields(const bool store)
             IOobject
             (
                 cloudName + ":tauPrime",
-                this->owner().parent().time().name(),
+                this->owner().time().name(),
                 mesh,
                 IOobject::NO_READ,
                 IOobject::NO_WRITE
@@ -250,7 +250,7 @@ void Foam::PackingModels::Implicit<CloudType>::cacheFields(const bool store)
                 IOobject
                 (
                     cloudName + ":U",
-                    this->owner().parent().time().name(),
+                    this->owner().time().name(),
                     mesh,
                     IOobject::NO_READ,
                     IOobject::NO_WRITE

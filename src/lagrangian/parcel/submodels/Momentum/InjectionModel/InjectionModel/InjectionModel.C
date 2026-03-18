@@ -76,7 +76,7 @@ Foam::scalar Foam::InjectionModel<CloudType>::readDuration
         return vGreat;
     }
 
-    return dict.lookup<scalar>("duration", owner.parent().time().userUnits());
+    return dict.lookup<scalar>("duration", owner.time().userUnits());
 }
 
 
@@ -128,7 +128,7 @@ Foam::InjectionModel<CloudType>::readMassFlowRate
             Function1<scalar>::New
             (
                 "massFlowRate",
-                this->owner().parent().time().userUnits(),
+                this->owner().time().userUnits(),
                 dimMass/dimTime,
                 dict
             );
@@ -154,7 +154,7 @@ Foam::InjectionModel<CloudType>::readMassFlowRate
         Function1<scalar>::New
         (
             "flowRateProfile",
-            this->owner().parent().time().userUnits(),
+            this->owner().time().userUnits(),
             dimless,
             dict
         )
@@ -188,7 +188,7 @@ Foam::InjectionModel<CloudType>::readParcelsPerSecond
         Function1<scalar>::New
         (
             "parcelsPerSecond",
-            this->owner().parent().time().userUnits(),
+            this->owner().time().userUnits(),
             dimless/dimTime,
             dict
         );
@@ -550,7 +550,7 @@ Foam::InjectionModel<CloudType>::InjectionModel
 
     if (owner.solution().transient())
     {
-        SOI_ = dict.lookup<scalar>("SOI", owner.parent().time().userUnits());
+        SOI_ = dict.lookup<scalar>("SOI", owner.time().userUnits());
     }
 }
 
@@ -608,10 +608,10 @@ void Foam::InjectionModel<CloudType>::inject
 
     const meshSearch& searchEngine = meshSearch::New(mesh);
 
-    const scalar time1 = this->owner().parent().time().value();
+    const scalar time1 = this->owner().time().value();
     const scalar time0 =
-        this->owner().parent().time().value()
-      - this->owner().parent().time().deltaTValue();
+        this->owner().time().value()
+      - this->owner().time().deltaTValue();
 
     preInject(td);
 

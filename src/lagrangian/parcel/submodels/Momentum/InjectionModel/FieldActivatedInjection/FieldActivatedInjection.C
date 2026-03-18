@@ -61,7 +61,7 @@ Foam::FieldActivatedInjection<CloudType>::FieldActivatedInjection
         IOobject
         (
             positionsFile_,
-            owner.parent().time().constant(),
+            owner.time().constant(),
             owner.mesh(),
             IOobject::MUST_READ,
             IOobject::NO_WRITE

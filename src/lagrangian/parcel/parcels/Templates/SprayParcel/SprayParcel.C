@@ -172,7 +172,7 @@ void Foam::SprayParcel<ParcelType>::calcAtomisation
     scalar rhoAv = td.pc()/(R*Tav);
 
     scalar soi = cloud.injectors()[injector_].timeStart();
-    scalar currentTime = cloud.parent().time().value();
+    scalar currentTime = cloud.time().value();
     const vector& pos = this->position(td.mesh);
     const vector& injectionPos = this->position0();
 

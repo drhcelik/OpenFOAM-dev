@@ -118,7 +118,7 @@ bool Foam::CloudSubModelBase<CloudType>::writeTime() const
 {
     return
         owner_.solution().transient()
-     && owner_.parent().time().writeTime();
+     && owner_.time().writeTime();
 }
 
 

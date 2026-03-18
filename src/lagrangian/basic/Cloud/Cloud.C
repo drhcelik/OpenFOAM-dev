@@ -768,7 +768,7 @@ void Foam::lagrangian::Cloud<ParticleType>::writePositions() const
 {
     OFstream pObj
     (
-        this->parent().time().path()/this->name() + "_positions.obj"
+        this->time().path()/this->name() + "_positions.obj"
     );
 
     forAllConstIter(typename Cloud<ParticleType>, *this, pIter)

@@ -221,13 +221,13 @@ void Foam::MomentumCloud<CloudType>::postEvolve()
 
     solution_.nextIter();
 
-    if (this->parent().time().writeTime())
+    if (this->time().writeTime())
     {
         outputProperties_.writeObject
         (
             IOstream::ASCII,
             IOstream::currentVersion,
-            this->parent().time().writeCompression(),
+            this->time().writeCompression(),
             true
         );
     }
@@ -341,7 +341,7 @@ Foam::MomentumCloud<CloudType>::MomentumCloud
             IOobject
             (
                 this->name() + ":UTrans",
-                this->parent().time().name(),
+                this->time().name(),
                 this->parent(),
                 IOobject::READ_IF_PRESENT,
                 IOobject::AUTO_WRITE
@@ -357,7 +357,7 @@ Foam::MomentumCloud<CloudType>::MomentumCloud
             IOobject
             (
                 this->name() + ":UCoeff",
-                this->parent().time().name(),
+                this->time().name(),
                 this->parent(),
                 IOobject::READ_IF_PRESENT,
                 IOobject::AUTO_WRITE
@@ -436,7 +436,7 @@ Foam::MomentumCloud<CloudType>::MomentumCloud
             IOobject
             (
                 this->name() + ":UTrans",
-                this->parent().time().name(),
+                this->time().name(),
                 this->parent(),
                 IOobject::NO_READ,
                 IOobject::NO_WRITE,
@@ -452,7 +452,7 @@ Foam::MomentumCloud<CloudType>::MomentumCloud
             IOobject
             (
                 name + ":UCoeff",
-                this->parent().time().name(),
+                this->time().name(),
                 this->parent(),
                 IOobject::NO_READ,
                 IOobject::NO_WRITE,

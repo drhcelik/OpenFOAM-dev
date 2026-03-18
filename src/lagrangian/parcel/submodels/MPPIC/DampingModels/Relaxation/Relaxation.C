@@ -105,7 +105,7 @@ void Foam::DampingModels::Relaxation<CloudType>::cacheFields(const bool store)
                 IOobject
                 (
                     cloudName + ":oneByTimeScaleAverage",
-                    this->owner().parent().time().name(),
+                    this->owner().time().name(),
                     mesh
                 ),
                 this->owner().solution().dict(),

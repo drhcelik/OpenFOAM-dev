@@ -1102,9 +1102,9 @@ void Foam::DSMCCloud<ParcelType>::dumpParticlePositions() const
 {
     OFstream pObj
     (
-        this->parent().time().path()/"parcelPositions_"
+        this->time().path()/"parcelPositions_"
       + this->name() + "_"
-      + this->parent().time().name() + ".obj"
+      + this->time().name() + ".obj"
     );
 
     forAllConstIter(typename DSMCCloud<ParcelType>, *this, iter)
