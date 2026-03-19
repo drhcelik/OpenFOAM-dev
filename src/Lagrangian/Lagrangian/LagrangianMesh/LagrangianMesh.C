@@ -812,7 +812,7 @@ void Foam::LagrangianMesh::changer::constructNonConformal() const
 
     forAll(mesh_.boundary(), patchi)
     {
-        const polyPatch& pp = mesh_.mesh().boundaryMesh()[patchi];
+        const polyPatch& pp = mesh_.poly().boundaryMesh()[patchi];
 
         if (isA<nonConformalCyclicPolyPatch>(pp))
         {
@@ -850,7 +850,7 @@ void Foam::LagrangianMesh::changer::constructNonConformal() const
 
     forAll(mesh_.boundary(), patchi)
     {
-        const polyPatch& pp = mesh_.mesh().boundaryMesh()[patchi];
+        const polyPatch& pp = mesh_.poly().boundaryMesh()[patchi];
 
         if (isA<nonConformalCyclicPolyPatch>(pp))
         {
@@ -1375,7 +1375,7 @@ Foam::LagrangianMesh::location Foam::LagrangianMesh::locate
     const scalar fraction
 ) const
 {
-    const meshSearch& searchEngine = meshSearch::New(mesh());
+    const meshSearch& searchEngine = meshSearch::New(poly());
 
     // Look for a containing cell and set the process if found
     remote procCelli;
@@ -1416,7 +1416,7 @@ Foam::List<Foam::LagrangianMesh::location> Foam::LagrangianMesh::locate
     const scalarList& fraction
 ) const
 {
-    const meshSearch& searchEngine = meshSearch::New(mesh());
+    const meshSearch& searchEngine = meshSearch::New(poly());
 
     // Look for containing cells and set the process if found
     List<remote> procCelli(position.size());
