@@ -78,10 +78,9 @@ void Foam::volPointInterpolation::interpolateUnconstrained
     }
 
     // Get the boundary neighbour field
-    const typename VolField<Type>::Boundary vfBnf
+    const PtrList<Field<Type>> vfBnf
     (
-        VolField<Type>::null(),
-        vf.boundaryField().boundaryNeighbourField()
+        vf.boundaryField().coupledNeighbourField()
     );
 
     // Interpolate from the boundary faces
