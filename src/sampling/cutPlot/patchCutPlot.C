@@ -711,10 +711,10 @@ void Foam::patchCutPlot::writeLayers
 
         const label facei = meshFacei0 + w.elementi;
         const label patchi =
-            functionMesh.boundaryMesh().patchIndices()
+            functionMesh.poly().boundary().patchIndices()
             [w.elementi + meshFacei0 - functionMesh.nInternalFaces()];
         const label patchFacei =
-            facei - functionMesh.boundaryMesh()[patchi].start();
+            facei - functionMesh.poly().boundary()[patchi].start();
 
         layers.boundaryFieldRef()[patchi][patchFacei] = tensor::zero;
     }
@@ -725,10 +725,10 @@ void Foam::patchCutPlot::writeLayers
 
         const label facei = meshFacei0 + w.elementi;
         const label patchi =
-            functionMesh.boundaryMesh().patchIndices()
+            functionMesh.poly().boundary().patchIndices()
             [w.elementi + meshFacei0 - functionMesh.nInternalFaces()];
         const label patchFacei =
-            facei - functionMesh.boundaryMesh()[patchi].start();
+            facei - functionMesh.poly().boundary()[patchi].start();
 
         const direction i = w.cuti % tensor::nComponents;
 
@@ -768,10 +768,10 @@ void Foam::patchCutPlot::writeLayers
 
         const label facei = faces.addressing()[w.elementi];
         const label patchi =
-            functionMesh.boundaryMesh().patchIndices()
+            functionMesh.poly().boundary().patchIndices()
             [w.elementi - functionMesh.nInternalFaces()];
         const label patchFacei =
-            facei - functionMesh.boundaryMesh()[patchi].start();
+            facei - functionMesh.poly().boundary()[patchi].start();
 
         layers.boundaryFieldRef()[patchi][patchFacei] = tensor::zero;
     }
@@ -782,10 +782,10 @@ void Foam::patchCutPlot::writeLayers
 
         const label facei = faces.addressing()[w.elementi];
         const label patchi =
-            functionMesh.boundaryMesh().patchIndices()
+            functionMesh.poly().boundary().patchIndices()
             [w.elementi - functionMesh.nInternalFaces()];
         const label patchFacei =
-            facei - functionMesh.boundaryMesh()[patchi].start();
+            facei - functionMesh.poly().boundary()[patchi].start();
 
         const direction i = w.cuti % tensor::nComponents;
 

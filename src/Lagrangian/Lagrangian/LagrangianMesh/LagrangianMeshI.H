@@ -179,7 +179,7 @@ inline Foam::label Foam::LagrangianMesh::nStates() const
 {
     return
         static_cast<label>(LagrangianState::onPatchZero)
-      + poly().boundaryMesh().size() + 1;
+      + poly().boundary().size() + 1;
 }
 
 
@@ -187,7 +187,7 @@ inline Foam::label Foam::LagrangianMesh::nGroups() const
 {
     return
         static_cast<label>(LagrangianGroup::onPatchZero)
-      + poly().boundaryMesh().size() + 1;
+      + poly().boundary().size() + 1;
 }
 
 

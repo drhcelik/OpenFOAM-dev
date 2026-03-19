@@ -79,7 +79,7 @@ Foam::label Foam::LagrangianBoundaryMesh::findIndex
     const word& patchName
 ) const
 {
-    return mesh().poly().boundaryMesh().findIndex(patchName);
+    return mesh().poly().boundary().findIndex(patchName);
 }
 
 
@@ -89,7 +89,7 @@ Foam::labelList Foam::LagrangianBoundaryMesh::findIndices
     const bool useGroups
 ) const
 {
-    return mesh().poly().boundaryMesh().findIndices(key, useGroups);
+    return mesh().poly().boundary().findIndices(key, useGroups);
 }
 
 

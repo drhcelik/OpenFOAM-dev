@@ -812,7 +812,7 @@ void Foam::LagrangianMesh::changer::constructNonConformal() const
 
     forAll(mesh_.boundary(), patchi)
     {
-        const polyPatch& pp = mesh_.poly().boundaryMesh()[patchi];
+        const polyPatch& pp = mesh_.poly().boundary()[patchi];
 
         if (isA<nonConformalCyclicPolyPatch>(pp))
         {
@@ -850,7 +850,7 @@ void Foam::LagrangianMesh::changer::constructNonConformal() const
 
     forAll(mesh_.boundary(), patchi)
     {
-        const polyPatch& pp = mesh_.poly().boundaryMesh()[patchi];
+        const polyPatch& pp = mesh_.poly().boundary()[patchi];
 
         if (isA<nonConformalCyclicPolyPatch>(pp))
         {
@@ -969,7 +969,7 @@ Foam::LagrangianMesh::LagrangianMesh
     (
         mesh,
         name,
-        mesh.boundaryMesh().types(),
+        mesh.boundary().types(),
         readOption,
         writeOption
     )
@@ -1042,7 +1042,7 @@ Foam::LagrangianMesh::LagrangianMesh
             IOobject::AUTO_WRITE
         )
     ),
-    boundary_(*this, mesh.boundaryMesh(), wantedPatchTypes),
+    boundary_(*this, mesh.boundary(), wantedPatchTypes),
     subAll_
     (
         LagrangianSubMesh
@@ -1592,7 +1592,7 @@ void Foam::LagrangianMesh::track
         {
             // Determine the index of the patch that was tracked to
             label patchi =
-                mesh_.boundaryMesh().patchIndices()
+                mesh_.boundary().patchIndices()
                 [
                     facei_[i] - mesh_.nInternalFaces()
                 ];

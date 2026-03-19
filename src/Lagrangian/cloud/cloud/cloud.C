@@ -57,11 +57,11 @@ Foam::LagrangianMesh& Foam::cloud::mesh
 {
     if (!pMesh.foundObject<LagrangianMesh>(name))
     {
-        wordList wantedPatchTypes(pMesh.boundaryMesh().size());
+        wordList wantedPatchTypes(pMesh.boundary().size());
 
-        forAll(pMesh.boundaryMesh(), patchi)
+        forAll(pMesh.boundary(), patchi)
         {
-            const polyPatch& pPatch = pMesh.boundaryMesh()[patchi];
+            const polyPatch& pPatch = pMesh.boundary()[patchi];
 
             wantedPatchTypes[patchi] =
                 polyPatch::constraintType(pPatch.type())

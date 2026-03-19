@@ -38,7 +38,7 @@ namespace Foam
 
 const Foam::polyPatch& Foam::pointPatch::poly() const
 {
-    return boundaryMesh_.mesh().poly().boundaryMesh()[index()];
+    return boundaryMesh_.mesh().poly().boundary()[index()];
 }
 
 

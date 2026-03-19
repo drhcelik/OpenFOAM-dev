@@ -268,7 +268,7 @@ void Foam::Lagrangian::turbulentDispersion::preAddSup
     // vibrate as the drag model and the rebound model fight each other.
     const PackedBoolList patchIsWall
     (
-        mesh().poly().boundaryMesh().findIndices<wallPolyPatch>().toc()
+        mesh().poly().boundary().findIndices<wallPolyPatch>().toc()
     );
     forAll(subMesh, subi)
     {

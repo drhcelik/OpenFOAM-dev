@@ -264,7 +264,7 @@ Foam::boolList Foam::functionObjects::cloudSurfaceDistribution::selected
 {
     const Foam::cloud& c = cloud();
 
-    const polyBoundaryMesh& pbm = c.mesh().poly().boundaryMesh();
+    const polyBoundaryMesh& pbm = c.mesh().poly().boundary();
 
     const label patchi =
         max

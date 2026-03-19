@@ -66,7 +66,7 @@ void Foam::Lagrangian::patchInjection::readCoeffs(const dictionary& modelDict)
 
 void Foam::Lagrangian::patchInjection::calcSumAreas()
 {
-    const polyPatch& patch = mesh().poly().boundaryMesh()[patchName_];
+    const polyPatch& patch = mesh().poly().boundary()[patchName_];
 
     // Create a point field mid-way through the fraction. We distribute
     // particles uniformly through the time-step, so using the mid-time-step
@@ -208,7 +208,7 @@ Foam::LagrangianSubMesh Foam::Lagrangian::patchInjection::modify
     };
 
     // Get the mesh index of the first face in the patch
-    const polyPatch& patch = mesh.poly().boundaryMesh()[patchName_];
+    const polyPatch& patch = mesh.poly().boundary()[patchName_];
     const label facei0 = patch.start();
 
     // Initialise storage for the injection geometry and topology. This is
