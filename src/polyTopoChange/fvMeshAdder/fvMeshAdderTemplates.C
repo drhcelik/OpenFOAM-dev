@@ -843,7 +843,7 @@ void Foam::fvMeshAdder::MapPointFields
 {
     HashTable<const PointField<Type>*> fields
     (
-        mesh.thisDb().lookupClass<PointField<Type>>()
+        mesh.db().lookupClass<PointField<Type>>()
     );
 
     HashTable<const PointField<Type>*> fieldsToAdd

@@ -1644,7 +1644,7 @@ void Foam::fvMesh::addPatch
     #define AddPatchFieldsType(Type, FieldType, DefaultPatchFieldType)         \
         AddPatchFields<FieldType<Type>>                                        \
         (                                                                      \
-            const_cast<objectRegistry&>(thisDb()),                             \
+            const_cast<objectRegistry&>(db()),                             \
             insertPatchi,                                                      \
             DefaultPatchFieldType                                              \
         );
@@ -1677,7 +1677,7 @@ void Foam::fvMesh::reorderPatches
     #define ReorderPatchFieldsType(Type, FieldType)                            \
         ReorderPatchFields<FieldType<Type>>                                    \
         (                                                                      \
-            const_cast<objectRegistry&>(thisDb()),                             \
+            const_cast<objectRegistry&>(db()),                             \
             newToOld                                                           \
         );
     FOR_ALL_FIELD_TYPES(ReorderPatchFieldsType, VolField);

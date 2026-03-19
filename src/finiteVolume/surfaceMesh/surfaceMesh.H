@@ -101,7 +101,7 @@ public:
         inline label size() const;
 
         //- Return fvMesh database
-        inline const objectRegistry& thisDb() const;
+        inline const objectRegistry& db() const;
 
         //- Return time
         inline const Time& time() const;

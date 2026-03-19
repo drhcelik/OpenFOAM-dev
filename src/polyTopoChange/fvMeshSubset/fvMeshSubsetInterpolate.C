@@ -408,7 +408,7 @@ Foam::fvMeshSubset::interpolate
             (
                 "subset"+pf.name(),
                 sMesh.time().name(),
-                sMesh.thisDb(),
+                sMesh.db(),
                 IOobject::NO_READ,
                 IOobject::NO_WRITE,
                 false

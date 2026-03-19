@@ -37,17 +37,8 @@ SourceFiles
 #define fvPatch_H
 
 #include "polyPatch.H"
-#include "labelList.H"
-#include "SubList.H"
-#include "typeInfo.H"
-#include "tmp.H"
-#include "tmpNrc.H"
-#include "primitiveFields.H"
-#include "SubField.H"
 #include "fvPatchFieldsFwd.H"
 #include "SlicedDimensionedField.H"
-#include "autoPtr.H"
-#include "runTimeSelectionTables.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -57,8 +48,6 @@ namespace Foam
 class fvMesh;
 class fvBoundaryMesh;
 class faceZone;
-class objectRegistry;
-class surfaceInterpolation;
 
 /*---------------------------------------------------------------------------*\
                            Class fvPatch Declaration

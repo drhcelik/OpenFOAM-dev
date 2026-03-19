@@ -34,9 +34,9 @@ inline Foam::label Foam::surfaceMesh::size() const
 
 // * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //
 
-inline const Foam::objectRegistry& Foam::surfaceMesh::thisDb() const
+inline const Foam::objectRegistry& Foam::surfaceMesh::db() const
 {
-    return mesh_.thisDb();
+    return mesh_.db();
 }
 
 

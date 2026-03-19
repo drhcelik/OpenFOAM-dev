@@ -437,9 +437,9 @@ public:
             }
 
             //- Return the object registry - resolve conflict polyMesh/lduMesh
-            virtual const objectRegistry& thisDb() const
+            virtual const objectRegistry& db() const
             {
-                return polyMesh::thisDb();
+                return polyMesh::db();
             }
 
             //- Return reference to name
