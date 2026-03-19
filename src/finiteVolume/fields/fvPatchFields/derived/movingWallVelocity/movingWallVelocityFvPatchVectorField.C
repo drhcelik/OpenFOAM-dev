@@ -90,7 +90,7 @@ void Foam::movingWallVelocityFvPatchVectorField::updateCoeffs()
 
         const pointField& oldPoints = mesh.oldPoints();
 
-        const polyPatch& pp = p.patch();
+        const polyPatch& pp = p.poly();
 
         vectorField oldFc(pp.size());
 

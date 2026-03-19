@@ -128,6 +128,12 @@ public:
 
     // Member Functions
 
+        //- Access the corresponding polyhedral geometry
+        const polyMesh& poly() const
+        {
+            return mesh_;
+        }
+
         //- Return number of points
         label size() const
         {

@@ -1263,7 +1263,7 @@ Foam::labelList Foam::LagrangianMesh::subMeshGlobalSizes() const
     label nGlobalGroups = static_cast<label>(LagrangianGroup::onPatchZero);
     forAll(boundary(), patchi)
     {
-        const polyPatch& pp = boundary()[patchi].patch();
+        const polyPatch& pp = boundary()[patchi].poly();
         if (isA<processorPolyPatch>(pp)) break;
         nGlobalGroups ++;
     }
@@ -1284,7 +1284,7 @@ Foam::labelList Foam::LagrangianMesh::subMeshGlobalSizes() const
     sizes[inInternalMeshi] = sub(LagrangianGroup::inInternalMesh).size();
     forAll(boundary(), patchi)
     {
-        const polyPatch& pp = boundary()[patchi].patch();
+        const polyPatch& pp = boundary()[patchi].poly();
         if (isA<processorPolyPatch>(pp)) break;
         sizes[onPatchZeroi + patchi] = boundary()[patchi].mesh().size();
     }

@@ -120,7 +120,7 @@ Foam::waveAlphaFvPatchScalarField::alpha(const scalar t) const
         (
             patch(),
             waves.height(t, patch().Cf()),
-            waves.height(t, patch().patch().localPoints()),
+            waves.height(t, patch().poly().localPoints()),
             !liquid_
         );
 }
@@ -153,10 +153,10 @@ Foam::waveAlphaFvPatchScalarField::alphan(const scalar t) const
     {
         forAll(meshs.boundary()[patchis], is)
         {
-            const label fs = is + meshs.boundary()[patchis].patch().start();
+            const label fs = is + meshs.boundary()[patchis].poly().start();
             const label cs = meshs.boundary()[patchis].faceCells()[is];
             const label f = subset.faceMap()[fs];
-            const label i = patch().patch().whichFace(f);
+            const label i = patch().poly().whichFace(f);
             result[i] = alphas[cs];
         }
     }

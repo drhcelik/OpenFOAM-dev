@@ -459,6 +459,12 @@ public:
                 return *this;
             }
 
+            //- Access the corresponding polyhedral geometry
+            const polyMesh& poly() const
+            {
+                return *this;
+            }
+
             //- Return reference to fvMesh for volFields GeoMesh argument
             const fvMesh& operator()() const
             {
