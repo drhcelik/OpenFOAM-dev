@@ -125,7 +125,10 @@ Foam::fvPatch::C() const
             (
                 "C",
                 mesh().time().name(),
-                mesh()
+                mesh(),
+                IOobject::NO_READ,
+                IOobject::NO_WRITE,
+                false
             ),
             *this,
             dimLength,
