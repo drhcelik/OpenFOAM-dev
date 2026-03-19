@@ -622,9 +622,14 @@ public:
         // Access
 
             using objectRegistry::time;
-            using objectRegistry::thisDb;
             using objectRegistry::operator!=;
             using objectRegistry::operator==;
+
+            //- Return database
+            const objectRegistry& thisDb() const
+            {
+                return *this;
+            }
 
             //- Access the mesh
             inline const polyMesh& mesh() const;
