@@ -895,8 +895,8 @@ Foam::GeometricField<Type, GeoMesh, PrimitiveField>::cloneUnSliced() const
             IOobject
             (
                 this->name(),
-                this->mesh().thisDb().time().name(),
-                this->mesh().thisDb(),
+                this->mesh().db().time().name(),
+                this->mesh().db(),
                 IOobject::NO_READ,
                 IOobject::NO_WRITE,
                 false
@@ -918,7 +918,7 @@ Foam::GeometricField<Type, GeoMesh, PrimitiveField>::New
     const HashPtrTable<Source>& stft
 )
 {
-    const bool cacheTmp = diField.mesh().thisDb().cacheTemporaryObject(name);
+    const bool cacheTmp = diField.mesh().db().cacheTemporaryObject(name);
 
     return tmp<GeometricField<Type, GeoMesh, PrimitiveField>>
     (
@@ -927,8 +927,8 @@ Foam::GeometricField<Type, GeoMesh, PrimitiveField>::New
             IOobject
             (
                 name,
-                diField.mesh().thisDb().time().name(),
-                diField.mesh().thisDb(),
+                diField.mesh().db().time().name(),
+                diField.mesh().db(),
                 IOobject::NO_READ,
                 IOobject::NO_WRITE,
                 cacheTmp
@@ -952,7 +952,7 @@ Foam::GeometricField<Type, GeoMesh, PrimitiveField>::New
     const word& patchFieldType
 )
 {
-    const bool cacheTmp = mesh.thisDb().cacheTemporaryObject(name);
+    const bool cacheTmp = mesh.db().cacheTemporaryObject(name);
 
     return tmp<GeometricField<Type, GeoMesh, PrimitiveField>>
     (
@@ -961,8 +961,8 @@ Foam::GeometricField<Type, GeoMesh, PrimitiveField>::New
             IOobject
             (
                 name,
-                mesh.thisDb().time().name(),
-                mesh.thisDb(),
+                mesh.db().time().name(),
+                mesh.db(),
                 IOobject::NO_READ,
                 IOobject::NO_WRITE,
                 cacheTmp
@@ -986,7 +986,7 @@ Foam::GeometricField<Type, GeoMesh, PrimitiveField>::New
     const word& patchFieldType
 )
 {
-    const bool cacheTmp = mesh.thisDb().cacheTemporaryObject(name);
+    const bool cacheTmp = mesh.db().cacheTemporaryObject(name);
 
     return tmp<GeometricField<Type, GeoMesh, PrimitiveField>>
     (
@@ -995,8 +995,8 @@ Foam::GeometricField<Type, GeoMesh, PrimitiveField>::New
             IOobject
             (
                 name,
-                mesh.thisDb().time().name(),
-                mesh.thisDb(),
+                mesh.db().time().name(),
+                mesh.db(),
                 IOobject::NO_READ,
                 IOobject::NO_WRITE,
                 cacheTmp
@@ -1024,7 +1024,7 @@ Foam::GeometricField<Type, GeoMesh, PrimitiveField>::New
     const IOerrorLocation& fieldSourceErrorLocation
 )
 {
-    const bool cacheTmp = mesh.thisDb().cacheTemporaryObject(name);
+    const bool cacheTmp = mesh.db().cacheTemporaryObject(name);
 
     return tmp<GeometricField<Type, GeoMesh, PrimitiveField>>
     (
@@ -1033,8 +1033,8 @@ Foam::GeometricField<Type, GeoMesh, PrimitiveField>::New
             IOobject
             (
                 name,
-                mesh.thisDb().time().name(),
-                mesh.thisDb(),
+                mesh.db().time().name(),
+                mesh.db(),
                 IOobject::NO_READ,
                 IOobject::NO_WRITE,
                 cacheTmp

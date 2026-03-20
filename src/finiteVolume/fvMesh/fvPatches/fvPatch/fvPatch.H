@@ -37,17 +37,8 @@ SourceFiles
 #define fvPatch_H
 
 #include "polyPatch.H"
-#include "labelList.H"
-#include "SubList.H"
-#include "typeInfo.H"
-#include "tmp.H"
-#include "tmpNrc.H"
-#include "primitiveFields.H"
-#include "SubField.H"
 #include "fvPatchFieldsFwd.H"
 #include "SlicedDimensionedField.H"
-#include "autoPtr.H"
-#include "runTimeSelectionTables.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -57,8 +48,6 @@ namespace Foam
 class fvMesh;
 class fvBoundaryMesh;
 class faceZone;
-class objectRegistry;
-class surfaceInterpolation;
 
 /*---------------------------------------------------------------------------*\
                            Class fvPatch Declaration
@@ -69,7 +58,7 @@ class fvPatch
     // Private Data
 
         //- Reference to the underlying polyPatch
-        const polyPatch& polyPatch_;
+        const polyPatch& poly_;
 
         //- Reference to boundary mesh
         const fvBoundaryMesh& boundaryMesh_;
@@ -136,33 +125,33 @@ public:
         // Access
 
             //- Return the polyPatch
-            const polyPatch& patch() const
+            const polyPatch& poly() const
             {
-                return polyPatch_;
+                return poly_;
             }
 
             //- Return name
             virtual const word& name() const
             {
-                return polyPatch_.name();
+                return poly_.name();
             }
 
             //- Return start label of this patch in the polyMesh face list
             virtual label start() const
             {
-                return polyPatch_.start();
+                return poly_.start();
             }
 
             //- Return size
             virtual label size() const
             {
-                return polyPatch_.size();
+                return poly_.size();
             }
 
             //- Return true if this patch is coupled
             virtual bool coupled() const
             {
-                return polyPatch_.coupled();
+                return poly_.coupled();
             }
 
             //- Return true if the given type is a constraint type
@@ -174,7 +163,7 @@ public:
             //- Return the index of this patch in the fvBoundaryMesh
             label index() const
             {
-                return polyPatch_.index();
+                return poly_.index();
             }
 
             //- Return the local object registry

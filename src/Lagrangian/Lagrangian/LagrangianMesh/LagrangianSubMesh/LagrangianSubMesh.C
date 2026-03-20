@@ -100,7 +100,7 @@ Foam::LagrangianSubMesh::~LagrangianSubMesh()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-const Foam::objectRegistry& Foam::LagrangianSubMesh::thisDb() const
+const Foam::objectRegistry& Foam::LagrangianSubMesh::db() const
 {
     return mesh_;
 }

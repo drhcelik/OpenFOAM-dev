@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2012-2026 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,53 +21,55 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Namespace
+    Foam::searchableSurfaces
+
+Description
+    Functions to generate a field of the fraction of space (volume, area,
+    etc ...) inside a given searchable surface. Cuts the mesh where elements
+    span the surface.
+
+SourceFiles
+    searchableSurfacesInsideFraction.C
+
 \*---------------------------------------------------------------------------*/
 
-#include "fvMeshTools.H"
-#include "volFields.H"
-#include "surfaceFields.H"
+#ifndef searchableSurfacesInsideFraction_H
+#define searchableSurfacesInsideFraction_H
+
+#include "searchableSurface.H"
+#include "polyMesh.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-template<class GeoField>
-void Foam::fvMeshTools::setPatchFields
-(
-    typename GeoField::Mesh& mesh,
-    const label patchi,
-    const dictionary& patchFieldDict
-)
+namespace Foam
 {
-    objectRegistry& obr = const_cast<objectRegistry&>(mesh.db());
+namespace searchableSurfaces
+{
 
-    HashTable<GeoField*> fields(obr.lookupClass<GeoField>());
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    forAllIter(typename HashTable<GeoField*>, fields, iter)
-    {
-        GeoField& field = *iter();
+//- Return a cell-field of the volume fraction inside the given surface
+tmp<scalarField> insideFraction
+(
+    const searchableSurface& surface,
+    const polyMesh& mesh
+);
 
-        if (GeoField::Mesh::geometryFields.found(field.name())) continue;
+//- Return a patch-face-field of the area fraction inside the given surface
+tmp<scalarField> insideFraction
+(
+    const searchableSurface& surface,
+    const polyPatch& patch
+);
 
-        typename GeoField::Boundary& bfield = field.boundaryFieldRef();
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-        if
-        (
-            patchFieldDict.found(field.name())
-        || !fvPatch::constraintType(mesh.boundary()[patchi].type())
-        )
-        {
-            bfield.set
-            (
-                patchi,
-                GeoField::Patch::New
-                (
-                    mesh.boundary()[patchi],
-                    field(),
-                    patchFieldDict.subDict(field.name())
-                )
-            );
-        }
-    }
-}
+} // End namespace searchableSurfaces
+} // End namespace Foam
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

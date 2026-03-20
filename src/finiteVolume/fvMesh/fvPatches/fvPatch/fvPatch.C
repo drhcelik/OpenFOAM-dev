@@ -45,7 +45,7 @@ namespace Foam
 
 Foam::fvPatch::fvPatch(const polyPatch& p, const fvBoundaryMesh& bm)
 :
-    polyPatch_(p),
+    poly_(p),
     boundaryMesh_(bm)
 {}
 
@@ -104,7 +104,7 @@ const Foam::fvMesh& Foam::fvPatch::mesh() const
 
 const Foam::labelUList& Foam::fvPatch::faceCells() const
 {
-    return polyPatch_.faceCells();
+    return poly_.faceCells();
 }
 
 
@@ -125,7 +125,10 @@ Foam::fvPatch::C() const
             (
                 "C",
                 mesh().time().name(),
-                mesh()
+                mesh(),
+                IOobject::NO_READ,
+                IOobject::NO_WRITE,
+                false
             ),
             *this,
             dimLength,
@@ -196,7 +199,7 @@ Foam::tmp<Foam::scalarField> Foam::fvPatch::polyFaceFraction() const
        /scalarField
         (
             mesh().magFaceAreas(),
-            mesh().polyFacesBf()[patch().index()]
+            mesh().polyFacesBf()[index()]
         );
 }
 

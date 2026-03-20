@@ -446,7 +446,7 @@ public:
             label& comm();
 
             //- Return the object registry
-            const objectRegistry& thisDb() const
+            const objectRegistry& db() const
             {
                 return *this;
             }

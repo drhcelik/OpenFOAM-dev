@@ -293,7 +293,7 @@ void Foam::fvMeshDistribute::printMeshInfo(const fvMesh& mesh)
     Pout<< "Patches:" << endl;
     forAll(patches, patchi)
     {
-        const polyPatch& pp = patches[patchi].patch();
+        const polyPatch& pp = patches[patchi].poly();
 
         Pout<< "    " << patchi << " name:" << pp.name()
             << " size:" << pp.size()

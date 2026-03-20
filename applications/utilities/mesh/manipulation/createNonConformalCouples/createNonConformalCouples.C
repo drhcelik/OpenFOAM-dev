@@ -296,7 +296,7 @@ void evaluateNonConformalProcessorCyclics(const fvMesh& mesh)
             typename VolField<Type>::Patch& pf =
                 fields[i].boundaryFieldRef()[patchi];
 
-            if (isA<nonConformalProcessorCyclicPolyPatch>(pf.patch().patch()))
+            if (isA<nonConformalProcessorCyclicPolyPatch>(pf.patch().poly()))
             {
                 pf.initEvaluate(Pstream::defaultCommsType);
             }
@@ -316,7 +316,7 @@ void evaluateNonConformalProcessorCyclics(const fvMesh& mesh)
             typename VolField<Type>::Patch& pf =
                 fields[i].boundaryFieldRef()[patchi];
 
-            if (isA<nonConformalProcessorCyclicPolyPatch>(pf.patch().patch()))
+            if (isA<nonConformalProcessorCyclicPolyPatch>(pf.patch().poly()))
             {
                 pf.evaluate(Pstream::defaultCommsType);
             }

@@ -626,7 +626,7 @@ public:
             using objectRegistry::operator==;
 
             //- Return database
-            const objectRegistry& thisDb() const
+            const objectRegistry& db() const
             {
                 return *this;
             }

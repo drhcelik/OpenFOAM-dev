@@ -140,7 +140,7 @@ void Foam::externalCoupledMixedFvPatchField<Type>::writeGeometry
     int tag = Pstream::msgType() + 1;
 
     const label proci = Pstream::myProcNo();
-    const polyPatch& p = this->patch().patch();
+    const polyPatch& p = this->patch().poly();
     const polyMesh& mesh = p.boundaryMesh().mesh();
 
     labelList pointToGlobal;
