@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
     const scalar x1 = dict.lookup<scalar>("x1");
     const label nX = dict.lookup<label>("nX");
     const scalar dx = (x1 - x0)/(nX - 1);
-    const scalarField xs(x0 + dx*SubField<scalar>(scalarList(identityMap(nX))));
+    const scalarField xs(x0 + (x1 - x0)*linearSequence01(nX));
 
     Info<< "Calculating values\n" << endl;
 

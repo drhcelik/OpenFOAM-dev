@@ -55,13 +55,13 @@ int main(int argc, char *argv[])
     const CatmullRomSpline crSpline(points, tol, nIter);
 
     // Parameters
-    const scalarField is(scalarField(scalarList(identityMap(nSplinePoints))));
+    const scalar exponent = scalar(nSplinePoints - 1)/(nSplinePoints - 2);
     const scalarField lambdas
     (
         mag(grading - 1) < small
-      ? is/(is.size() - 1)
-      : (1 - pow(grading, is/(is.size() - 2)))
-       /(1 - Foam::pow(grading, (is.size() - 1)/scalar(is.size() - 2)))
+      ? linearSequence01(nSplinePoints)
+      : (1 - pow(grading, linearSequence01(nSplinePoints)*exponent))
+       /(1 - Foam::pow(grading, exponent))
     );
 
     // Evaluate
