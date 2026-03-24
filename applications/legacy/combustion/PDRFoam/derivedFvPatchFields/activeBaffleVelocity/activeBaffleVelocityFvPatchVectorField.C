@@ -53,11 +53,11 @@ activeBaffleVelocityFvPatchVectorField
             p.boundaryMesh()[cyclicPatchLabel_]
         ).neighbFvPatch().Sf()
     ),
-    openFraction_(dict.lookup<scalar>("openFraction", unitFraction)),
+    openFraction_(dict.lookup<scalar>("openFraction", units::fraction)),
     openingTime_(dict.lookup<scalar>("openingTime", dimTime)),
     maxOpenFractionDelta_
     (
-        dict.lookup<scalar>("maxOpenFractionDelta", unitFraction)
+        dict.lookup<scalar>("maxOpenFractionDelta", units::fraction)
     ),
     curTimeIndex_(-1)
 {
@@ -128,7 +128,7 @@ void Foam::activeBaffleVelocityFvPatchVectorField::map
     //  fvMesh::S() which will give problems when mapped (since already
     //  on new mesh)
 
-    const vectorField& areas = patch().boundaryMesh().mesh().faceAreas();
+    const vectorField& areas = patch().mesh().faceAreas();
     initWallSf_ = patch().patchSlice(areas);
     initCyclicSf_ = patch().boundaryMesh()
     [
@@ -152,7 +152,7 @@ void Foam::activeBaffleVelocityFvPatchVectorField::reset
     fixedValueFvPatchVectorField::reset(ptf);
 
     // See rmap.
-    const vectorField& areas = patch().boundaryMesh().mesh().faceAreas();
+    const vectorField& areas = patch().mesh().faceAreas();
     initWallSf_ = patch().patchSlice(areas);
     initCyclicSf_ = patch().boundaryMesh()
     [
