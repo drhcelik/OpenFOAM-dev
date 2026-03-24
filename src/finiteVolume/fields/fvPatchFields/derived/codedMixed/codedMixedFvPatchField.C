@@ -72,6 +72,7 @@ Foam::codedMixedFvPatchField<Type>::codedMixedFvPatchField
     mixedFvPatchField<Type>(p, iF, dict),
     codedBase
     (
+        dict.lookup("name"),
         dict,
         codeKeys,
         codeDictVars,

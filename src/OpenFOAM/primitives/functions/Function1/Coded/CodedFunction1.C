@@ -71,6 +71,7 @@ Foam::Function1s::Coded<Type>::Coded
     Function1<Type>(name),
     codedBase
     (
+        dict.lookup("name"),
         dict,
         codeKeys,
         codeDictVars,
