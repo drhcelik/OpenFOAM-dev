@@ -23,30 +23,30 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "unitConversion.H"
+#include "unitSet.H"
 #include "mathematicalConstants.H"
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-inline const Foam::dimensionSet& Foam::unitConversion::dimensions() const
+inline const Foam::dimensionSet& Foam::unitSet::dimensions() const
 {
     return dimensions_;
 }
 
 
-inline bool Foam::unitConversion::any() const
+inline bool Foam::unitSet::any() const
 {
     return multiplier_ == 0;
 }
 
 
-inline bool Foam::unitConversion::none() const
+inline bool Foam::unitSet::none() const
 {
     return multiplier_ == -1;
 }
 
 
-inline bool Foam::unitConversion::standard() const
+inline bool Foam::unitSet::standard() const
 {
     return multiplier_ == 1 || any() || none();
 }
@@ -54,7 +54,7 @@ inline bool Foam::unitConversion::standard() const
 
 // * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //
 
-inline Foam::scalar Foam::unitConversion::operator[]
+inline Foam::scalar Foam::unitSet::operator[]
 (
     const dimensionSet::dimensionType type
 ) const
@@ -63,7 +63,7 @@ inline Foam::scalar Foam::unitConversion::operator[]
 }
 
 
-inline Foam::scalar Foam::unitConversion::operator[]
+inline Foam::scalar Foam::unitSet::operator[]
 (
     const dimlessUnitType type
 ) const
