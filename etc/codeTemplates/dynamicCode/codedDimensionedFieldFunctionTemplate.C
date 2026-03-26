@@ -143,6 +143,7 @@ ${typeName}DimensionedFieldFunction${DimensionedFieldTypeName}::evaluate()
     using namespace dimensions;
 
     const DimensionedField<vector, GeoMesh, Field>& C(field.mesh().C());
+    ignore(C);
 
 //{{{ begin code
     ${evaluate}
