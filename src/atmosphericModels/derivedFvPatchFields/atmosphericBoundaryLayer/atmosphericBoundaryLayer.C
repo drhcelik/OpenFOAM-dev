@@ -49,7 +49,7 @@ Foam::tmp<Foam::scalarField> Foam::atmosphericBoundaryLayer::z0
     const vectorField& C
 ) const
 {
-    return tmp<scalarField>(new scalarField(C.size(), z0_->value(0, 0)));
+    return z0_->value(flowDir_ & C, yDir_ & C);
 }
 
 
@@ -82,6 +82,7 @@ Foam::atmosphericBoundaryLayer::atmosphericBoundaryLayer
     ),
     flowDir_(normalised(lookup<vector>("flowDir", dimless))),
     zDir_(normalised(lookup<vector>("zDir", dimless))),
+    yDir_(zDir_ ^ flowDir_),
     kappa_(lookupOrDefault<scalar>("kappa", dimless, kappaDefault_)),
     Cmu_(lookupOrDefault<scalar>("Cmu", dimless, CmuDefault_)),
     Uref_(lookup<scalar>("Uref", dimVelocity)),
@@ -156,16 +157,20 @@ const Foam::atmosphericBoundaryLayer& Foam::atmosphericBoundaryLayer::New
 
 Foam::tmp<Foam::vectorField> Foam::atmosphericBoundaryLayer::U
 (
-    const vectorField& p
+    const vectorField& C
 ) const
 {
-    const scalarField z0(p.size(), z0_->value(0, 0));
-    const scalarField zGround(p.size(), zGround_->value(0, 0));
+    const scalarField x(flowDir_ & C);
+    const scalarField y(yDir_ & C);
+    const scalarField z(zDir_ & C);
+
+    const scalarField z0(z0_->value(x, y));
+    const scalarField zGround(zGround_->value(x, y));
 
     const scalarField Un
     (
         (Ustar(z0)/kappa_)
-       *log(max((zDir_ & p) - zGround + z0, z0)/z0)
+       *log(max(z - zGround + z0, z0)/z0)
     );
 
     if (offset_)
@@ -181,21 +186,22 @@ Foam::tmp<Foam::vectorField> Foam::atmosphericBoundaryLayer::U
 
 Foam::tmp<Foam::scalarField> Foam::atmosphericBoundaryLayer::k
 (
-    const vectorField& p
+    const vectorField& C
 ) const
 {
-    const scalarField z0(p.size(), z0_->value(0, 0));
-    const scalarField zGround(p.size(), zGround_->value(0, 0));
+    const scalarField x(flowDir_ & C);
+    const scalarField y(yDir_ & C);
+    const scalarField z(zDir_ & C);
 
-    tmp<scalarField> tk
-    (
-        sqr(Ustar(z0))/sqrt(Cmu_)
-    );
+    const scalarField z0(z0_->value(x, y));
+    const scalarField zGround(zGround_->value(x, y));
+
+    tmp<scalarField> tk(sqr(Ustar(z0))/sqrt(Cmu_));
 
     if (offset_)
     {
-        const scalarField z((zDir_ & p) - zGround);
-        tk.ref() = pos0(z)*tk() + neg(z)*kLower_;
+        const scalarField zmg(z - zGround);
+        tk.ref() = pos0(zmg)*tk() + neg(zmg)*kLower_;
     }
 
     return tk;
@@ -204,21 +210,25 @@ Foam::tmp<Foam::scalarField> Foam::atmosphericBoundaryLayer::k
 
 Foam::tmp<Foam::scalarField> Foam::atmosphericBoundaryLayer::epsilon
 (
-    const vectorField& p
+    const vectorField& C
 ) const
 {
-    const scalarField z0(p.size(), z0_->value(0, 0));
-    const scalarField zGround(p.size(), zGround_->value(0, 0));
+    const scalarField x(flowDir_ & C);
+    const scalarField y(yDir_ & C);
+    const scalarField z(zDir_ & C);
+
+    const scalarField z0(z0_->value(x, y));
+    const scalarField zGround(zGround_->value(x, y));
+    const scalarField zmg(z - zGround);
 
     tmp<scalarField> tepsilon
     (
-        pow3(Ustar(z0))/(kappa_*((zDir_ & p) - zGround + z0))
+        pow3(Ustar(z0))/(kappa_*(zmg + z0))
     );
 
     if (offset_)
     {
-        const scalarField z((zDir_ & p) - zGround);
-        tepsilon.ref() = pos0(z)*tepsilon() + neg(z)*epsilonLower_;
+        tepsilon.ref() = pos0(zmg)*tepsilon() + neg(zmg)*epsilonLower_;
     }
 
     return tepsilon;

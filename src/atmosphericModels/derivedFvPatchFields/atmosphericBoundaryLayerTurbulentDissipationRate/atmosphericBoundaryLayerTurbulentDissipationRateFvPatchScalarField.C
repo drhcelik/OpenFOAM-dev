@@ -42,7 +42,7 @@ atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField
     const dictionary& dict
 )
 :
-    inletOutletFvPatchScalarField(p, iF)
+    inletOutletFvPatchScalarField(p, iF, dict, false)
 {
     phiName_ = dict.lookupOrDefault<word>("phi", "phi");
 

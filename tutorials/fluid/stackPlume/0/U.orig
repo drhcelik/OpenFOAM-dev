@@ -25,6 +25,7 @@ boundaryField
     inletWind
     {
         type            atmosphericBoundaryLayerVelocity;
+        libs            ("libatmosphericModels.so");
     }
 
     inlet

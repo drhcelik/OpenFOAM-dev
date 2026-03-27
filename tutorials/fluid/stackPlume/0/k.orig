@@ -26,6 +26,7 @@ boundaryField
     inletWind
     {
         type            atmosphericBoundaryLayerTurbulentKineticEnergy;
+        libs            ("libatmosphericModels.so");
     }
 
     inlet
@@ -38,6 +39,7 @@ boundaryField
     outlet
     {
         type            atmosphericBoundaryLayerTurbulentKineticEnergy;
+        libs            ("libatmosphericModels.so");
     }
 
     wall

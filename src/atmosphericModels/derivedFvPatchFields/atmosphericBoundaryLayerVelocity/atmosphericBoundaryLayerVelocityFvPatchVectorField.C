@@ -42,7 +42,7 @@ atmosphericBoundaryLayerVelocityFvPatchVectorField
     const dictionary& dict
 )
 :
-    inletOutletFvPatchVectorField(p, iF)
+    inletOutletFvPatchVectorField(p, iF, dict, false)
 {
     phiName_ = dict.lookupOrDefault<word>("phi", "phi");
 

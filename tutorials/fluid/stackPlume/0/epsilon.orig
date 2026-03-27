@@ -26,6 +26,7 @@ boundaryField
     inletWind
     {
         type            atmosphericBoundaryLayerTurbulentDissipationRate;
+        libs            ("libatmosphericModels.so");
     }
 
     inlet
@@ -38,6 +39,7 @@ boundaryField
     outlet
     {
         type            atmosphericBoundaryLayerTurbulentDissipationRate;
+        libs            ("libatmosphericModels.so");
     }
 
     wall

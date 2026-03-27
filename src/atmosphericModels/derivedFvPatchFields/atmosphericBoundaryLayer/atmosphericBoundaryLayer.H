@@ -149,11 +149,14 @@ class atmosphericBoundaryLayer
 
     // Private Data
 
-        //- Flow direction
+        //- Flow direction (x-coordinate)
         vector flowDir_;
 
         //- Direction of the z-coordinate
         vector zDir_;
+
+        //- Direction of the y-coordinate
+        vector yDir_;
 
         //- Von Karman constant
         const scalar kappa_;
