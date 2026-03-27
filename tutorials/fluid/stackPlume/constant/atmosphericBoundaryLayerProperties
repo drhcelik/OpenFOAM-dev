@@ -10,7 +10,7 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "system";
-    object      setAtmBoundaryLayerDict;
+    object      atmosphericBoundaryLayerProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -18,7 +18,7 @@ flowDir         (1 0 0);
 zDir            (0 0 1);
 Uref            5.0;
 Zref            5.0;
-z0              uniform 0.01;
-zGround         uniform 0.0;
+z0              constant 0.01;
+zGround         constant 0.0;
 
 // ************************************************************************* //

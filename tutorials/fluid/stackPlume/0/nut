@@ -28,8 +28,7 @@ boundaryField
 
     wall
     {
-        type            nutkAtmRoughWallFunction;
-        #include        "${${FOAM_CASE}/system/setAtmBoundaryLayerDict"
+        type            atmosphericBoundaryLayerNutWallFunction;
         value           uniform 0;
     }
 

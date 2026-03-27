@@ -23,11 +23,9 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "atmBoundaryLayerInletEpsilonFvPatchScalarField.H"
+#include "atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField.H"
+#include "atmosphericBoundaryLayer.H"
 #include "addToRunTimeSelectionTable.H"
-#include "fieldMapper.H"
-#include "volFields.H"
-#include "surfaceFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -36,20 +34,22 @@ namespace Foam
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-atmBoundaryLayerInletEpsilonFvPatchScalarField::
-atmBoundaryLayerInletEpsilonFvPatchScalarField
+atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField::
+atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField
 (
     const fvPatch& p,
     const DimensionedField<scalar, fvMesh>& iF,
     const dictionary& dict
 )
 :
-    inletOutletFvPatchScalarField(p, iF),
-    atmBoundaryLayer(patch().Cf(), dict)
+    inletOutletFvPatchScalarField(p, iF)
 {
     phiName_ = dict.lookupOrDefault<word>("phi", "phi");
 
-    refValue() = epsilon(patch().Cf());
+    const atmosphericBoundaryLayer& abl =
+        atmosphericBoundaryLayer::New(patch().db());
+
+    refValue() = abl.epsilon(patch().Cf());
     refGrad() = 0;
     valueFraction() = 1;
 
@@ -67,67 +67,40 @@ atmBoundaryLayerInletEpsilonFvPatchScalarField
 }
 
 
-atmBoundaryLayerInletEpsilonFvPatchScalarField::
-atmBoundaryLayerInletEpsilonFvPatchScalarField
+atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField::
+atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField
 (
-    const atmBoundaryLayerInletEpsilonFvPatchScalarField& psf,
+    const atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField&
+    psf,
     const fvPatch& p,
     const DimensionedField<scalar, fvMesh>& iF,
     const fieldMapper& mapper
 )
 :
-    inletOutletFvPatchScalarField(psf, p, iF, mapper),
-    atmBoundaryLayer(psf, mapper)
+    inletOutletFvPatchScalarField(psf, p, iF, mapper)
 {}
 
 
-atmBoundaryLayerInletEpsilonFvPatchScalarField::
-atmBoundaryLayerInletEpsilonFvPatchScalarField
+atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField::
+atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField
 (
-    const atmBoundaryLayerInletEpsilonFvPatchScalarField& psf,
+    const atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField&
+    psf,
     const DimensionedField<scalar, fvMesh>& iF
 )
 :
-    inletOutletFvPatchScalarField(psf, iF),
-    atmBoundaryLayer(psf)
+    inletOutletFvPatchScalarField(psf, iF)
 {}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void atmBoundaryLayerInletEpsilonFvPatchScalarField::map
+void atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField::write
 (
-    const fvPatchScalarField& psf,
-    const fieldMapper& mapper
-)
-{
-    inletOutletFvPatchScalarField::map(psf, mapper);
-
-    const atmBoundaryLayerInletEpsilonFvPatchScalarField& blpsf =
-        refCast<const atmBoundaryLayerInletEpsilonFvPatchScalarField>(psf);
-
-    atmBoundaryLayer::map(blpsf, mapper);
-}
-
-
-void atmBoundaryLayerInletEpsilonFvPatchScalarField::reset
-(
-    const fvPatchScalarField& psf
-)
-{
-    inletOutletFvPatchScalarField::reset(psf);
-
-    const atmBoundaryLayerInletEpsilonFvPatchScalarField& blpsf =
-        refCast<const atmBoundaryLayerInletEpsilonFvPatchScalarField>(psf);
-
-    atmBoundaryLayer::reset(blpsf);
-}
-
-
-void atmBoundaryLayerInletEpsilonFvPatchScalarField::write(Ostream& os) const
+    Ostream& os
+) const
 {
     fvPatchScalarField::write(os);
-    atmBoundaryLayer::write(os);
     writeEntryIfDifferent<word>(os, "phi", "phi", phiName_);
     writeEntry(os, "value", *this);
 }
@@ -138,7 +111,7 @@ void atmBoundaryLayerInletEpsilonFvPatchScalarField::write(Ostream& os) const
 makePatchTypeField
 (
     fvPatchScalarField,
-    atmBoundaryLayerInletEpsilonFvPatchScalarField
+    atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField
 );
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

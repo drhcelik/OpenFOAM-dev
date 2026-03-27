@@ -24,6 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "inletOutletFvPatchField.H"
+#include "surfaceFields.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
