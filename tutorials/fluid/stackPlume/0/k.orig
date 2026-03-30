@@ -19,14 +19,17 @@ kStack 1.5;
 
 dimensions      [0 2 -2 0 0 0 0];
 
-internalField   uniform $kWind;
+internalField
+{
+    type            atmosphericBoundaryLayerTurbulentKineticEnergy;
+    libs            ("libatmosphericModels.so");
+}
 
 boundaryField
 {
     inletWind
     {
-        type            atmosphericBoundaryLayerTurbulentKineticEnergy;
-        libs            ("libatmosphericModels.so");
+        $internalField;
     }
 
     inlet
@@ -38,14 +41,12 @@ boundaryField
 
     outlet
     {
-        type            atmosphericBoundaryLayerTurbulentKineticEnergy;
-        libs            ("libatmosphericModels.so");
+        $internalField;
     }
 
     wall
     {
         type            kqRWallFunction;
-        value           uniform $kWind;
     }
 
     #includeEtc "caseDicts/setConstraintTypes"

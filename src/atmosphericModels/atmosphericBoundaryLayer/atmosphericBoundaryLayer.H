@@ -72,7 +72,7 @@ Description
     Used in the
     Foam::atmosphericBoundaryLayerVelocity,
     Foam::atmosphericBoundaryLayerTurbulentKineticEnergy,
-    Foam::atmosphericBoundaryLayerTurbulentDissipationRate and
+    Foam::atmosphericBoundaryLayerTurbulentEpsilon and
     Foam::atmosphericBoundaryLayerNutWallFunction boundary conditions.
 
     Reference:

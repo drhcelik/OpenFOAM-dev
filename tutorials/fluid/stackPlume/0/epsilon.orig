@@ -19,14 +19,17 @@ epsilonStack 6.16;
 
 dimensions      [0 2 -3 0 0 0 0];
 
-internalField   uniform $epsilonWind;
+internalField
+{
+    type            atmosphericBoundaryLayerTurbulentEpsilon;
+    libs            ("libatmosphericModels.so");
+}
 
 boundaryField
 {
     inletWind
     {
-        type            atmosphericBoundaryLayerTurbulentDissipationRate;
-        libs            ("libatmosphericModels.so");
+        $internalField;
     }
 
     inlet
@@ -38,14 +41,13 @@ boundaryField
 
     outlet
     {
-        type            atmosphericBoundaryLayerTurbulentDissipationRate;
+        type            atmosphericBoundaryLayerTurbulentEpsilon;
         libs            ("libatmosphericModels.so");
     }
 
     wall
     {
         type            epsilonWallFunction;
-        value           uniform $epsilonWind;
     }
 
     #includeEtc "caseDicts/setConstraintTypes"

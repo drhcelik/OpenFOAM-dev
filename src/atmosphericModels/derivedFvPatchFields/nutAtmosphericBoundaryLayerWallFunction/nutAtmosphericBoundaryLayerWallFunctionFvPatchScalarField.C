@@ -23,7 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField.H"
+#include "nutAtmosphericBoundaryLayerWallFunctionFvPatchScalarField.H"
 #include "momentumTransportModel.H"
 #include "atmosphericBoundaryLayer.H"
 #include "addToRunTimeSelectionTable.H"
@@ -36,7 +36,7 @@ namespace Foam
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
 tmp<scalarField>
-atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField::nut() const
+nutAtmosphericBoundaryLayerWallFunctionFvPatchScalarField::nut() const
 {
     const label patchi = patch().index();
 
@@ -87,8 +87,8 @@ atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField::nut() const
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField::
-atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField
+nutAtmosphericBoundaryLayerWallFunctionFvPatchScalarField::
+nutAtmosphericBoundaryLayerWallFunctionFvPatchScalarField
 (
     const fvPatch& p,
     const DimensionedField<scalar, fvMesh>& iF,
@@ -99,10 +99,10 @@ atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField
 {}
 
 
-atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField::
-atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField
+nutAtmosphericBoundaryLayerWallFunctionFvPatchScalarField::
+nutAtmosphericBoundaryLayerWallFunctionFvPatchScalarField
 (
-    const atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField& ptf,
+    const nutAtmosphericBoundaryLayerWallFunctionFvPatchScalarField& ptf,
     const fvPatch& p,
     const DimensionedField<scalar, fvMesh>& iF,
     const fieldMapper& mapper
@@ -112,10 +112,10 @@ atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField
 {}
 
 
-atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField::
-atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField
+nutAtmosphericBoundaryLayerWallFunctionFvPatchScalarField::
+nutAtmosphericBoundaryLayerWallFunctionFvPatchScalarField
 (
-    const atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField& rwfpsf,
+    const nutAtmosphericBoundaryLayerWallFunctionFvPatchScalarField& rwfpsf,
     const DimensionedField<scalar, fvMesh>& iF
 )
 :
@@ -125,7 +125,7 @@ atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField::write
+void nutAtmosphericBoundaryLayerWallFunctionFvPatchScalarField::write
 (
     Ostream& os
 ) const
@@ -141,8 +141,9 @@ void atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField::write
 makePatchTypeField
 (
     fvPatchScalarField,
-    atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField
+    nutAtmosphericBoundaryLayerWallFunctionFvPatchScalarField
 );
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

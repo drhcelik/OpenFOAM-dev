@@ -5,11 +5,20 @@
     \\  /    A nd           | Version:  dev
      \\/     M anipulation  |
 \*---------------------------------------------------------------------------*/
-
-inlet
+FoamFile
 {
-    type  fixedValue;
-    value $internalField;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      atmosphericBoundaryLayerProperties;
 }
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+flowDir         (1 0 0);
+zDir            (0 0 1);
+Uref            10.0;
+Zref            20.0;
+z0              constant 0.1;
+zGround         constant 935.0;
 
 // ************************************************************************* //

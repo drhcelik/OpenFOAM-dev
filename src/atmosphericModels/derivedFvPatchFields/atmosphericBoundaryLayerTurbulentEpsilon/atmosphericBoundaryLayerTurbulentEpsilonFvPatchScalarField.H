@@ -22,41 +22,29 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField
+    Foam::atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField
 
 Description
-    This boundary condition provides a turbulent kinematic viscosity for
-    atmospheric velocity profiles.  It is designed to be used in conjunction
-    with the atmosphericBoundaryLayerVelocity boundary condition.  The values
-    are calculated using:
+    This boundary condition specifies an inlet value for the turbulence
+    dissipation rate, \f$\epsilon\f$, for an atmospheric boundary layer.
 
-        \f[
-            U = frac{U_f}{\kappa} ln(\frac{z + z_0}{z_0})
-        \f]
-
-    where
-
-    \vartable
-        U_f    | frictional velocity
-        \kappa | Von Karman's constant
-        z_0    | surface roughness length
-        z      | vertical co-ordinate
-    \endvartable
+    See Foam::atmosphericBoundaryLayer for details.
 
 See also
     Foam::atmosphericBoundaryLayer
     Foam::atmosphericBoundaryLayerVelocityFvPatchVectorField
-    Foam::nutkWallFunctionFvPatchField
+    Foam::atmosphericBoundaryLayerTurbulentKineticEnergyFvPatchScalarField
 
 SourceFiles
-    atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField.C
+    atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField_H
-#define atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField_H
+#ifndef atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField_H
+#define atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField_H
 
-#include "nutkWallFunctionFvPatchScalarField.H"
+#include "fvPatchFields.H"
+#include "inletOutletFvPatchFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -64,31 +52,24 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-         Class atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField
+   Class atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField
 \*---------------------------------------------------------------------------*/
 
-class atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField
+class atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField
 :
-    public nutkWallFunctionFvPatchScalarField
+    public inletOutletFvPatchScalarField
 {
-protected:
-
-    // Protected Member Functions
-
-        //- Calculate the turbulence viscosity
-        virtual tmp<scalarField> nut() const;
-
 
 public:
 
     //- Runtime type information
-    TypeName("atmosphericBoundaryLayerNutWallFunction");
+    TypeName("atmosphericBoundaryLayerTurbulentEpsilon");
 
 
     // Constructors
 
         //- Construct from patch, internal field and dictionary
-        atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField
+        atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField
         (
             const fvPatch&,
             const DimensionedField<scalar, fvMesh>&,
@@ -96,26 +77,22 @@ public:
         );
 
         //- Construct by mapping given
-        //  atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField
-        //  onto a new patch
-        atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField
+        //  atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField
+        // onto a new patch
+        atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField
         (
-            const atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField&,
+            const
+            atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField&,
             const fvPatch&,
             const DimensionedField<scalar, fvMesh>&,
             const fieldMapper&
         );
 
-        //- Disallow copy without setting internal field reference
-        atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField
+        //- Construct as copy setting internal field reference
+        atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField
         (
-            const atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField&
-        ) = delete;
-
-        //- Copy constructor setting internal field reference
-        atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField
-        (
-            const atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField&,
+            const
+            atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField&,
             const DimensionedField<scalar, fvMesh>&
         );
 
@@ -127,7 +104,8 @@ public:
         {
             return tmp<fvPatchScalarField>
             (
-                new atmosphericBoundaryLayerNutWallFunctionFvPatchScalarField
+                new
+              atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField
                 (
                     *this,
                     iF
@@ -138,16 +116,14 @@ public:
 
     // Member Functions
 
-        // I-O
-
-            //- Write
-            virtual void write(Ostream&) const;
+        //- Write
+        virtual void write(Ostream&) const;
 
 
     // Member Operators
 
         //- Inherit assignment
-        using nutkWallFunctionFvPatchScalarField::operator=;
+        using inletOutletFvPatchScalarField::operator=;
 };
 
 

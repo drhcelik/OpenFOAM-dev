@@ -23,7 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField.H"
+#include "atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField.H"
 #include "atmosphericBoundaryLayer.H"
 #include "addToRunTimeSelectionTable.H"
 
@@ -34,8 +34,8 @@ namespace Foam
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField::
-atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField
+atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField::
+atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField
 (
     const fvPatch& p,
     const DimensionedField<scalar, fvMesh>& iF,
@@ -67,10 +67,10 @@ atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField
 }
 
 
-atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField::
-atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField
+atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField::
+atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField
 (
-    const atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField&
+    const atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField&
     psf,
     const fvPatch& p,
     const DimensionedField<scalar, fvMesh>& iF,
@@ -81,10 +81,10 @@ atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField
 {}
 
 
-atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField::
-atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField
+atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField::
+atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField
 (
-    const atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField&
+    const atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField&
     psf,
     const DimensionedField<scalar, fvMesh>& iF
 )
@@ -95,7 +95,7 @@ atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField::write
+void atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField::write
 (
     Ostream& os
 ) const
@@ -111,7 +111,7 @@ void atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField::write
 makePatchTypeField
 (
     fvPatchScalarField,
-    atmosphericBoundaryLayerTurbulentDissipationRateFvPatchScalarField
+    atmosphericBoundaryLayerTurbulentEpsilonFvPatchScalarField
 );
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
