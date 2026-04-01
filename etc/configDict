@@ -159,7 +159,7 @@ units
 
 constants
 {
-    Pstd    1e5                 [kg m^-1 s^-2];
+    pStd    1e5                 [kg m^-1 s^-2];
     Tstd    298.15              [K];
 }
 
