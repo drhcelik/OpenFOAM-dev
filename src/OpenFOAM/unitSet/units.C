@@ -85,6 +85,8 @@ deleteUnitsPtr deleteUnitsPtr_;
 
 namespace Foam
 {
+namespace units
+{
 
 dimensionSet makeDimless()
 {
@@ -96,37 +98,40 @@ unitSet makeUnitless()
     return unitSet(makeDimless(), 0, 0, 1);
 }
 
-unitSet makeUnitAny()
+unitSet makeAny()
 {
     return unitSet(makeDimless(), 0, 0, 0);
 }
-unitSet makeUnitNone()
+unitSet makeNone()
 {
     return unitSet(makeDimless(), 0, 0, -1);
 }
 
-unitSet makeUnitFraction()
+unitSet makeFraction()
 {
     return unitSet(makeDimless(), 1, 0, 1);
 }
-unitSet makeUnitPercent()
+unitSet makePercent()
 {
     return unitSet(makeDimless(), 1, 0, 0.01);
 }
 
-unitSet makeUnitRadians()
+unitSet makeRadians()
 {
     return unitSet(makeDimless(), 0, 1, 1);
 }
-unitSet makeUnitRotations()
+unitSet makeRotations()
 {
     return unitSet(makeDimless(), 0, 1, 2*pi);
 }
-unitSet makeUnitDegrees()
+unitSet makeDegrees()
 {
     return unitSet(makeDimless(), 0, 1, pi/180);
 }
 
+unitSet length_(dimensionSet(0, 1, 0, 0, 0), 0, 0, 1);
+
+}
 }
 
 
@@ -134,15 +139,17 @@ unitSet makeUnitDegrees()
 
 const Foam::unitSet Foam::units::unitless(makeUnitless());
 
-const Foam::unitSet Foam::units::any(makeUnitAny());
-const Foam::unitSet Foam::units::none(makeUnitNone());
+const Foam::unitSet Foam::units::any(makeAny());
+const Foam::unitSet Foam::units::none(makeNone());
 
-const Foam::unitSet Foam::units::fraction(makeUnitFraction());
-const Foam::unitSet Foam::units::percent(makeUnitPercent());
+const Foam::unitSet Foam::units::fraction(makeFraction());
+const Foam::unitSet Foam::units::percent(makePercent());
 
-const Foam::unitSet Foam::units::radians(makeUnitRadians());
-const Foam::unitSet Foam::units::rotations(makeUnitRotations());
-const Foam::unitSet Foam::units::degrees(makeUnitDegrees());
+const Foam::unitSet Foam::units::radians(makeRadians());
+const Foam::unitSet Foam::units::rotations(makeRotations());
+const Foam::unitSet Foam::units::degrees(makeDegrees());
+
+const Foam::unitSet& Foam::units::length = Foam::units::length_;
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -153,11 +160,11 @@ const Foam::HashTable<Foam::unitSet>& Foam::units::table()
     {
         unitsPtr_ = new HashTable<unitSet>();
 
-        unitsPtr_->insert("%", makeUnitPercent());
+        unitsPtr_->insert("%", makePercent());
 
-        unitsPtr_->insert("rad", makeUnitRadians());
-        unitsPtr_->insert("rot", makeUnitRotations());
-        unitsPtr_->insert("deg", makeUnitDegrees());
+        unitsPtr_->insert("rad", makeRadians());
+        unitsPtr_->insert("rot", makeRotations());
+        unitsPtr_->insert("deg", makeDegrees());
 
         // Get the relevant part of the control dictionary
         const dictionary& unitSetDict =
@@ -352,6 +359,24 @@ void Foam::units::add(const word& name, const unitSet& units)
     addedUnitsPtr_->insert(name, units);
 
     deleteDemandDrivenData(unitsPtr_);
+}
+
+
+const Foam::unitSet& Foam::units::lookup(const word& unitName)
+{
+    return table()[unitName];
+}
+
+
+void Foam::units::setLength(const unitSet& length)
+{
+    length_.reset(length);
+}
+
+
+void Foam::units::setLength(const scalar length)
+{
+    length_.reset(unitSet(dimLength, 0, 0, length));
 }
 
 
