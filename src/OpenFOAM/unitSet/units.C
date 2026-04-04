@@ -216,6 +216,83 @@ const Foam::HashTable<Foam::unitSet>& Foam::units::table()
             );
         }
 
+        // Local function to add a unit to the table with checking
+        auto addUnit = []
+        (
+            const word& name,
+            const unitSet& units,
+            const scalar multiplier
+        )
+        {
+            const bool ok =
+                unitsPtr_->insert
+                (
+                    name,
+                    units*unitSet(dimless, 0, 0, multiplier)
+                );
+
+            if (!ok)
+            {
+                FatalIOErrorInFunction(unitsDict())
+                    << "Duplicate unit " << name
+                    << " read from dictionary"
+                    << exit(FatalIOError);
+            }
+        };
+
+        // Read conversions to fundamental units. These are defined the wrong
+        // way around relative to the chosen unit set, so we have to parse them
+        // and then add the reverse conversion to the table.
+        forAllConstIter(HashTable<label>, fundamentalUnits, iter)
+        {
+            if (!unitsDict().found(iter.key())) continue;
+
+            auto readPunctuation = [](symbols::tokeniser& tis, const char p)
+            {
+                token t(tis.nextToken());
+                if (!t.isPunctuation() || t.pToken() != p)
+                {
+                    FatalIOErrorInFunction(tis.stream())
+                        << "Illegal token " << t
+                        << ". Expected character '" << p << "'."
+                        << exit(FatalIOError);
+                }
+            };
+
+            ITstream& is = unitsDict().lookup(iter.key());
+            symbols::tokeniser tis(is);
+
+            // Read the name and the multiplier, in whatever order
+            token t(tis.nextToken());
+            tis.putBack(t);
+            word derivedUnitName;
+            scalar multiplier;
+            if (!t.isNumber())
+            {
+                readPunctuation(tis, token::BEGIN_SQR);
+                derivedUnitName = tis.nextToken().wordToken();
+                readPunctuation(tis, token::END_SQR);
+                multiplier = tis.nextToken().number();
+            }
+            else
+            {
+                multiplier = tis.nextToken().number();
+                readPunctuation(tis, token::BEGIN_SQR);
+                derivedUnitName = tis.nextToken().wordToken();
+                readPunctuation(tis, token::END_SQR);
+            }
+
+            // Now we have the name and the multiplier, we can add the
+            // inverse conversion to the table; i.e., flip the names, and
+            // use the reciprocal of the multiplier
+            addUnit
+            (
+                derivedUnitName,
+                unitsPtr_->operator[](iter.key()),
+                1/multiplier
+            );
+        }
+
         // Read other units
         forAllConstIter(dictionary, unitsDict(), iter)
         {
@@ -224,105 +301,28 @@ const Foam::HashTable<Foam::unitSet>& Foam::units::table()
                 iter().isDict()
              || iter().keyword() == "set"
              || iter().keyword() == "unitSet"
+             || fundamentalUnits.found(iter().keyword())
             ) continue;
 
-            // Local function to add a unit to the table with checking
-            auto addUnit = []
-            (
-                const word& name,
-                const unitSet& units,
-                const scalar multiplier
-            )
-            {
-                const bool ok =
-                    unitsPtr_->insert
-                    (
-                        name,
-                        units*unitSet(dimless, 0, 0, multiplier)
-                    );
-
-                if (!ok)
-                {
-                    FatalIOErrorInFunction(unitsDict())
-                        << "Duplicate unit " << name
-                        << " read from dictionary"
-                        << exit(FatalIOError);
-                }
-            };
-
-            // Read the units
+            // Read the units and the multiplier, in whatever order
             ITstream& is = iter().stream();
-            if (fundamentalUnits.found(iter().keyword()))
+            token t(is);
+            is.putBack(t);
+            unitSet units(units::any);
+            scalar multiplier;
+            if (!t.isNumber())
             {
-                // This unit is fundamental, so the conversion here is between
-                // fundamental units in different unit sets, and it is written
-                // in such a way as to convert into the other unit set, rather
-                // than into this unit set. To use this we need to invert it.
-                // This means parsing it...
-                auto readPunctuation = [](symbols::tokeniser& tis, const char p)
-                {
-                    token t(tis.nextToken());
-                    if (!t.isPunctuation() || t.pToken() != p)
-                    {
-                        FatalIOErrorInFunction(tis.stream())
-                            << "Illegal token " << t
-                            << ". Expected character '" << p << "'."
-                            << exit(FatalIOError);
-                    }
-                };
-                symbols::tokeniser tis(is);
-
-                // Read the name and the multiplier, in whatever order
-                token t(tis.nextToken());
-                tis.putBack(t);
-                word derivedUnitName;
-                scalar multiplier;
-                if (!t.isNumber())
-                {
-                    readPunctuation(tis, token::BEGIN_SQR);
-                    derivedUnitName = tis.nextToken().wordToken();
-                    readPunctuation(tis, token::END_SQR);
-                    multiplier = tis.nextToken().scalarToken();
-                }
-                else
-                {
-                    multiplier = tis.nextToken().scalarToken();
-                    readPunctuation(tis, token::BEGIN_SQR);
-                    derivedUnitName = tis.nextToken().wordToken();
-                    readPunctuation(tis, token::END_SQR);
-                }
-
-                // Now we have the name and the multiplier, we can add the
-                // inverse conversion to the table; i.e., flip the names, and
-                // use the reciprocal of the multiplier
-                addUnit
-                (
-                    derivedUnitName,
-                    unitsPtr_->operator[](iter().keyword()),
-                    1/multiplier
-                );
+                is >> units;
+                multiplier = pTraits<scalar>(is);
             }
             else
             {
-                // Read the units and the multiplier, in whatever order
-                token t(is);
-                is.putBack(t);
-                unitSet units(units::any);
-                scalar multiplier;
-                if (!t.isNumber())
-                {
-                    is >> units;
-                    multiplier = pTraits<scalar>(is);
-                }
-                else
-                {
-                    multiplier = pTraits<scalar>(is);
-                    is >> units;
-                }
-
-                // Add the conversion to the table
-                addUnit(iter().keyword(), units, multiplier);
+                multiplier = pTraits<scalar>(is);
+                is >> units;
             }
+
+            // Add the conversion to the table
+            addUnit(iter().keyword(), units, multiplier);
         }
 
         // Add programmatically defined units
