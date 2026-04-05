@@ -99,6 +99,19 @@ public:
             const dictionary&
         );
 
+        //- Construct from name, mesh, dimensions, field, dictionary
+        //  and default value
+        UDimensionedFieldFunction
+        (
+            const word& name,
+            const word& funcName,
+            const GeoMesh&,
+            const dimensionSet& dimensions,
+            Field<Type>&,
+            const dictionary&,
+            const Type& defaultValue
+        );
+
         //- Construct from given UDimensionedFieldFunction
         //  with new mesh and field
         UDimensionedFieldFunction
@@ -123,6 +136,12 @@ public:
 
 
     // Member Functions
+
+        //- Return the dimensioned field
+        const DimensionedField<Type, GeoMesh>& field() const
+        {
+            return dimensionedField_;
+        }
 
         //- Map and optionally evaluate
         void map(const bool evaluate);
