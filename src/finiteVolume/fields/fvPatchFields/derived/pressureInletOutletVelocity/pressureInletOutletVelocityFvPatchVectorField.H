@@ -59,6 +59,8 @@ Usage
     function.
 
 See also
+    Foam::DimensionedFieldFunction
+    Foam::UDimensionedFieldFunction
     Foam::directionMixedFvPatchVectorField
     Foam::totalPressureFvPatchScalarField
     Foam::entrainmentPressureFvPatchScalarField
