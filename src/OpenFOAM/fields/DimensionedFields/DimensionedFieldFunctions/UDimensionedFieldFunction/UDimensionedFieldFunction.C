@@ -166,11 +166,15 @@ void Foam::UDimensionedFieldFunction<Type, GeoMesh>::reset()
 
 
 template<class Type, class GeoMesh>
-void Foam::UDimensionedFieldFunction<Type, GeoMesh>::update()
+bool Foam::UDimensionedFieldFunction<Type, GeoMesh>::update()
 {
     if (funcPtr_.valid())
     {
-        funcPtr_->update();
+        return funcPtr_->update();
+    }
+    else
+    {
+        return false;
     }
 }
 

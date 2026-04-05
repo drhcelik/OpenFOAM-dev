@@ -131,7 +131,7 @@ public:
         void reset();
 
         //- Update
-        void update();
+        bool update();
 
         //- Write
         void write(Ostream&) const;

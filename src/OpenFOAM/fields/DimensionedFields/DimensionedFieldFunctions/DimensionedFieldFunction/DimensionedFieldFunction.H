@@ -135,9 +135,12 @@ public:
         //- Evaluate the function and set the field
         virtual void evaluate() = 0;
 
-        //- Update the field if the function has changed
-        virtual void update()
-        {}
+        //- Update the field if the function has changed and return true
+        //  otherwise return false
+        virtual bool update()
+        {
+            return false;
+        }
 
         //- Reset the field size
         virtual void reset()
