@@ -25,6 +25,8 @@ Class
     Foam::DimensionedFieldFunction
 
 Description
+    Base class for run-time selectable internal and patch field initialisation
+    evaluation and update with dimension checking.
 
 SourceFiles
     DimensionedFieldFunction.C
