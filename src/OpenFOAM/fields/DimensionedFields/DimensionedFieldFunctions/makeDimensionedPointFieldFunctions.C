@@ -28,6 +28,7 @@ License
 #include "fieldTypes.H"
 #include "addToRunTimeSelectionTable.H"
 
+#include "TimeFunction_DimensionedFieldFunction.H"
 #include "Zonal_DimensionedFieldFunction.H"
 #include "Function1_DimensionedFieldFunction.H"
 #include "Coded_DimensionedFieldFunction.H"
@@ -45,6 +46,11 @@ License
     namespace DimensionedFieldFunctions                                        \
     {                                                                          \
         addDimensionedFieldFunction                                            \
+        (                                                                      \
+            TimeFunction,                                                      \
+            DimensionedField##Type##pointMesh##Field                           \
+        );                                                                     \
+         addDimensionedFieldFunction                                           \
         (                                                                      \
             Zonal,                                                             \
             DimensionedField##Type##pointMesh##Field                           \

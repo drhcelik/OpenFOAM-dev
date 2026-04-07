@@ -28,6 +28,7 @@ License
 #include "fvMesh.H"
 #include "addToRunTimeSelectionTable.H"
 
+#include "TimeFunction_DimensionedFieldFunction.H"
 #include "Zonal_DimensionedFvPatchFieldFunction.H"
 #include "Function1_DimensionedFieldFunction.H"
 #include "Coded_DimensionedFieldFunction.H"
@@ -45,6 +46,11 @@ License
     );                                                                         \
     namespace DimensionedFieldFunctions                                        \
     {                                                                          \
+        addDimensionedFieldFunction                                            \
+        (                                                                      \
+            TimeFunction,                                                      \
+            DimensionedField##Type##fvPatch##Field                             \
+        );                                                                     \
         addDimensionedFieldFunction                                            \
         (                                                                      \
             Zonal,                                                             \
