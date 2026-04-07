@@ -30,7 +30,7 @@ License
 
 #include "TimeFunction_DimensionedFieldFunction.H"
 #include "Zonal_DimensionedFieldFunction.H"
-#include "Function1_DimensionedFieldFunction.H"
+#include "DistanceFunction_DimensionedFieldFunction.H"
 #include "Coded_DimensionedFieldFunction.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -57,7 +57,7 @@ License
         );                                                                     \
         addDimensionedFieldFunction                                            \
         (                                                                      \
-            Function1,                                                         \
+            DistanceFunction,                                                  \
             DimensionedField##Type##pointMesh##Field                           \
         );                                                                     \
         addDimensionedFieldFunction                                            \
