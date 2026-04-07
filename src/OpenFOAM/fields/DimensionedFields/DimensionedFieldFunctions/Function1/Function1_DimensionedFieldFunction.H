@@ -75,6 +75,9 @@ class Function1
 :
     public DimensionedFieldFunction<DimensionedFieldType>
 {
+    // Private Data
+
+        //- Distance Function1 pointer
         autoPtr<Foam::Function1<typename DimensionedFieldType::Type_>> funcPtr_;
 
         //- Direction the Function1 is evaluated for
