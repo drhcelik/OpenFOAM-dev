@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2024 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -35,7 +35,7 @@ namespace Foam
     namespace Function1s
     {
         addFunction1(None, label);
-        addFunction1(Constant, label);
+        addStreamConstructableFunction1(Constant, label);
     }
 
     FOR_ALL_FIELD_TYPES(makeFunction1s);

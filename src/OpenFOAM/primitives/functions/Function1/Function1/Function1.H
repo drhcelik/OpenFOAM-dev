@@ -80,14 +80,11 @@ struct unitSets
         //- Construct from stream
         unitSets(Istream& is);
 
-        //- Construct a clone
-        autoPtr<unitSets> clone() const;
-
 
     // Member Functions
 
-        //- Update if found in the dictionary
-        bool readIfPresent(const word& keyword, const dictionary&);
+        //- Update from stream
+        void read(Istream& is);
 };
 }
 
