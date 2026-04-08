@@ -23,14 +23,14 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "Function1_DimensionedFieldFunction.H"
+#include "DistanceFunction_DimensionedFieldFunction.H"
 #include "DimensionedField.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class DimensionedFieldType>
-Foam::DimensionedFieldFunctions::Function1<DimensionedFieldType>::
-Function1
+Foam::DimensionedFieldFunctions::DistanceFunction<DimensionedFieldType>::
+DistanceFunction
 (
     const dictionary& dict,
     DimensionedFieldType& field
@@ -52,10 +52,10 @@ Function1
 
 
 template<class DimensionedFieldType>
-Foam::DimensionedFieldFunctions::Function1<DimensionedFieldType>::
-Function1
+Foam::DimensionedFieldFunctions::DistanceFunction<DimensionedFieldType>::
+DistanceFunction
 (
-    const Function1& dff,
+    const DistanceFunction& dff,
     DimensionedFieldType& field
 )
 :
@@ -67,14 +67,14 @@ Function1
 
 template<class DimensionedFieldType>
 Foam::autoPtr<Foam::DimensionedFieldFunction<DimensionedFieldType>>
-Foam::DimensionedFieldFunctions::Function1<DimensionedFieldType>::clone
+Foam::DimensionedFieldFunctions::DistanceFunction<DimensionedFieldType>::clone
 (
     DimensionedFieldType& field
 ) const
 {
     return autoPtr<DimensionedFieldFunction<DimensionedFieldType>>
     (
-        new Function1<DimensionedFieldType>(*this, field)
+        new DistanceFunction<DimensionedFieldType>(*this, field)
     );
 }
 
@@ -82,7 +82,7 @@ Foam::DimensionedFieldFunctions::Function1<DimensionedFieldType>::clone
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class DimensionedFieldType>
-void Foam::DimensionedFieldFunctions::Function1<DimensionedFieldType>::
+void Foam::DimensionedFieldFunctions::DistanceFunction<DimensionedFieldType>::
 evaluate()
 {
     this->field_.primitiveFieldRef() =
@@ -91,7 +91,8 @@ evaluate()
 
 
 template<class DimensionedFieldType>
-void Foam::DimensionedFieldFunctions::Function1<DimensionedFieldType>::write
+void Foam::DimensionedFieldFunctions::DistanceFunction<DimensionedFieldType>::
+write
 (
     Ostream& os
 ) const
