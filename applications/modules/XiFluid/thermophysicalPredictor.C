@@ -225,6 +225,7 @@ void Foam::solvers::XiFluid::burn()
     // for the solution of the unburnt and burnt gas energy and species
     const volScalarField::Internal bSource
     (
+        "bSource",
         tSu() + tSp()*b()
       - fvc::div(tbPhiStUD() + bPhiStCorr)()
     );
