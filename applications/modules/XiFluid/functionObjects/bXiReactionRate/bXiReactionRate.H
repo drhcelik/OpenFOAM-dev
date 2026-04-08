@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2016-2025 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2016-2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::functionObjects::XiReactionRate
+    Foam::functionObjects::bXiReactionRate
 
 Description
     Writes the turbulent flame-speed and reaction-rate volScalarFields for the
@@ -30,9 +30,9 @@ Description
 
     Example of function object specification:
     \verbatim
-    XiReactionRate
+    bXiReactionRate
     {
-        type        XiReactionRate;
+        type        bXiReactionRate;
         libs        ("libfieldFunctionObjects.so");
         ...
     }
@@ -41,19 +41,19 @@ Description
 Usage
     \table
         Property  | Description                 | Required  | Default value
-        type      | type name: XiReactionRate   | yes       |
+        type      | type name: bXiReactionRate   | yes       |
     \endtable
 
 See also
     Foam::functionObjects::fvMeshFunctionObject
 
 SourceFiles
-    XiReactionRate.C
+    bXiReactionRate.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef XiReactionRate_functionObject_H
-#define XiReactionRate_functionObject_H
+#ifndef bXiReactionRate_functionObject_H
+#define bXiReactionRate_functionObject_H
 
 #include "fvMeshFunctionObject.H"
 
@@ -65,23 +65,23 @@ namespace functionObjects
 {
 
 /*---------------------------------------------------------------------------*\
-                       Class XiReactionRate Declaration
+                       Class bXiReactionRate Declaration
 \*---------------------------------------------------------------------------*/
 
-class XiReactionRate
+class bXiReactionRate
 :
     public fvMeshFunctionObject
 {
 public:
 
     //- Runtime type information
-    TypeName("XiReactionRate");
+    TypeName("bXiReactionRate");
 
 
     // Constructors
 
         //- Construct from Time and dictionary
-        XiReactionRate
+        bXiReactionRate
         (
             const word& name,
             const Time& runTime,
@@ -89,11 +89,11 @@ public:
         );
 
         //- Disallow default bitwise copy construction
-        XiReactionRate(const XiReactionRate&) = delete;
+        bXiReactionRate(const bXiReactionRate&) = delete;
 
 
     //- Destructor
-    virtual ~XiReactionRate();
+    virtual ~bXiReactionRate();
 
 
     // Member Functions
@@ -111,7 +111,7 @@ public:
     // Member Operators
 
         //- Disallow default bitwise assignment
-        void operator=(const XiReactionRate&) = delete;
+        void operator=(const bXiReactionRate&) = delete;
 };
 
 
