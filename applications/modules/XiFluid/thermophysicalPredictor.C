@@ -514,7 +514,7 @@ void Foam::solvers::XiFluid::HbSolve
       + uThermophysicalTransport_->divq(hb)
      ==
         // Combustion source
-      - bSource*(uThermo.ha()() - bThermo.hf()())()
+      - bSource*(uThermo.he()() + uThermo.hf()() - bThermo.hf()())()
 
         // Other sources
       + fvModels().source(c, rho, hb)
@@ -565,7 +565,7 @@ void Foam::solvers::XiFluid::thermophysicalPredictor()
             }
         }
 
-        thermo_.bThermo().he() = uThermo.ha() - bThermo.hf();
+        thermo_.bThermo().he() = uThermo.he() + uThermo.hf() - bThermo.hf();
         thermo_.bThermo().correct();
     }
 
