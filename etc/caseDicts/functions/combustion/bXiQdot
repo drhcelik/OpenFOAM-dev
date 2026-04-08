@@ -4,18 +4,15 @@
    \\    /   O peration     | Website:  https://openfoam.org
     \\  /    A nd           | Version:  dev
      \\/     M anipulation  |
-\*---------------------------------------------------------------------------*/
-FoamFile
-{
-    format      ascii;
-    class       dictionary;
-    object      functions;
-}
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+-------------------------------------------------------------------------------
+Description
+    Writes the heat release rate of the Weller b-Xi combustion model.
 
-#includeFunc writeObjects(bSource)
-#includeFunc bXiQdot
-#includeFunc bXiProgress
-#includeFunc cellMin(b)
+\*---------------------------------------------------------------------------*/
+
+type            bXiQdot;
+
+executeControl  writeTime;
+writeControl    writeTime;
 
 // ************************************************************************* //
