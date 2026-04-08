@@ -355,10 +355,7 @@ void Foam::objectRegistry::clear()
 }
 
 
-void Foam::objectRegistry::cacheTemporaryObject
-(
-    const word& name
-) const
+void Foam::objectRegistry::cacheTemporary(const word& name) const
 {
     const objectRegistry& root = time_;
 

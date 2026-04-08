@@ -257,7 +257,7 @@ public:
             void clear();
 
             //- Add the given name to the cacheTemporaryObjects set
-            void cacheTemporaryObject(const word& name) const;
+            void cacheTemporary(const word& name) const;
 
             //- Cache the given object
             template<class Object>
