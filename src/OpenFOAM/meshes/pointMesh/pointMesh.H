@@ -177,6 +177,10 @@ public:
             //- Update from another mesh using the given map
             virtual void mapMesh(const polyMeshMap&);
 
+            //- Swap mesh
+            //  For run-time mesh replacement and mesh to mesh mapping
+            virtual void swap(polyMesh&);
+
             //- Redistribute or update using the given distribution map
             virtual void distribute(const polyDistributionMap&);
 
@@ -190,6 +194,9 @@ public:
 
             //- Inserted patch at patchi
             virtual void addPatch(const label patchi);
+
+            //- Clear all but permanent registered meshObjects
+            virtual void clear();
 
 
     // Member Operators

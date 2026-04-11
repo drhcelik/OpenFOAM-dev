@@ -113,6 +113,9 @@ bool Foam::pointMesh::movePoints()
 
     boundary_.movePoints(mesh_.points());
 
+    // Move the points of all pointMesh meshObjects
+    meshObjects::movePoints<pointMesh>(const_cast<polyMesh&>(mesh_));
+
     return true;
 }
 
@@ -127,6 +130,8 @@ void Foam::pointMesh::topoChange(const polyTopoChangeMap& map)
 
     pointsPtr_.clear();
     boundary_.topoChange();
+
+    meshObjects::topoChange<pointMesh>(const_cast<polyMesh&>(mesh_), map);
 }
 
 
@@ -140,6 +145,40 @@ void Foam::pointMesh::mapMesh(const polyMeshMap& map)
 
     pointsPtr_.clear();
     boundary_.topoChange();
+
+    meshObjects::mapMesh<pointMesh>(const_cast<polyMesh&>(mesh_), map);
+}
+
+
+void Foam::pointMesh::swap(polyMesh& otherMesh)
+{
+    if (debug)
+    {
+        Pout<< "pointMesh::swap(const polyMesh&): "
+            << "Mesh swapping." << endl;
+    }
+
+    boundary_.reset();
+
+    meshObjects::clearUpto
+    <
+        pointMesh,
+        DeletableMeshObject,
+        TopoChangeableMeshObject
+    >
+    (
+        const_cast<polyMesh&>(mesh_)
+    );
+
+    meshObjects::clearUpto
+    <
+        pointMesh,
+        DeletableMeshObject,
+        TopoChangeableMeshObject
+    >
+    (
+        otherMesh
+    );
 }
 
 
@@ -153,6 +192,8 @@ void Foam::pointMesh::distribute(const polyDistributionMap& map)
 
     pointsPtr_.clear();
     boundary_.topoChange();
+
+    meshObjects::distribute<pointMesh>(const_cast<polyMesh&>(mesh_), map);
 }
 
 
@@ -169,11 +210,17 @@ void Foam::pointMesh::reorderPatches
     }
 
     boundary_.shuffle(newToOld, validBoundary);
+    meshObjects::reorderPatches<pointMesh>
+    (
+        const_cast<polyMesh&>(mesh_),
+        newToOld,
+        validBoundary
+    );
 
     #define ReorderPatchFieldsType(Type, nullArg)                              \
         ReorderPatchFields<PointField<Type>>                                   \
         (                                                                      \
-            const_cast<objectRegistry&>(db()),                             \
+            const_cast<objectRegistry&>(db()),                                 \
             newToOld                                                           \
         );
     FOR_ALL_FIELD_TYPES(ReorderPatchFieldsType);
@@ -200,16 +247,33 @@ void Foam::pointMesh::addPatch(const label patchi)
     }
 
     boundary_.set(patchi, facePointPatch::New(pbm[patchi], boundary_).ptr());
+    meshObjects::addPatch<pointMesh>(const_cast<polyMesh&>(mesh_), patchi);
 
     #define AddPatchFieldsType(Type, nullArg)                                  \
         AddPatchFields<PointField<Type>>                                       \
         (                                                                      \
-            const_cast<objectRegistry&>(db()),                             \
+            const_cast<objectRegistry&>(db()),                                 \
             patchi,                                                            \
             calculatedPointPatchField<scalar>::typeName                        \
         );
     FOR_ALL_FIELD_TYPES(AddPatchFieldsType);
     #undef ReorderPatchFieldsType
+}
+
+
+void Foam::pointMesh::clear()
+{
+    if (debug)
+    {
+        Pout<< "pointMesh::clear(): "
+            << "Clear all but permanent registered meshObjects" << endl;
+    }
+
+    // Clear all but permanent registered meshObjects
+    meshObjects::clear<pointMesh, DeletableMeshObject>
+    (
+        const_cast<polyMesh&>(mesh_)
+    );
 }
 
 
@@ -220,7 +284,9 @@ void Foam::pointMesh::reset()
         Pout<< "pointMesh::reset(): "
             << "Mesh reset." << endl;
     }
+
     boundary_.reset();
+    meshObjects::reset<pointMesh>(const_cast<polyMesh&>(mesh_));
 }
 
 
