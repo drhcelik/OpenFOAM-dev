@@ -23,14 +23,11 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "Function1.H"
+#include "Function1UnitSets.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::Function1s::unitSets::unitSets
-(
-    std::initializer_list<unitSet> l
-)
+Foam::Function1s::unitSets::unitSets(std::initializer_list<unitSet> l)
 :
     x(dimless),
     value(dimless)
@@ -54,10 +51,10 @@ Foam::Function1s::unitSets::unitSets(Istream& is)
 
 void Foam::Function1s::unitSets::read(Istream& is)
 {
-    is.readBegin("unitSets");
+    is.readBegin("Function1s::unitSets");
     x.read(is);
     value.read(is);
-    is.readEnd("unitSets");
+    is.readEnd("Function1s::unitSets");
 }
 
 
@@ -93,11 +90,11 @@ Foam::Istream& Foam::operator>>
     Function1s::unitSets& units
 )
 {
-    is.readBegin("unitSets");
+    is.readBegin("Function1s::unitSets");
     is >> units.x >> units.value;
-    is.readEnd("unitSets");
+    is.readEnd("Function1s::unitSets");
 
-    is.check("Istream& operator>>(Istream&, unitSets&)");
+    is.check(FUNCTION_NAME);
 
     return is;
 }
@@ -113,7 +110,7 @@ Foam::Ostream& Foam::operator<<
         << units.x << token::SPACE << units.value
         << token::END_LIST;
 
-    os.check("Ostream& operator<<(Ostream&, const unitSets&)");
+    os.check(FUNCTION_NAME);
 
     return os;
 }

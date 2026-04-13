@@ -25,6 +25,7 @@ License
 
 #include "makeFunction1s.H"
 #include "fieldTypes.H"
+#include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
