@@ -21,43 +21,88 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Typedef
-    Foam::sphericalTensor
+Class
+    Foam::Function1s::unitSets
 
 Description
-    SphericalTensor of scalars.
+    Struct containing two unitSets for use in converting both the argument
+    and the value of a Function1.
 
 SourceFiles
-    sphericalTensor.C
+    Function1UnitSets.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef sphericalTensor_H
-#define sphericalTensor_H
+#ifndef Function1UnitSets_H
+#define Function1UnitSets_H
 
-#include "SphericalTensor.H"
-#include "Identity.H"
-#include "contiguous.H"
+#include "unitSet.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
+namespace Function1s
+{
+
+/*---------------------------------------------------------------------------*\
+                Class Function1s::unitSets Declaration
+\*---------------------------------------------------------------------------*/
+
+struct unitSets
+{
+    // Public Data
+
+        //- Unit conversion for x-axis values
+        unitSet x;
+
+        //- Unit conversion for result values
+        unitSet value;
+
+
+    // Constructors
+
+        //- Construct from initialiser list
+        unitSets(std::initializer_list<unitSet>);
+
+        //- Construct from stream
+        unitSets(Istream& is);
+
+
+    // Member Functions
+
+        //- Update from stream
+        void read(Istream& is);
+};
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-typedef SphericalTensor<scalar> sphericalTensor;
+} // End namespace Function1s
 
-static const sphericalTensor oneThirdI(1.0/3.0);
-static const sphericalTensor twoThirdsI(2.0/3.0);
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-//- Specify data associated with sphericalTensor type are contiguous
-template<>
-inline bool contiguous<sphericalTensor>() {return true;}
+// Global Functions
 
-//- A sphericalTensor is scaleable
-template<>
-struct scaleable<sphericalTensor> : public std::true_type {};
+//- Generate an error in an context where unit conversions are not supported
+void assertNoConvertUnits
+(
+    const word& typeName,
+    const Function1s::unitSets& units,
+    const dictionary& dict
+);
+
+//- Write a units entry
+void writeEntry(Ostream& os, const Function1s::unitSets& units);
+
+
+// IOStream Operators
+
+//- Read from stream
+Istream& operator>>(Istream& is, Function1s::unitSets&);
+
+//- Write to stream
+Ostream& operator<<(Ostream& os, const Function1s::unitSets&);
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

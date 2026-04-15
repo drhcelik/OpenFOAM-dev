@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2026 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,67 +21,39 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Typedef
-    Foam::vector
+Struct
+    Foam::scaleable
 
 Description
-    A scalar version of the templated Vector
-
-SourceFiles
-    vector.C
+    Trait to identify types which are "scaleable"; i.e., that can be
+    multiply-equals-d with a scalar. This has to be done explicitly, rather
+    than by identifying the existence of the operator with decltype, in order
+    to exclude bool and int and similar.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef vector_H
-#define vector_H
+#ifndef scaleable_H
+#define scaleable_H
 
-#include "scalar.H"
-#include "Vector.H"
-#include "contiguous.H"
+#include <type_traits>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-typedef Vector<scalar> vector;
-
-
-//- Data associated with vector type are contiguous
-template<>
-inline bool contiguous<vector>() {return true;}
-
+/*---------------------------------------------------------------------------*\
+                          Class scaleable Declaration
+\*---------------------------------------------------------------------------*/
 
 template<class Type>
-class flux
-:
-    public innerProduct<vector, Type>
-{};
+struct scaleable : public std::false_type {};
 
+template<class Type, class Void = void>
+using enableIfScaleable = std::enable_if_t<scaleable<Type>::value, Void>;
 
-template<>
-class flux<scalar>
-{
-public:
-
-    typedef scalar type;
-};
-
-
-//- Rank type
-template<>
-struct typeOfNcmpts<3>
-{
-    using type = vector;
-};
-
-
-//- A vector is scaleable
-template<>
-struct scaleable<vector> : public std::true_type {};
-
+template<class Type, class Void = void>
+using enableIfNotScaleable = std::enable_if_t<!scaleable<Type>::value, Void>;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
