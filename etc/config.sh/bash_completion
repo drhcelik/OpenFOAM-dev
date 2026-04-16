@@ -3034,7 +3034,7 @@ _splitMeshRegions_ ()
     local line=${COMP_LINE}
     local used=$(echo "$line" | grep -oE "\-[a-zA-Z]+ ")
 
-    opts="-blockedFaces -case -cellZones -cellZonesFileOnly -cellZonesOnly -defaultRegionName -detectOnly -doc -fileHandler -help -hostRoots -insidePoint -largestOnly -libs -makeCellZones -mesh -noFields -noFunctionObjects -noOverwrite -overwrite -parallel -prefixRegion -region -roots -sloppyCellZones -srcDoc -useFaceZones"
+    opts="-case -cellZones -defaultRegion -disconnected -disconnectedFaceSet -doc -faceZonePatches -fileHandler -help -hostRoots -insidePoint -largest -libs -mesh -minOverlapFraction -noFields -noFunctionObjects -noMeshes -noOverwrite -overwrite -parallel -region -roots -srcDoc"
     for o in $used ; do opts="${opts/$o/}" ; done
     extra=""
 
@@ -3042,11 +3042,9 @@ _splitMeshRegions_ ()
     case "$prev" in
         -case)
             opts="" ; extra="-d" ;;
-        -cellZonesFileOnly)
-            opts="" ; extra="-d -f" ;;
         -fileHandler)
             opts="uncollated collated masterUncollated" ; extra="" ;;
-        -blockedFaces|-defaultRegionName|-hostRoots|-insidePoint|-libs|-roots)
+        -cellZones|-defaultRegion|-disconnectedFaceSet|-hostRoots|-insidePoint|-libs|-minOverlapFraction|-roots)
             opts="" ; extra="" ;;
         -mesh) opts="$(_mesh ${cur})" ;;
         -region) opts="$(_region ${cur})" ;;
