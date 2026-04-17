@@ -248,7 +248,6 @@ Foam::dimensioned<Type>::dimensioned
     }
     else if (printDefaults::print(dict))
     {
-        // Info<< indent << "Default: " << name;
         writeKeyword(Info, name);
 
         if (!dims.dimensionless())
@@ -256,13 +255,7 @@ Foam::dimensioned<Type>::dimensioned
             Info<< dims.info() << " ";
         }
 
-        Info<< defaultValue;
-
-        // if (dict.name() != fileName::null)
-        // {
-        //     Info<< " in " << dict.name().relativePath();
-        // }
-        Info<< endl;
+        Info<< defaultValue << endl;
     }
 }
 
@@ -298,20 +291,14 @@ Foam::dimensioned<Type>::dimensioned
     }
     else if (printDefaults::print(dict))
     {
-        Info<< indent << "Default: " << name;
+        writeKeyword(Info, name);
 
         if (!units.dimensions().dimensionless())
         {
-            Info<< " " << units.info();
+            Info<< units.info() << " ";
         }
 
-        Info<< " " << defaultValue;
-
-        if (dict.name() != fileName::null)
-        {
-            Info<< " in " << dict.name().relativePath();
-        }
-        Info<< endl;
+        Info<< defaultValue << endl;
     }
 }
 
@@ -422,14 +409,6 @@ bool Foam::dimensioned<Type>::readIfPresent
     }
     else
     {
-        if (printDefaults::print(dict))
-        {
-            IOInfoInFunction(dict)
-                << "Optional entry '" << name_ << "' is not present,"
-                << " the default value '" << *this << "' will be used."
-                << endl;
-        }
-
         return false;
     }
 }

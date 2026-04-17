@@ -224,9 +224,8 @@ T Foam::dictionary::lookupOrDefault
     {
         if (printDefaults::print(*this))
         {
-            Info<< indent << "Default: " << keyword
-                << " " << defaultValue
-                << " in " << name().relativePath() << endl;
+            writeKeyword(Info, keyword);
+            Info<< defaultValue << endl;
         }
 
         return defaultValue;
@@ -252,9 +251,14 @@ T Foam::dictionary::lookupOrDefault
     {
         if (printDefaults::print(*this))
         {
-            Info<< indent << "Default: " << keyword
-                << " " << defaultValue
-                << " in " << name().relativePath() << endl;
+            writeKeyword(Info, keyword);
+
+            if (!defaultUnits.dimensionless())
+            {
+                Info<< defaultUnits.info() << " ";
+            }
+
+            Info<< defaultValue << endl;
         }
 
         return defaultValue;
@@ -324,9 +328,8 @@ T Foam::dictionary::lookupOrAddDefault
     {
         if (printDefaults::print(*this))
         {
-            Info<< indent << "Added default: " << keyword
-                << " " << defaultValue
-                << " to " << name().relativePath() << endl;
+            writeKeyword(Info, keyword);
+            Info<< defaultValue << endl;
         }
 
         add(new primitiveEntry(keyword, defaultValue));
@@ -353,13 +356,6 @@ bool Foam::dictionary::readIfPresent
     }
     else
     {
-        if (printDefaults::print(*this))
-        {
-            Info<< indent << "Default: " << keyword
-                << " " << val
-                << " in " << name().relativePath() << endl;
-        }
-
         return false;
     }
 }
@@ -384,13 +380,6 @@ bool Foam::dictionary::readIfPresent
     }
     else
     {
-        if (printDefaults::print(*this))
-        {
-            Info<< indent << "Default: " << keyword
-                << " " << val
-                << " in " << name().relativePath() << endl;
-        }
-
         return false;
     }
 }

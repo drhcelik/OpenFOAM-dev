@@ -27,7 +27,6 @@ License
 #include "dictionary.H"
 #include "NamedEnum.H"
 #include "symbols.H"
-#include "printDefaults.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -124,14 +123,6 @@ bool Foam::unitSet::readIfPresent
     }
     else
     {
-        if (printDefaults::print(dict))
-        {
-            IOInfoInFunction(dict)
-                << "Optional entry '" << keyword << "' is not present,"
-                << " the default value '" << info() << "' will be used."
-                << endl;
-        }
-
         return false;
     }
 }
