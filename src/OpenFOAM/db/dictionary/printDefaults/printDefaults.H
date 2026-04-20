@@ -59,6 +59,8 @@ public:
             dictHashTable;
 
 
+private:
+
     // Private Static Data
 
         //- Pointer to most recently constructed printDefaults
