@@ -117,7 +117,7 @@ Foam::fv::meanVelocityForce::meanVelocityForce
         propsDict.lookup("gradient") >> gradP0_;
     }
 
-    Info<< indent << "Initial pressure gradient = " << gradP0_ << nl << endl;
+    Info<< indent << "Initial pressure gradient = " << gradP0_ << endl;
 }
 
 
