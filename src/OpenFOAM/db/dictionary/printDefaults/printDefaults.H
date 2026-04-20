@@ -100,7 +100,7 @@ public:
         //- Return true if printing of specified dictionary is enabled
         static dictionary& add(const dictionary& dict)
         {
-            return *dicts_[&dict];
+            return dicts_[&dict];
         }
 };
 

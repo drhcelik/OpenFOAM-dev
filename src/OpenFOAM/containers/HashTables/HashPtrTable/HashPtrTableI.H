@@ -23,63 +23,32 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "printDefaults.H"
-#include "dictionary.H"
-#include "Pstream.H"
 
-/* * * * * * * * * * * * * * * Static Member Data  * * * * * * * * * * * * * */
+// * * * * * * * * * * * * * * * Member Functions * * * * * * * * * * * * * //
 
-Foam::printDefaults* Foam::printDefaults::printDefaults_(nullptr);
-Foam::printDefaults::dictHashTable Foam::printDefaults::dicts_;
-
-
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-Foam::printDefaults::printDefaults()
-:
-    dictPtr_(nullptr)
+template<class T, class Key, class Hash>
+inline bool Foam::HashPtrTable<T, Key, Hash>::erase(const Key& key)
 {
-    printDefaults_ = this;
-
-    if (Pstream::master())
-    {
-        Info<< incrIndent;
-    }
+    return erase(this->find(key));
 }
 
 
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //
 
-Foam::printDefaults::~printDefaults()
+template<class T, class Key, class Hash>
+inline T& Foam::HashPtrTable<T, Key, Hash>::operator[](const Key& key)
 {
-    printDefaults_ = nullptr;
-
-    if (Pstream::master())
-    {
-        if (dictPtr_)
-        {
-            dicts_[dictPtr_].write(Info, false);
-            dicts_.erase(dictPtr_);
-        }
-        Info<< decrIndent;
-    }
+    return *HashTable<T*, Key, Hash>::operator[](key);
 }
 
 
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-void Foam::printDefaults::set(const dictionary& dict)
+template<class T, class Key, class Hash>
+inline const T& Foam::HashPtrTable<T, Key, Hash>::operator[]
+(
+    const Key& key
+) const
 {
-    if (printDefaults_)
-    {
-        printDefaults_->dictPtr_ = &dict;
-        dicts_.insert
-        (
-            printDefaults_->dictPtr_,
-            new dictionary(dict.parent(), dict)
-        );
-        printDefaults_ = nullptr;
-    }
+    return *HashTable<T*, Key, Hash>::operator[](key);
 }
 
 
