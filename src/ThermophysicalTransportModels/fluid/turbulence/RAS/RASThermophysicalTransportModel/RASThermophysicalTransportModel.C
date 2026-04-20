@@ -25,7 +25,6 @@ License
 
 #include "RASThermophysicalTransportModel.H"
 #include "unityLewisEddyDiffusivity.H"
-#include "printDefaults.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -81,7 +80,9 @@ Foam::RASThermophysicalTransportModel
     {
         IOdictionary modelDict(header);
 
-        const word modelType(modelDict.subDict("RAS").lookup("model"));
+        const dictionary& RASdict(modelDict.subDict("RAS"));
+
+        const word modelType(RASdict.lookup("model"));
 
         Info<< indentOrNl
             << "Selecting RAS thermophysical transport model "
@@ -100,7 +101,8 @@ Foam::RASThermophysicalTransportModel
                 << exit(FatalError);
         }
 
-        printDefaults print;
+        printDictionary print(RASdict.name());
+
         autoPtr<RASThermophysicalTransportModel> modelPtr
         (
             cstrIter()(momentumTransport, thermo)
@@ -123,7 +125,8 @@ Foam::RASThermophysicalTransportModel
             << "Selecting default RAS thermophysical transport model "
             <<  RASunityLewisEddyDiffusivity::typeName << endl;
 
-        printDefaults print;
+        printDictionary print(header.name());
+
         autoPtr<RASThermophysicalTransportModel> modelPtr
         (
             new RASunityLewisEddyDiffusivity

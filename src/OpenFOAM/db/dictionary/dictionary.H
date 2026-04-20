@@ -209,11 +209,12 @@ class dictionary
             DLList<autoPtr<regExp>>::iterator& reLink
         );
 
-        //- Return true if printDefaults is active
-        static bool printDefaults(const dictionary& dict);
+        //- Return true if there is a defaults dictionary corresponding to the
+        //  given dictionary if printDictionary is active
+        static bool haveDefaults(const dictionary& dict);
 
         //- Return the defaults dictionary corresponding to the given dictionary
-        //  if printDefaults is active
+        //  if printDictionary is active
         static dictionary& defaults(const dictionary& dict);
 
         //- Assign multiple entries, overwriting any existing entries

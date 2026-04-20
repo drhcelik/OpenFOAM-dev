@@ -22,25 +22,26 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::functionEntries::printDefaultsEntry
+    Foam::functionEntries::printEntry
 
 Description
-    Print the current contents of the dictionary
-    and subsequently looked-up defaulted entries
+    Print the entire contents of the dictionary after it has been read. Also
+    print any entries which are not present and for which default values were
+    used.
 
-    \c \#printDefaults does not require an argument.
+    \c \#print does not require an argument.
 
 See also
-    Foam::printDefaults
+    Foam::printDictionary
     Foam::functionEntries::dumpEntry
 
 SourceFiles
-    printDefaultsEntry.C
+    printEntry.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef printDefaultsEntry_H
-#define printDefaultsEntry_H
+#ifndef printEntry_H
+#define printEntry_H
 
 #include "functionEntry.H"
 
@@ -52,10 +53,10 @@ namespace functionEntries
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class printDefaultsEntry Declaration
+                           Class printEntry Declaration
 \*---------------------------------------------------------------------------*/
 
-class printDefaultsEntry
+class printEntry
 :
     public functionEntry
 {
@@ -63,13 +64,13 @@ class printDefaultsEntry
 public:
 
     //- Runtime type information
-    FunctionTypeName("#printDefaults");
+    FunctionTypeName("#print");
 
 
     // Constructors
 
         //- Construct from line number, dictionary and Istream
-        printDefaultsEntry
+        printEntry
         (
             const label lineNumber,
             const dictionary& parentDict,
@@ -77,12 +78,12 @@ public:
         );
 
         //- Copy construct
-        printDefaultsEntry(const printDefaultsEntry&) = default;
+        printEntry(const printEntry&) = default;
 
         //- Clone
         virtual autoPtr<entry> clone(const dictionary&) const
         {
-            return autoPtr<entry>(new printDefaultsEntry(*this));
+            return autoPtr<entry>(new printEntry(*this));
         }
 
 
@@ -95,7 +96,7 @@ public:
     // Member Operators
 
         //- Disallow default bitwise assignment
-        void operator=(const printDefaultsEntry&) = delete;
+        void operator=(const printEntry&) = delete;
 };
 
 

@@ -25,7 +25,6 @@ License
 
 #include "RASModel.H"
 #include "NewtonianViscosityModel.H"
-#include "printDefaults.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -130,7 +129,8 @@ Foam::RASModel<BasicMomentumTransportModel>::New
             << exit(FatalError);
     }
 
-    printDefaults print;
+    printDictionary print(RASdict.name());
+
     autoPtr<RASModel> modelPtr
     (
         cstrIter()(alpha, rho, U, alphaRhoPhi, phi, viscosity)

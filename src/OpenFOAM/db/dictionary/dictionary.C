@@ -27,7 +27,7 @@ License
 #include "dictionaryEntry.H"
 #include "regExp.H"
 #include "OSHA1stream.H"
-#include "printDefaults.H"
+#include "printDictionary.H"
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
@@ -192,15 +192,15 @@ bool Foam::dictionary::findInPatterns
 }
 
 
-bool Foam::dictionary::printDefaults(const dictionary& dict)
+bool Foam::dictionary::haveDefaults(const dictionary& dict)
 {
-    return Foam::printDefaults::print(dict);
+    return Foam::printDictionary::haveDefaults(dict);
 }
 
 
 Foam::dictionary& Foam::dictionary::defaults(const dictionary& dict)
 {
-    return Foam::printDefaults::add(dict);
+    return Foam::printDictionary::defaults(dict);
 }
 
 
@@ -324,7 +324,7 @@ Foam::autoPtr<Foam::dictionary> Foam::dictionary::clone() const
 
 Foam::dictionary::~dictionary()
 {
-    // cerr<< "~dictionary() " << name() << " " << long(this) << std::endl;
+    printDictionary::unset(*this);
 }
 
 

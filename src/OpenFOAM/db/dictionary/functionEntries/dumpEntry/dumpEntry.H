@@ -30,7 +30,7 @@ Description
     \c \#dump does not require an argument.
 
 See also
-    Foam::functionEntries::exitEntry
+    Foam::functionEntries::printEntry
 
 SourceFiles
     dumpEntry.C

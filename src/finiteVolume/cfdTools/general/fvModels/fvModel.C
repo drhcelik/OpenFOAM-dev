@@ -25,7 +25,6 @@ License
 
 #include "fvModel.H"
 #include "volFields.H"
-#include "printDefaults.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -144,7 +143,8 @@ Foam::autoPtr<Foam::fvModel> Foam::fvModel::New
             << exit(FatalIOError);
     }
 
-    printDefaults print(dict);
+    printDictionary print(dict);
+
     return autoPtr<fvModel>
     (
         cstrIter()(name, type, mesh, dict)

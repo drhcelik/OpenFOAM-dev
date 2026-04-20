@@ -23,9 +23,8 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "printDefaultsEntry.H"
-#include "Pstream.H"
-#include "printDefaults.H"
+#include "printEntry.H"
+#include "printDictionary.H"
 #include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -34,15 +33,15 @@ namespace Foam
 {
 namespace functionEntries
 {
-    defineFunctionTypeNameAndDebug(printDefaultsEntry, 0);
-    addToRunTimeSelectionTable(functionEntry, printDefaultsEntry, dictionary);
+    defineFunctionTypeNameAndDebug(printEntry, 0);
+    addToRunTimeSelectionTable(functionEntry, printEntry, dictionary);
 }
 }
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::functionEntries::printDefaultsEntry::printDefaultsEntry
+Foam::functionEntries::printEntry::printEntry
 (
     const label lineNumber,
     const dictionary& parentDict,
@@ -55,13 +54,13 @@ Foam::functionEntries::printDefaultsEntry::printDefaultsEntry
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-bool Foam::functionEntries::printDefaultsEntry::execute
+bool Foam::functionEntries::printEntry::execute
 (
     dictionary& contextDict,
     Istream& is
 )
 {
-    printDefaults::set(contextDict);
+    printDictionary::set(contextDict);
     return true;
 }
 

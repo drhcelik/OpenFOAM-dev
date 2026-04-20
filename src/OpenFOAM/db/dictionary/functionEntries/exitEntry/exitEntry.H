@@ -32,6 +32,7 @@ Description
 
 See also
     Foam::functionEntries::dumpEntry
+    Foam::functionEntries::printEntry
 
 SourceFiles
     exitEntry.C

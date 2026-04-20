@@ -77,6 +77,8 @@ Foam::ThermophysicalTransportModel<MomentumTransportModel, ThermoModel>::New
             << exit(FatalError);
     }
 
+    Foam::printDictionary print(fileName::null);
+
     return autoPtr<ThermophysicalTransportModel>
     (
         cstrIter()(momentumTransport, thermo)

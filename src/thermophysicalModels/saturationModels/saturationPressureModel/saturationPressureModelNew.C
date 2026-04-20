@@ -87,6 +87,8 @@ Foam::saturationPressureModel::New
             << exit(FatalIOError);
     }
 
+    printDictionary print(coeffDict);
+
     return cstrIter()(coeffDict);
 }
 

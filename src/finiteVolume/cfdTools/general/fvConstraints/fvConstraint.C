@@ -25,7 +25,6 @@ License
 
 #include "fvConstraint.H"
 #include "volFields.H"
-#include "printDefaults.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -129,7 +128,8 @@ Foam::autoPtr<Foam::fvConstraint> Foam::fvConstraint::New
             << exit(FatalIOError);
     }
 
-    printDefaults print(dict);
+    printDictionary print(dict);
+
     return autoPtr<fvConstraint>
     (
         cstrIter()(name, type, mesh, dict)

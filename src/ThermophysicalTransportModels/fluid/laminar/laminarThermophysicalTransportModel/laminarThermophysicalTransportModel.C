@@ -25,7 +25,6 @@ License
 
 #include "laminarThermophysicalTransportModel.H"
 #include "unityLewisFourier.H"
-#include "printDefaults.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -81,7 +80,9 @@ Foam::laminarThermophysicalTransportModel
     {
         IOdictionary modelDict(header);
 
-        const word modelType(modelDict.subDict("laminar").lookup("model"));
+        const dictionary& laminarDict(modelDict.subDict("laminar"));
+
+        const word modelType(laminarDict.lookup("model"));
 
         Info<< indentOrNl << "Selecting laminar thermophysical transport model "
             << modelType << endl;
@@ -99,7 +100,8 @@ Foam::laminarThermophysicalTransportModel
                 << exit(FatalError);
         }
 
-        printDefaults print;
+        printDictionary print(laminarDict.name());
+
         return autoPtr<laminarThermophysicalTransportModel>
         (
             cstrIter()(momentumTransport, thermo)
@@ -112,7 +114,8 @@ Foam::laminarThermophysicalTransportModel
             << laminarThermophysicalTransportModels::unityLewisFourier<
                BasicThermophysicalTransportModel>::typeName << endl;
 
-        printDefaults print;
+        printDictionary print(header.name());
+
         return autoPtr<laminarThermophysicalTransportModel>
         (
             new laminarThermophysicalTransportModels::unityLewisFourier

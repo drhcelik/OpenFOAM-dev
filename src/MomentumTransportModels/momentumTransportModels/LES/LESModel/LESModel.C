@@ -25,7 +25,6 @@ License
 
 #include "LESModel.H"
 #include "NewtonianViscosityModel.H"
-#include "printDefaults.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -140,7 +139,8 @@ Foam::LESModel<BasicMomentumTransportModel>::New
             << exit(FatalError);
     }
 
-    printDefaults print;
+    printDictionary print(LESdict.name());
+
     autoPtr<LESModel> modelPtr
     (
         cstrIter()(alpha, rho, U, alphaRhoPhi, phi, viscosity)

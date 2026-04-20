@@ -25,7 +25,6 @@ License
 
 #include "laminarModel.H"
 #include "Stokes.H"
-#include "printDefaults.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -108,7 +107,8 @@ Foam::laminarModel<BasicMomentumTransportModel>::New
                 << exit(FatalError);
         }
 
-        printDefaults print;
+        printDictionary print(laminarDict.name());
+
         autoPtr<laminarModel> modelPtr
         (
             cstrIter()
@@ -131,7 +131,8 @@ Foam::laminarModel<BasicMomentumTransportModel>::New
             << laminarModels::Stokes<BasicMomentumTransportModel>::typeName
             << endl;
 
-        printDefaults print;
+        printDictionary print(dict.name());
+
         autoPtr<laminarModel> modelPtr
         (
             new laminarModels::Stokes<BasicMomentumTransportModel>

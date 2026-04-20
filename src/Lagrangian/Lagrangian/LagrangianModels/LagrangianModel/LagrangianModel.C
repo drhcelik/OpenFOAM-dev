@@ -119,14 +119,11 @@ Foam::autoPtr<Foam::LagrangianModel> Foam::LagrangianModel::New
             << exit(FatalIOError);
     }
 
-    return
-        cstrIter()
-        (
-            name,
-            mesh,
-            modelDict.optionalSubDict(type + "Coeffs"),
-            stateDict(name, mesh)
-        );
+    const dictionary& coeffsDict = modelDict.optionalSubDict(type + "Coeffs");
+
+    printDictionary print(coeffsDict);
+
+    return cstrIter()(name, mesh, coeffsDict, stateDict(name, mesh));
 }
 
 
