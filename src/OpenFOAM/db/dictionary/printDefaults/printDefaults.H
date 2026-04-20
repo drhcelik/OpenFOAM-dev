@@ -69,6 +69,9 @@ private:
         //- Table of dictionaries containing all entries including defaults
         static dictHashTable dicts_;
 
+        //- Set true if the dictionary is a parent of model sub-dictionaries
+        const bool parent_;
+
         //- Pointer to the associated dictionary
         //  Set by printDefaults::set called by entry #printDefaults
         const dictionary* dictPtr_;
@@ -78,8 +81,11 @@ public:
 
     // Constructors
 
-        //- Construct null
-        printDefaults();
+        //- Construct optionally for parent dictionary
+        printDefaults(const bool parent = false);
+
+        //- Construct for model sub-dictionary
+        printDefaults(const dictionary& subDict);
 
 
     //- Destructor
