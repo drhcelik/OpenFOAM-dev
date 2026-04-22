@@ -69,7 +69,7 @@ Foam::IOobject Foam::fvConstraints::createIOobject
         if (io.headerOk())
         {
             Warning
-                << "Creating fvConstraints from "
+                << "Constructing " << typeName << " from "
                 << io.instance()/io.name() << endl;
 
             io.readOpt() = IOobject::MUST_READ_IF_MODIFIED;
@@ -84,7 +84,7 @@ Foam::IOobject Foam::fvConstraints::createIOobject
             if (io.headerOk())
             {
                 Warning
-                    << "Creating fvConstraints from "
+                    << "Constructing " << typeName << " from "
                     << io.instance()/io.name()
                     << " rather than system/fvConstraints"
                     << endl;

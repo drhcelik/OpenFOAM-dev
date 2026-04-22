@@ -69,7 +69,7 @@ Foam::IOobject Foam::fvModels::createIOobject
         if (io.headerOk())
         {
             Warning
-                << "Creating fvModels from "
+                << "Constructing " << typeName << " from "
                 << io.instance()/io.name()
                 << endl;
 
@@ -85,7 +85,7 @@ Foam::IOobject Foam::fvModels::createIOobject
             if (io.headerOk())
             {
                 Warning
-                    << "Creating fvModels from "
+                    << "Constructing " << typeName << " from "
                     << io.instance()/io.name()
                     << " rather than constant/fvModels"
                     << endl;
