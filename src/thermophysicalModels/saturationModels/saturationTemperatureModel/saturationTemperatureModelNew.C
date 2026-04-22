@@ -71,7 +71,7 @@ Foam::saturationTemperatureModel::New
       : isDict ? dict.subDict(name)
       : dict.optionalSubDict(name + "Coeffs");
 
-    Info<< indent
+    Info<< indentOrNl
         << "Selecting " << typeName << " " << modelTypeName << endl;
 
     dictionaryConstructorTable::iterator cstrIter =

@@ -40,7 +40,7 @@ Foam::autoPtr<Foam::distribution> Foam::distribution::New
 
     if (report)
     {
-        Info<< indent
+        Info<< indentOrNl
             << "Selecting " << typeName << " type " << distributionType << endl;
     }
 

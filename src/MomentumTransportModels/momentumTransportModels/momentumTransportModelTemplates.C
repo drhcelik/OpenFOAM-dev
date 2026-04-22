@@ -48,7 +48,7 @@ inline Foam::autoPtr<MomentumTransportModel> Foam::momentumTransportModel::New
         ).lookup("simulationType")
     );
 
-    Info<< indent
+    Info<< indentOrNl
         << "Selecting turbulence model type " << modelType << endl;
 
     typename MomentumTransportModel::dictionaryConstructorTable::iterator

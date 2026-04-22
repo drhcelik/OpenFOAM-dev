@@ -90,7 +90,7 @@ Foam::laminarModel<BasicMomentumTransportModel>::New
             {"model", "laminarModel"}
         );
 
-        Info<< indent
+        Info<< indentOrNl
             << "Selecting laminar stress model " << modelType << endl;
 
         libs.open(laminarDict, "libs", dictionaryConstructorTablePtr_);
@@ -126,7 +126,7 @@ Foam::laminarModel<BasicMomentumTransportModel>::New
     }
     else
     {
-        Info<< indent
+        Info<< indentOrNl
             << "Selecting laminar stress model "
             << laminarModels::Stokes<BasicMomentumTransportModel>::typeName
             << endl;

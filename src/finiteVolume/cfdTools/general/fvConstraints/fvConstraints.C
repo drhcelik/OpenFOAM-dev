@@ -54,7 +54,7 @@ Foam::IOobject Foam::fvConstraints::createIOobject
 
     if (io.headerOk())
     {
-        Info<< "Creating fvConstraints from "
+        Info<< "Constructing " << typeName << " from "
             << io.instance()/io.name() << endl;
 
         io.readOpt() = IOobject::MUST_READ_IF_MODIFIED;

@@ -122,7 +122,7 @@ Foam::LESModel<BasicMomentumTransportModel>::New
         {"model", "LESModel"}
     );
 
-    Info<< indent
+    Info<< indentOrNl
         << "Selecting LES turbulence model " << modelType << endl;
 
     libs.open(LESdict, "libs", dictionaryConstructorTablePtr_);

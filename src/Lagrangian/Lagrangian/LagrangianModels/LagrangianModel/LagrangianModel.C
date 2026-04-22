@@ -81,7 +81,7 @@ Foam::autoPtr<Foam::LagrangianModel> Foam::LagrangianModel::New
 {
     const word type(modelDict.lookup("type"));
 
-    Info<< indent << "Selecting " << typeName
+    Info<< indentOrNl << "Selecting " << typeName
         << " with name " << name
         << " of type " << type << endl;
 

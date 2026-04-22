@@ -112,7 +112,7 @@ Foam::RASModel<BasicMomentumTransportModel>::New
         {"model", "RASModel"}
     );
 
-    Info<< indent
+    Info<< indentOrNl
         << "Selecting RAS turbulence model " << modelType << endl;
 
     libs.open(RASdict, "libs", dictionaryConstructorTablePtr_);

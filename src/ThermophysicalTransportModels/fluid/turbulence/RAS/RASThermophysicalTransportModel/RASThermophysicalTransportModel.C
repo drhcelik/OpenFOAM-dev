@@ -83,7 +83,7 @@ Foam::RASThermophysicalTransportModel
 
         const word modelType(modelDict.subDict("RAS").lookup("model"));
 
-        Info<< indent
+        Info<< indentOrNl
             << "Selecting RAS thermophysical transport model "
             << modelType << endl;
 
@@ -119,7 +119,7 @@ Foam::RASThermophysicalTransportModel
                 >
             > RASunityLewisEddyDiffusivity;
 
-        Info<< indent
+        Info<< indentOrNl
             << "Selecting default RAS thermophysical transport model "
             <<  RASunityLewisEddyDiffusivity::typeName << endl;
 
