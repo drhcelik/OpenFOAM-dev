@@ -62,6 +62,7 @@ bool Foam::functionEntries::printEntry::execute
 {
     if (Pstream::master())
     {
+        Info<< indent << contextDict.dictName();
         contextDict.write(Info);
     }
 
