@@ -23,7 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "printEntry.H"
+#include "dumpEntry.H"
 #include "Pstream.H"
 #include "addToRunTimeSelectionTable.H"
 
@@ -33,15 +33,15 @@ namespace Foam
 {
 namespace functionEntries
 {
-    defineFunctionTypeNameAndDebug(printEntry, 0);
-    addToRunTimeSelectionTable(functionEntry, printEntry, dictionary);
+    defineFunctionTypeNameAndDebug(dumpEntry, 0);
+    addToRunTimeSelectionTable(functionEntry, dumpEntry, dictionary);
 }
 }
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::functionEntries::printEntry::printEntry
+Foam::functionEntries::dumpEntry::dumpEntry
 (
     const label lineNumber,
     const dictionary& parentDict,
@@ -54,7 +54,7 @@ Foam::functionEntries::printEntry::printEntry
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-bool Foam::functionEntries::printEntry::execute
+bool Foam::functionEntries::dumpEntry::execute
 (
     dictionary& contextDict,
     Istream& is

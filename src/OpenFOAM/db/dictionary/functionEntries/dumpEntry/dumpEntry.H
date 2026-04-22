@@ -22,23 +22,23 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::functionEntries::printEntry
+    Foam::functionEntries::dumpEntry
 
 Description
-    Print the current contents of the dictionary
+    Dumps the current contents of the dictionary to the info stream
 
-    \c \#print does not require an argument.
+    \c \#dump does not require an argument.
 
 See also
     Foam::functionEntries::exitEntry
 
 SourceFiles
-    printEntry.C
+    dumpEntry.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef printEntry_H
-#define printEntry_H
+#ifndef dumpEntry_H
+#define dumpEntry_H
 
 #include "functionEntry.H"
 
@@ -50,10 +50,10 @@ namespace functionEntries
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class printEntry Declaration
+                           Class dumpEntry Declaration
 \*---------------------------------------------------------------------------*/
 
-class printEntry
+class dumpEntry
 :
     public functionEntry
 {
@@ -61,13 +61,13 @@ class printEntry
 public:
 
     //- Runtime type information
-    FunctionTypeName("#print");
+    FunctionTypeName("#dump");
 
 
     // Constructors
 
         //- Construct from line number, dictionary and Istream
-        printEntry
+        dumpEntry
         (
             const label lineNumber,
             const dictionary& parentDict,
@@ -75,12 +75,12 @@ public:
         );
 
         //- Copy construct
-        printEntry(const printEntry&) = default;
+        dumpEntry(const dumpEntry&) = default;
 
         //- Clone
         virtual autoPtr<entry> clone(const dictionary&) const
         {
-            return autoPtr<entry>(new printEntry(*this));
+            return autoPtr<entry>(new dumpEntry(*this));
         }
 
 
@@ -93,7 +93,7 @@ public:
     // Member Operators
 
         //- Disallow default bitwise assignment
-        void operator=(const printEntry&) = delete;
+        void operator=(const dumpEntry&) = delete;
 };
 
 

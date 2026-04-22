@@ -32,7 +32,7 @@ Description
 
 See also
     Foam::printDefaults
-    Foam::functionEntries::printEntry
+    Foam::functionEntries::dumpEntry
 
 SourceFiles
     printDefaultsEntry.C
