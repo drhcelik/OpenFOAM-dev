@@ -260,8 +260,8 @@ Foam::dictionary::dictionary
 :
     dictionaryName
     (
-        parentDict.name().size()
-      ? parentDict.name()/name
+        parentDict.currentName().size()
+      ? parentDict.currentName()/name
       : name
     ),
     parent_(parentDict),
@@ -361,6 +361,31 @@ Foam::word Foam::dictionary::topDictKeyword() const
     else
     {
         return word::null;
+    }
+}
+
+
+const Foam::fileName& Foam::dictionary::currentName() const
+{
+    if (filePtr_)
+    {
+        const fileName& fName = filePtr_->name();
+
+        // If this is a sub-dictionary of the current file then we want to
+        // retain the sub-dictionary part of the name, so return the name
+        // rather than the file name
+        if (name().find(fName.c_str(), 0, fName.size()) != string::npos)
+        {
+            return name();
+        }
+
+        // Otherwise this is the top-level or the top-level of an included
+        // file, in which case we just want the name of the file
+        return fName;
+    }
+    else
+    {
+        return name();
     }
 }
 
@@ -967,7 +992,7 @@ bool Foam::dictionary::add(entry* entryPtr, bool mergeEntry)
 
     if (hashedEntries_.insert(entryPtr->keyword(), entryPtr))
     {
-        entryPtr->name() = name() + '/' + entryPtr->keyword();
+        entryPtr->name() = currentName() + '/' + entryPtr->keyword();
         IDLList<entry>::append(entryPtr);
 
         if (entryPtr->keyword().isPattern())
@@ -986,7 +1011,7 @@ bool Foam::dictionary::add(entry* entryPtr, bool mergeEntry)
         // If function entries are disabled allow duplicate entries
         if (entry::disableFunctionEntries)
         {
-            entryPtr->name() = name() + '/' + entryPtr->keyword();
+            entryPtr->name() = currentName() + '/' + entryPtr->keyword();
             IDLList<entry>::append(entryPtr);
 
             return true;

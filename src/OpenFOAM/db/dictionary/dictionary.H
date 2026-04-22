@@ -353,6 +353,10 @@ public:
         //  accessed from the top dictionary in the tree
         word topDictKeyword() const;
 
+        //- Return the dictionary name, or the name of the file if the
+        //  dictionary is currently reading
+        const fileName& currentName() const;
+
         //- Return line number of first token in dictionary
         virtual label startLineNumber() const;
 
