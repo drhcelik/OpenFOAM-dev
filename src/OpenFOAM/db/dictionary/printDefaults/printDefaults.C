@@ -79,7 +79,8 @@ Foam::printDefaults::~printDefaults()
         {
             if (!parent_)
             {
-                dicts_[dictPtr_].write(Info, false);
+                Info<< indent << dictPtr_->dictName();
+                dicts_[dictPtr_].write(Info);
             }
             dicts_.erase(dictPtr_);
         }
