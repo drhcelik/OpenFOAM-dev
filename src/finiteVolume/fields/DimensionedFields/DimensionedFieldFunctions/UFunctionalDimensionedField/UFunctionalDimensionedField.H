@@ -42,6 +42,7 @@ SourceFiles
 #ifndef UFunctionalDimensionedField_H
 #define UFunctionalDimensionedField_H
 
+#include "UFunctionalDimensionedFieldFwd.H"
 #include "SlicedDimensionedField.H"
 #include "DimensionedFieldFunction.H"
 
@@ -51,9 +52,6 @@ namespace Foam
 {
 
 // Forward declaration of friend functions
-template<class Type, class GeoMesh>
-class UFunctionalDimensionedField;
-
 template<class Type, class GeoMesh>
 void writeEntry
 (
