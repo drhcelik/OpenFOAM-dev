@@ -81,7 +81,7 @@ const Foam::dictionary& Foam::InflowBoundaryModel<CloudType>::dict() const
 
 
 template<class CloudType>
-const Foam::dictionary& Foam::InflowBoundaryModel<CloudType>::coeffDict() const
+const Foam::dictionary& Foam::InflowBoundaryModel<CloudType>::typeDict() const
 {
     return coeffDict_;
 }

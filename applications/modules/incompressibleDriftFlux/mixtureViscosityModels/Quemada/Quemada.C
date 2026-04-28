@@ -84,7 +84,7 @@ bool Foam::mixtureViscosityModels::Quemada::read()
 {
     if (mixtureViscosityModel::read())
     {
-        const dictionary& dict = coeffDict();
+        const dictionary& dict = typeDict();
 
         dict.lookup("q") >> q_;
         muMax_.read(dict);

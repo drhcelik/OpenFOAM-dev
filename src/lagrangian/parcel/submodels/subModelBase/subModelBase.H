@@ -132,7 +132,7 @@ public:
             const word& modelType() const;
 
             //- Return const access to the coefficients dictionary
-            const dictionary& coeffDict() const;
+            const dictionary& typeDict() const;
 
             //- Return const access to the properties dictionary
             const dictionary& properties() const;

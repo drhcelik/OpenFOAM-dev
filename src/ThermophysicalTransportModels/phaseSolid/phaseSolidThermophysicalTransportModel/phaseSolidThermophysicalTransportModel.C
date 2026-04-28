@@ -122,7 +122,7 @@ Foam::phaseSolidThermophysicalTransportModel::New
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 const Foam::dictionary&
-Foam::phaseSolidThermophysicalTransportModel::coeffDict() const
+Foam::phaseSolidThermophysicalTransportModel::typeDict() const
 {
     return optionalTypeDict(type());
 }

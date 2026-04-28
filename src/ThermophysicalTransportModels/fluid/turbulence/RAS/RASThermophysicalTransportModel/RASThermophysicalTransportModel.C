@@ -149,7 +149,7 @@ template<class BasicThermophysicalTransportModel>
 const Foam::dictionary& Foam::RASThermophysicalTransportModel
 <
     BasicThermophysicalTransportModel
->::coeffDict() const
+>::typeDict() const
 {
     return this->subOrEmptyDict("RAS").optionalTypeDict(type());
 }

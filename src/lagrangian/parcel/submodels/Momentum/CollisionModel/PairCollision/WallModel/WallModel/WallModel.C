@@ -75,7 +75,7 @@ const Foam::dictionary& Foam::WallModel<CloudType>::dict() const
 
 template<class CloudType>
 const Foam::dictionary&
-Foam::WallModel<CloudType>::coeffDict() const
+Foam::WallModel<CloudType>::typeDict() const
 {
     return coeffDict_;
 }

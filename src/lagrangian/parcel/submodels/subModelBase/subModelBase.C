@@ -124,7 +124,7 @@ const Foam::word& Foam::subModelBase::modelType() const
 }
 
 
-const Foam::dictionary& Foam::subModelBase::coeffDict() const
+const Foam::dictionary& Foam::subModelBase::typeDict() const
 {
     return coeffDict_;
 }

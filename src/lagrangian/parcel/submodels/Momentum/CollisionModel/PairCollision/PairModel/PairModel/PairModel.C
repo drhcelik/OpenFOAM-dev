@@ -67,7 +67,7 @@ const Foam::dictionary& Foam::PairModel<CloudType>::dict() const
 
 template<class CloudType>
 const Foam::dictionary&
-Foam::PairModel<CloudType>::coeffDict() const
+Foam::PairModel<CloudType>::typeDict() const
 {
     return coeffDict_;
 }

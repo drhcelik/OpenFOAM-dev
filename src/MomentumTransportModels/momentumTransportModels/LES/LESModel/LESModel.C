@@ -57,10 +57,10 @@ Foam::LESModel<BasicMomentumTransportModel>::LESModel
 
     viscosityModel_
     (
-        coeffDict().found("viscosityModel")
+        typeDict().found("viscosityModel")
       ? laminarModels::generalisedNewtonianViscosityModel::New
         (
-            coeffDict(),
+            typeDict(),
             viscosity,
             U
         )
@@ -68,7 +68,7 @@ Foam::LESModel<BasicMomentumTransportModel>::LESModel
         (
             new laminarModels::generalisedNewtonianViscosityModels::Newtonian
             (
-                coeffDict(),
+                typeDict(),
                 viscosity,
                 U
             )
@@ -156,7 +156,7 @@ Foam::LESModel<BasicMomentumTransportModel>::LESDict() const
 
 template<class BasicMomentumTransportModel>
 const Foam::dictionary&
-Foam::LESModel<BasicMomentumTransportModel>::coeffDict() const
+Foam::LESModel<BasicMomentumTransportModel>::typeDict() const
 {
     return this->LESDict().optionalTypeDict(type());
 }

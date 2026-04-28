@@ -57,10 +57,10 @@ Foam::RASModel<BasicMomentumTransportModel>::RASModel
 
     viscosityModel_
     (
-        coeffDict().found("viscosityModel")
+        typeDict().found("viscosityModel")
       ? laminarModels::generalisedNewtonianViscosityModel::New
         (
-            coeffDict(),
+            typeDict(),
             viscosity,
             U
         )
@@ -68,7 +68,7 @@ Foam::RASModel<BasicMomentumTransportModel>::RASModel
         (
             new laminarModels::generalisedNewtonianViscosityModels::Newtonian
             (
-                coeffDict(),
+                typeDict(),
                 viscosity,
                 U
             )
@@ -146,7 +146,7 @@ Foam::RASModel<BasicMomentumTransportModel>::RASDict() const
 
 template<class BasicMomentumTransportModel>
 const Foam::dictionary&
-Foam::RASModel<BasicMomentumTransportModel>::coeffDict() const
+Foam::RASModel<BasicMomentumTransportModel>::typeDict() const
 {
     return this->RASDict().optionalTypeDict(type());
 }

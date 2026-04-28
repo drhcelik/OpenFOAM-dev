@@ -117,7 +117,7 @@ public:
 
     // Member Functions
 
-        const dictionary& coeffDict() const
+        const dictionary& typeDict() const
         {
             return optionalTypeDict(type());
         }

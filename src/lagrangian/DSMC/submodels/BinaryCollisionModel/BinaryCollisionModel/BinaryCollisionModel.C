@@ -85,7 +85,7 @@ Foam::BinaryCollisionModel<CloudType>::dict() const
 
 template<class CloudType>
 const Foam::dictionary&
-Foam::BinaryCollisionModel<CloudType>::coeffDict() const
+Foam::BinaryCollisionModel<CloudType>::typeDict() const
 {
     return coeffDict_;
 }
