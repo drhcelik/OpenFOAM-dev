@@ -148,7 +148,7 @@ template<class BasicMomentumTransportModel>
 const Foam::dictionary&
 Foam::RASModel<BasicMomentumTransportModel>::coeffDict() const
 {
-    return this->RASDict().optionalSubDict(type() + "Coeffs");
+    return this->RASDict().optionalTypeDict(type());
 }
 
 

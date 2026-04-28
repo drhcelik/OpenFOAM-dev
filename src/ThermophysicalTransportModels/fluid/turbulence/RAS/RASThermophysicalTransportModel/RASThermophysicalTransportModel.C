@@ -151,7 +151,7 @@ const Foam::dictionary& Foam::RASThermophysicalTransportModel
     BasicThermophysicalTransportModel
 >::coeffDict() const
 {
-    return this->subOrEmptyDict("RAS").optionalSubDict(type() + "Coeffs");
+    return this->subOrEmptyDict("RAS").optionalTypeDict(type());
 }
 
 

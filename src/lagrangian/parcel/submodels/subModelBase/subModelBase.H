@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2024 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -94,8 +94,7 @@ public:
             dictionary& properties,
             const dictionary& dict,
             const word& baseName,
-            const word& modelType,
-            const word& dictExt = "Coeffs"
+            const word& modelType
         );
 
         //- Construct from components with name

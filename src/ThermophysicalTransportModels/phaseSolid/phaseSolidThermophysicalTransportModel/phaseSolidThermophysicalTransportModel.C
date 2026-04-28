@@ -124,7 +124,7 @@ Foam::phaseSolidThermophysicalTransportModel::New
 const Foam::dictionary&
 Foam::phaseSolidThermophysicalTransportModel::coeffDict() const
 {
-    return optionalSubDict(type() + "Coeffs");
+    return optionalTypeDict(type());
 }
 
 

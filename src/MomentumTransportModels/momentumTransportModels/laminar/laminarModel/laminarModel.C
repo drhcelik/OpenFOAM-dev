@@ -156,7 +156,7 @@ template<class BasicMomentumTransportModel>
 const Foam::dictionary&
 Foam::laminarModel<BasicMomentumTransportModel>::coeffDict() const
 {
-    return this->laminarDict().optionalSubDict(type() + "Coeffs");
+    return this->laminarDict().optionalTypeDict(type());
 }
 
 

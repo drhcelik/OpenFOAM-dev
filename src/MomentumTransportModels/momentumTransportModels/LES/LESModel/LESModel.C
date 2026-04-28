@@ -158,7 +158,7 @@ template<class BasicMomentumTransportModel>
 const Foam::dictionary&
 Foam::LESModel<BasicMomentumTransportModel>::coeffDict() const
 {
-    return this->LESDict().optionalSubDict(type() + "Coeffs");
+    return this->LESDict().optionalTypeDict(type());
 }
 
 

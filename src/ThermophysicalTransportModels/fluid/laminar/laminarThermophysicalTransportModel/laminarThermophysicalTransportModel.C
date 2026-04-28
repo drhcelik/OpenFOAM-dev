@@ -135,7 +135,7 @@ const Foam::dictionary& Foam::laminarThermophysicalTransportModel
     BasicThermophysicalTransportModel
 >::coeffDict() const
 {
-    return this->subOrEmptyDict("laminar").optionalSubDict(type() + "Coeffs");
+    return this->subOrEmptyDict("laminar").optionalTypeDict(type());
 }
 
 

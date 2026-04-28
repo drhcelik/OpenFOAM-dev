@@ -669,6 +669,15 @@ public:
             //  otherwise return this dictionary
             const dictionary& optionalSubDict(const word&) const;
 
+            //- Find and return a type sub-dictionary
+            //  looked-up from typeName with optional "Coeffs" appended
+            const dictionary& typeDict(const word& typeName) const;
+
+            //- Find and return a type sub-dictionary
+            //  looked-up from typeName with optional "Coeffs" appended
+            //  or empty dictionary if the sub-dictionary does not exist
+            const dictionary& typeOrEmptyDict(const word& typeName) const;
+
             //- Find and return an optional type sub-dictionary
             //  looked-up from typeName with optional "Coeffs" appended
             const dictionary& optionalTypeDict(const word& typeName) const;
