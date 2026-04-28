@@ -669,6 +669,10 @@ public:
             //  otherwise return this dictionary
             const dictionary& optionalSubDict(const word&) const;
 
+            //- Find and return an optional type sub-dictionary
+            //  looked-up from typeName with optional "Coeffs" appended
+            const dictionary& optionalTypeDict(const word& typeName) const;
+
             //- Find and return a sub-dictionary by scoped lookup
             //  i.e. the keyword may contain scope characters.
             //  If the keyword is null this dictionary is returned

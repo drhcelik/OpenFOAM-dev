@@ -872,6 +872,29 @@ const Foam::dictionary& Foam::dictionary::optionalSubDict
 }
 
 
+const Foam::dictionary& Foam::dictionary::optionalTypeDict
+(
+    const word& typeName
+) const
+{
+    const entry* entryPtr = lookupEntryPtr(typeName, false, true);
+
+    if (!entryPtr)
+    {
+        entryPtr = lookupEntryPtr(typeName + "Coeffs", false, true);
+    }
+
+    if (entryPtr)
+    {
+        return entryPtr->dict();
+    }
+    else
+    {
+        return *this;
+    }
+}
+
+
 const Foam::dictionary& Foam::dictionary::scopedDict(const word& keyword) const
 {
     if (keyword == "")
