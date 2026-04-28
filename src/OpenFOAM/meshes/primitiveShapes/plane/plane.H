@@ -193,7 +193,7 @@ public:
         }
 
         //- Return coefficients for the plane equation, ax + by + cz + d = 0
-        FixedList<scalar, 4> plane() const;
+        FixedList<scalar, 4> planeCoeffs() const;
 
         //- Return a point on the plane
         point aPoint() const;

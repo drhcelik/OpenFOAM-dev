@@ -228,7 +228,7 @@ Foam::plane::plane(Istream& is)
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-Foam::FixedList<Foam::scalar, 4> Foam::plane::plane() const
+Foam::FixedList<Foam::scalar, 4> Foam::plane::planeCoeffs() const
 {
     FixedList<scalar, 4> C(4);
 
@@ -446,9 +446,9 @@ Foam::point Foam::plane::planePlaneIntersect
     const plane& plane3
 ) const
 {
-    FixedList<scalar, 4> coeffs1(plane());
-    FixedList<scalar, 4> coeffs2(plane2.plane());
-    FixedList<scalar, 4> coeffs3(plane3.plane());
+    FixedList<scalar, 4> coeffs1(planeCoeffs());
+    FixedList<scalar, 4> coeffs2(plane2.planeCoeffs());
+    FixedList<scalar, 4> coeffs3(plane3.planeCoeffs());
 
     tensor a
     (
