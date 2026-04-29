@@ -931,7 +931,7 @@ const Foam::dictionary& Foam::dictionary::optionalTypeDict
         entryPtr = lookupEntryPtr(typeName + "Coeffs", false, true);
     }
 
-    if (entryPtr)
+    if (entryPtr && entryPtr->isDict())
     {
         return entryPtr->dict();
     }
