@@ -136,7 +136,8 @@ bool Foam::functionObjects::writeDictionary::read(const dictionary& dict)
 
     digests_.setSize(dictNames_.size(), SHA1Digest());
 
-    Info<< type() << " " << name() << ": monitoring dictionaries:" << nl;
+    Info<< indent << "monitoring dictionaries:" << nl;
+    Info<< incrIndent;
     if (dictNames_.size())
     {
         forAll(dictNames_, i)
@@ -148,7 +149,7 @@ bool Foam::functionObjects::writeDictionary::read(const dictionary& dict)
     {
         Info<< indent << "none" << nl;
     }
-    Info<< endl;
+    Info<< decrIndent;
 
     return true;
 }

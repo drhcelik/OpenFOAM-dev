@@ -581,11 +581,7 @@ bool Foam::functionObjects::regionSizeDistribution::write()
             << tab << alphaSumVol
             << tab << nCells
             << endl;
-        Info<< endl;
     }
-
-
-
 
     {
         Info<< indent << "Patch connected regions (liquid core):" << endl;
@@ -601,7 +597,6 @@ bool Foam::functionObjects::regionSizeDistribution::write()
                 << tab << allRegionAlphaVolume[regionI] << endl;
 
         }
-        Info<< endl;
     }
 
     {
@@ -632,7 +627,6 @@ bool Foam::functionObjects::regionSizeDistribution::write()
                     << tab << aIter() << endl;
             }
         }
-        Info<< endl;
     }
 
 

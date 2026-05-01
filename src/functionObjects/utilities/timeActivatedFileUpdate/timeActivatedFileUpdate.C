@@ -111,7 +111,8 @@ bool Foam::functionObjects::timeActivatedFileUpdate::read
     lastIndex_ = -1;
     fileToUpdate_.expand();
 
-    Info<< type() << ": file vs time list:" << nl;
+    Info<< indent << "file vs time list:" << nl;
+    Info<< incrIndent;
     forAll(fileVsTime_, i)
     {
         fileVsTime_[i].second() = fileVsTime_[i].second().expand();
@@ -122,10 +123,10 @@ bool Foam::functionObjects::timeActivatedFileUpdate::read
                 << nl << exit(FatalError);
         }
 
-        Info<< indent << "" << fileVsTime_[i].first() << tab
+        Info<< indent << fileVsTime_[i].first() << tab
             << fileVsTime_[i].second() << endl;
     }
-    Info<< endl;
+    Info<< decrIndent;
 
     updateFile();
 
