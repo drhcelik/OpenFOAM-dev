@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2023 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2011-2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -62,8 +62,9 @@ void Foam::functionObjects::timeActivatedFileUpdate::updateFile()
 
     if (i > lastIndex_)
     {
-        Info<< nl << type() << ": copying file" << nl << fileVsTime_[i].second()
-            << nl << "to:" << nl << fileToUpdate_ << nl << endl;
+        Info<< nl << indent
+            << type() << ": copying file" << nl << fileVsTime_[i].second()
+            << nl << "to:" << nl << fileToUpdate_ << endl;
 
         fileName destFile(fileToUpdate_ + Foam::name(pid()));
         cp(fileVsTime_[i].second(), destFile);
@@ -121,7 +122,7 @@ bool Foam::functionObjects::timeActivatedFileUpdate::read
                 << nl << exit(FatalError);
         }
 
-        Info<< "    " << fileVsTime_[i].first() << tab
+        Info<< indent << "" << fileVsTime_[i].first() << tab
             << fileVsTime_[i].second() << endl;
     }
     Info<< endl;

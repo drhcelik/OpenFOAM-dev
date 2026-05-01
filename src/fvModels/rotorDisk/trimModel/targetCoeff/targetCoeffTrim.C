@@ -166,17 +166,17 @@ void Foam::targetCoeffTrim::correctTrim
 
         if (iter == nIter_)
         {
-            Info<< "    solution not converged in " << iter
+            Info<< indent << "solution not converged in " << iter
                 << " iterations, final residual = " << err
                 << "(" << tol_ << ")" << endl;
         }
         else
         {
-            Info<< "    final residual = " << err << "(" << tol_
+            Info<< indent << "final residual = " << err << "(" << tol_
                 << "), iterations = " << iter << endl;
         }
 
-        Info<< "    current and target " << calcType << nl
+        Info<< indent << "current and target " << calcType << nl
             << "        thrust  = " << old[0]*rhoRef << ", " << target_[0] << nl
             << "        pitch   = " << old[1]*rhoRef << ", " << target_[1] << nl
             << "        roll    = " << old[2]*rhoRef << ", " << target_[2] << nl

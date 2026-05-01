@@ -112,7 +112,7 @@ Foam::fv::meanVelocityForce::meanVelocityForce
     );
     if (propsFile.good())
     {
-        Info<< "    Reading pressure gradient from file" << endl;
+        Info<< indent << "Reading pressure gradient from file" << endl;
         dictionary propsDict(dictionary::null, propsFile);
         propsDict.lookup("gradient") >> gradP0_;
     }

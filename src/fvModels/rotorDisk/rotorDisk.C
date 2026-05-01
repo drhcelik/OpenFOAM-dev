@@ -401,7 +401,7 @@ void Foam::fv::rotorDisk::createCoordinateSystem(const dictionary& dict)
 
     const scalar sumArea = gSum(area_);
     const scalar diameter = Foam::sqrt(4.0*sumArea/mathematical::pi);
-    Info<< "    Rotor geometry:" << nl
+    Info<< indent << "Rotor geometry:" << nl
         << "    - disk diameter = " << diameter << nl
         << "    - disk area     = " << sumArea << nl
         << "    - origin        = " << coordSys_.origin() << nl
