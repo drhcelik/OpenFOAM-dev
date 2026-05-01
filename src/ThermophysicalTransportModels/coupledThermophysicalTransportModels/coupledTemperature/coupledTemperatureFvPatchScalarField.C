@@ -424,6 +424,11 @@ void Foam::coupledTemperatureFvPatchScalarField::updateCoeffs()
         // Include the effect of the optional neighbour insulation layer
         if (coupledTemperatureNbr.h_.valid())
         {
+            const_cast<coupledTemperatureFvPatchScalarField&>
+            (
+                coupledTemperatureNbr
+            ).h_->update();
+
             const scalarField hFactor
             (
                 coupledTemperatureNbr.h_()
@@ -446,6 +451,8 @@ void Foam::coupledTemperatureFvPatchScalarField::updateCoeffs()
         // Include the effect of the optional insulation layer
         if (h_.valid())
         {
+            h_->update();
+
             const scalarField hFactor(h_()/(h_() + sumKappaByDeltaNbrMapped()));
             sumKappaTByDeltaNbrMapped.ref() *= hFactor;
             sumKappaByDeltaNbrMapped.ref() *= hFactor;
