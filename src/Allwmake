@@ -50,7 +50,7 @@ generic/Allwmake $targetType $*
 wmake $targetType sampling
 wmake $targetType meshCheck
 
-wmake $targetType motionSolvers
+wmake $targetType pointMeshMovers
 
 wmake $targetType mesh/extrudeModel
 wmake $targetType polyTopoChange
@@ -75,7 +75,6 @@ wmake $targetType reactionModels
 mesh/Allwmake $targetType $*
 renumber/Allwmake $targetType $*
 fvAgglomerationMethods/Allwmake $targetType $*
-wmake $targetType fvMotionSolver
 
 wmake $targetType fvConstraints
 
