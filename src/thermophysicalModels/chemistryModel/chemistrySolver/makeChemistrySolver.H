@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2020-2021 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2020-2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -32,7 +32,7 @@ License
 
 #define defineChemistrySolver(Model, ThermoPhysics)                            \
                                                                                \
-    typedef Model<ThermoPhysics>                                               \
+    typedef chemistryModels::Model<ThermoPhysics>                              \
         Model##ThermoPhysics;                                                  \
                                                                                \
     defineTemplateTypeNameAndDebugWithName                                     \
@@ -48,7 +48,7 @@ License
 
 #define makeChemistrySolver(Solver, Model, ThermoPhysics)                      \
                                                                                \
-    typedef Solver<Model<ThermoPhysics>>                                       \
+    typedef Solver<chemistryModels::Model<ThermoPhysics>>                      \
         Solver##Model##ThermoPhysics;                                          \
                                                                                \
     defineTemplateTypeNameAndDebugWithName                                     \
@@ -64,7 +64,7 @@ License
                                                                                \
     addToRunTimeSelectionTable                                                 \
     (                                                                          \
-        basicChemistryModel,                                                   \
+        chemistryModel,                                                   \
         Solver##Model##ThermoPhysics,                                          \
         thermo                                                                 \
     )
@@ -75,7 +75,7 @@ License
 #define defineChemistrySolvers(nullArg, ThermoPhysics)                         \
     defineChemistrySolver                                                      \
     (                                                                          \
-        chemistryModel,                                                        \
+        Standard,                                                              \
         ThermoPhysics                                                          \
     )
 
@@ -83,7 +83,7 @@ License
     makeChemistrySolver                                                        \
     (                                                                          \
         Solver,                                                                \
-        chemistryModel,                                                        \
+        Standard,                                                              \
         ThermoPhysics                                                          \
     )
 
