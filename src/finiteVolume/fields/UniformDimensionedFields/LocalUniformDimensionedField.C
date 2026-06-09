@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2020-2026 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,20 +23,42 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "EulerImplicit.H"
-#include "Standard_chemistryModel.H"
+#include "LocalUniformDimensionedField.H"
 
-#include "forGases.H"
-#include "forLiquids.H"
-#include "makeChemistrySolver.H"
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-namespace Foam
+template<class Type>
+Foam::LocalUniformDimensionedField<Type>::LocalUniformDimensionedField
+(
+    const IOobject& io,
+    const bool read
+)
+:
+    UniformDimensionedField<Type>(io, false)
 {
-    forCoeffGases(makeChemistrySolvers, EulerImplicit);
-    forCoeffLiquids(makeChemistrySolvers, EulerImplicit);
+    if (read) this->read(IOobject::MUST_READ);
 }
+
+
+template<class Type>
+Foam::LocalUniformDimensionedField<Type>::LocalUniformDimensionedField
+(
+    const IOobject& io,
+    const dimensioned<Type>& dt,
+    const bool read
+)
+:
+    UniformDimensionedField<Type>(io, dt, false)
+{
+    if (read) this->read(io.readOpt());
+}
+
+
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+
+template<class Type>
+Foam::LocalUniformDimensionedField<Type>::~LocalUniformDimensionedField()
+{}
 
 
 // ************************************************************************* //

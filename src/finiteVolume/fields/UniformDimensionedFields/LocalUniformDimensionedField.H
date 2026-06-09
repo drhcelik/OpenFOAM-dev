@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2022 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,21 +22,21 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::noChemistrySolver
+    Foam::LocalUniformDimensionedField
 
 Description
-    Dummy chemistry solver for 'none' option
+    Local variant of UniformDimensionedField. Identical to
+    UniformDimensionedField, apart from the fact that IO is processor local.
 
 SourceFiles
-    noChemistrySolver.H
-    noChemistrySolver.C
+    LocalUniformDimensionedField.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef noChemistrySolver_H
-#define noChemistrySolver_H
+#ifndef LocalUniformDimensionedField_H
+#define LocalUniformDimensionedField_H
 
-#include "chemistrySolver.H"
+#include "UniformDimensionedField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -44,43 +44,48 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                      Class noChemistrySolver Declaration
+                   Class UniformDimensionedField Declaration
 \*---------------------------------------------------------------------------*/
 
-template<class ChemistryModel>
-class noChemistrySolver
+template<class Type>
+class LocalUniformDimensionedField
 :
-    public chemistrySolver<ChemistryModel>
+    public UniformDimensionedField<Type>
 {
-
 public:
 
     //- Runtime type information
-    TypeName("none");
+    TypeName("LocalUniformDimensionedField");
 
 
     // Constructors
 
-        //- Construct from thermo
-        noChemistrySolver(const fluidMulticomponentThermo& thermo);
+        //- Construct from IOobject
+        LocalUniformDimensionedField(const IOobject&, const bool read = true);
+
+        //- Construct from IOobject. Either reads or uses supplied value.
+        LocalUniformDimensionedField
+        (
+            const IOobject&,
+            const dimensioned<Type>&,
+            const bool read = true
+        );
+
+        //- Inherit other constructors
+        using UniformDimensionedField<Type>::UniformDimensionedField;
 
 
     //- Destructor
-    virtual ~noChemistrySolver();
+    virtual ~LocalUniformDimensionedField();
 
 
     // Member Functions
 
-        //- Update the concentrations and return the chemical time
-        virtual void solve
-        (
-            scalar& p,
-            scalar& T,
-            scalarField& c,
-            const label li,
-            scalar& deltaT,
-            scalar& subDeltaT
-        ) const;
+        //- Is object global
+        virtual bool global() const
+        {
+            return false;
+        }
 };
 
 
@@ -91,7 +96,7 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-    #include "noChemistrySolver.C"
+    #include "LocalUniformDimensionedField.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

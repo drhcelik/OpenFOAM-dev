@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2020-2026 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,22 +21,42 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+InClass
+    Foam::LocalUniformDimensionedField
+
+Description
+    Typedefs for LocalUniformDimensionedField
+
+SourceFiles
+    localUniformDimensionedFields.C
+
 \*---------------------------------------------------------------------------*/
 
-#include "ode.H"
-#include "Standard_chemistryModel.H"
+#ifndef localUniformDimensionedFields_H
+#define localUniformDimensionedFields_H
 
-#include "forGases.H"
-#include "forLiquids.H"
-#include "makeChemistrySolver.H"
+#include "LocalUniformDimensionedField.H"
+#include "fieldTypes.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    forCoeffGases(makeChemistrySolvers, ode);
-    forCoeffLiquids(makeChemistrySolvers, ode);
-}
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#define typedefLocalUniformDimensionedTypeField(Type, nullArg)                 \
+    typedef LocalUniformDimensionedField<Type>                                 \
+        CAT3(localUniformDimensioned, CAPITALIZE(Type), Field);                \
+
+FOR_ALL_FIELD_TYPES(typedefLocalUniformDimensionedTypeField);
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

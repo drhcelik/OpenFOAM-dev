@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2022 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,25 +23,28 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "chemistrySolver.H"
+#include "localUniformDimensionedFields.H"
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-template<class ChemistryModel>
-Foam::chemistrySolver<ChemistryModel>::chemistrySolver
-(
-    const fluidMulticomponentThermo& thermo
-)
-:
-    ChemistryModel(thermo)
-{}
+namespace Foam
+{
 
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+#define defineLocalUniformDimensionedTypeField_(Field)                         \
+    defineTemplateTypeNameAndDebug(Field, 0)
 
-template<class ChemistryModel>
-Foam::chemistrySolver<ChemistryModel>::~chemistrySolver()
-{}
+#define defineLocalUniformDimensionedTypeField(Type, nullArg)                  \
+    defineLocalUniformDimensionedTypeField_                                    \
+    (                                                                          \
+        CAT3(localUniformDimensioned, CAPITALIZE(Type), Field)                 \
+    );
 
+FOR_ALL_FIELD_TYPES(defineLocalUniformDimensionedTypeField);
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
 
 // ************************************************************************* //
