@@ -31,7 +31,6 @@ License
 #include "fvmLaplacian.H"
 #include "surfaceInterpolate.H"
 #include "speciesTable.H"
-#include "Function2Evaluate.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -258,11 +257,7 @@ void MaxwellStefan<BasicThermophysicalTransportModel>::updateDii() const
             }
         }
 
-        Dii_.set
-        (
-            i,
-            evaluate(DFuncs_[i][i], dimensions::kinematicDiffusivity, p, T)
-        );
+        Dii_.set(i, DFuncs_[i][i].value(p, T));
 
         Dij[i].setSize(Y.size());
 
@@ -270,17 +265,7 @@ void MaxwellStefan<BasicThermophysicalTransportModel>::updateDii() const
         {
             if (j > i)
             {
-                Dij[i].set
-                (
-                    j,
-                    evaluate
-                    (
-                        DFuncs_[i][j],
-                        dimensions::kinematicDiffusivity,
-                        p,
-                        T
-                    )
-                );
+                Dij[i].set(j, DFuncs_[i][j].value(p, T));
             }
             else if (j < i)
             {
@@ -320,10 +305,7 @@ void MaxwellStefan<BasicThermophysicalTransportModel>::updateDii() const
         {
             if (i != d)
             {
-                jexp_[i] -= fvc::interpolate
-                (
-                    evaluate(DTFuncs_[i], dimensions::dynamicDiffusivity, p, T)
-                )*gradTbyT;
+                jexp_[i] -= fvc::interpolate(DTFuncs_[i].value(p, T))*gradTbyT;
             }
         }
     }
@@ -505,7 +487,7 @@ bool MaxwellStefan<BasicThermophysicalTransportModel>::read()
                     DFuncs_[i].set
                     (
                         j,
-                        Function2<scalar>::New
+                        DimensionedFunction2<scalar>::New
                         (
                             Dname,
                             dimensions::pressure,
@@ -529,7 +511,7 @@ bool MaxwellStefan<BasicThermophysicalTransportModel>::read()
                 DTFuncs_.set
                 (
                     i,
-                    Function2<scalar>::New
+                    DimensionedFunction2<scalar>::New
                     (
                         species[i],
                         dimensions::pressure,
@@ -639,7 +621,7 @@ MaxwellStefan<BasicThermophysicalTransportModel>::q() const
                 Y[0].mesh(),
                 dimensionedScalar
                 (
-                    dimensions::mass/dimensions::area/dimensions::time,
+                    dimensions::massFluxDensity,
                     0
                 )
             )
@@ -775,7 +757,7 @@ tmp<fvScalarMatrix> MaxwellStefan<BasicThermophysicalTransportModel>::divq
             he.mesh(),
             dimensionedScalar
             (
-                dimensions::mass/dimensions::area/dimensions::time,
+                dimensions::massFluxDensity,
                 0
             )
         )
@@ -843,7 +825,7 @@ tmp<surfaceScalarField> MaxwellStefan<BasicThermophysicalTransportModel>::j
                 Yi.mesh(),
                 dimensionedScalar
                 (
-                    dimensions::mass/dimensions::area/dimensions::time,
+                    dimensions::massFluxDensity,
                     0
                 )
             )
