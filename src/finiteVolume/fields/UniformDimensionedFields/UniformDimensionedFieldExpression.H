@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2021-2026 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,56 +23,54 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef GeometricFieldFwd_H
-#define GeometricFieldFwd_H
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#include "dimensionSet.H"
+#include "expressions.H"
+#include "expressionDimensionSet.H"
+#include "expressionDimensionedType.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
+namespace expression
+{
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-template<class Type>
-class Field;
-
-template
+template<class Type, class ... Args>
+struct Operate
 <
-    class Type,
-    class GeoMesh,
-    template<class> class PrimitiveField = Field
+    UniformDimensionedField<Type>,
+    Arguments<Value, Args ...>,
+    EnableIfNotExpressionable<UniformDimensionedField<Type>>
 >
-class GeometricBoundaryField;
-
-template
-<
-    class Type,
-    class GeoMesh,
-    template<class> class PrimitiveField = Field
->
-class GeometricFieldSources;
+:
+    public Operate<dimensioned<Type>, Arguments<Value, Args ...>>
+{};
 
 template<class Type>
-class NoFieldSource;
-
-template
+struct Operate
 <
-    class Type,
-    class GeoMesh,
-    template<class> class PrimitiveField = Field
+    UniformDimensionedField<Type>,
+    Arguments<dimensionSet>,
+    EnableIfNotExpressionable<UniformDimensionedField<Type>>
 >
-class GeometricField;
+:
+    public Operate<dimensioned<Type>, Arguments<dimensionSet>>
+{};
+
+template<class Type>
+struct Name
+<
+    UniformDimensionedField<Type>,
+    EnableIfNotExpressionable<UniformDimensionedField<Type>>
+>
+:
+    public Name<dimensioned<Type>>
+{};
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+} // End namespace expression
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //
