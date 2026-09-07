@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2021-2026 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,8 +23,11 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef DimensionedFieldFwd_H
-#define DimensionedFieldFwd_H
+#include "fviReconstruct.H"
+#include "reconstructionTensors.H"
+#include "volFields.H"
+#include "surfaceFields.H"
+#include "fviSurfaceIntegrate.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -33,23 +36,63 @@ namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-template<class Type>
-class Field;
+namespace fvi
+{
 
-template
-<
-    class Type,
-    class GeoMesh,
-    template<class> class PrimitiveField = Field
->
-class DimensionedField;
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+template<class Type>
+tmp<VolInternalField<typename outerProduct<vector, Type>::type>>
+reconstruct(const SurfaceField<Type>& ssf)
+{
+    typedef typename outerProduct<vector, Type>::type GradType;
+
+    const fvMesh& mesh = ssf.mesh()();
+
+    tmp<VolInternalField<GradType>> treconField
+    (
+        VolInternalField<GradType>::New
+        (
+            "volIntegrate("+ssf.name()+')',
+            mesh,
+            dimensioned<GradType>("0", ssf.dimensions()/dimensions::area, Zero)
+        )
+    );
+
+    if (!mesh.nGeometricD())
+    {
+        return treconField;
+    }
+
+    // Get reference to reconstruct tensors
+    const reconstructionTensors& rt = reconstructionTensors::New(mesh);
+
+    treconField.ref() = rt.tensors() & surfaceSum((mesh.Sf()/mesh.magSf())*ssf);
+
+    return treconField;
+}
+
+
+template<class Type>
+tmp<VolInternalField<typename outerProduct<vector, Type>::type>>
+reconstruct(const tmp<SurfaceField<Type>>& tssf)
+{
+    typedef typename outerProduct<vector, Type>::type GradType;
+    tmp<VolInternalField<GradType>> tvf
+    (
+        fvi::reconstruct(tssf())
+    );
+    tssf.clear();
+    return tvf;
+}
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace fvi
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

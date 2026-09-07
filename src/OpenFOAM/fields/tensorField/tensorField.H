@@ -57,33 +57,6 @@ typedef Field<tensor> tensorField;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-void inv
-(
-    Field<tensor>& tf,
-    const UList<tensor>& tf1,
-    const Vector<label>& solutionD
-);
-
-tmp<tensorField> inv
-(
-    const Field<tensor>& tf,
-    const Vector<label>& solutionD
-);
-
-tmp<tensorField> inv
-(
-    const SubField<tensor>& tf,
-    const Vector<label>& solutionD
-);
-
-tmp<tensorField> inv
-(
-    const tmp<tensorField>& tf,
-    const Vector<label>& solutionD
-);
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
