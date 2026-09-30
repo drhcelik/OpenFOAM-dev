@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2026 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,64 +21,55 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::delayedNewLine
+
+Description
+    Object that streams out as a new line, except for the first time in which
+    it is printed. Useful for putting newlines between items in a list, but not
+    putting a newline at the start of that list.
+
 \*---------------------------------------------------------------------------*/
 
-#include "fvcD2dt2.H"
-#include "fvMesh.H"
-#include "d2dt2Scheme.H"
+#ifndef delayedNewLine_H
+#define delayedNewLine_H
+
+#include "Ostream.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+/*---------------------------------------------------------------------------*\
+                        Class delayedNewLine Declaration
+\*---------------------------------------------------------------------------*/
 
-namespace fvc
+class delayedNewLine
 {
+    mutable bool first_;
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+public:
 
-template<class Type>
-tmp<VolField<Type>>
-d2dt2
-(
-    const VolField<Type>& vf
-)
-{
-    return fv::d2dt2Scheme<Type>::New
-    (
-        vf.mesh(),
-        vf.mesh().schemes().d2dt2(word("d2dt2(", vf.name(), ')'))
-    ).ref().fvcD2dt2(vf);
-}
+    delayedNewLine()
+    :
+        first_(true)
+    {}
 
-
-template<class Type>
-tmp<VolField<Type>>
-d2dt2
-(
-    const volScalarField& rho,
-    const VolField<Type>& vf
-)
-{
-    return fv::d2dt2Scheme<Type>::New
-    (
-        vf.mesh(),
-        vf.mesh().schemes().d2dt2
-        (
-            word("d2dt2(", rho.name(), ',', vf.name(), ')')
-        )
-    ).ref().fvcD2dt2(rho, vf);
-}
-
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-} // End namespace fvc
+    friend Ostream& operator<<(Ostream& os, const delayedNewLine& dnl)
+    {
+        if (!dnl.first_) os << nl;
+        dnl.first_ = false;
+        return os;
+    }
+};
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //
