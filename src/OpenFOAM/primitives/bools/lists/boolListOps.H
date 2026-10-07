@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2014-2026 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -21,42 +21,70 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+InNamespace
+    Foam
+
+Description
+    Functions to operate on lists of boolean values
+
 \*---------------------------------------------------------------------------*/
 
-#include "blendingMethod.H"
+#ifndef boolListOps_H
+#define boolListOps_H
+
+#include "PstreamReduceOps.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-Foam::autoPtr<Foam::blendingMethod> Foam::blendingMethod::New
-(
-    const word& modelTypeName,
-    const dictionary& dict,
-    const phaseInterface& interface,
-    const bool allowDisplaced
-)
+namespace Foam
 {
-    const word blendingMethodType(dict.lookup("type"));
 
-    Info<< indentOrNl << "Selecting " << typeName << ' ' << blendingMethodType
-        << " for " << modelTypeName << " for " << interface.name() << endl;
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    dictionaryConstructorTable::iterator cstrIter =
-        dictionaryConstructorTablePtr_->find(blendingMethodType);
-
-    if (cstrIter == dictionaryConstructorTablePtr_->end())
+template<class BoolList>
+inline bool any(const BoolList& l)
+{
+    forAll(l, i)
     {
-        FatalIOErrorInFunction(dict)
-            << "Unknown " << typeName << " type "
-            << blendingMethodType << endl << endl
-            << "Valid " << typeName << " types are : " << endl
-            << dictionaryConstructorTablePtr_->sortedToc()
-            << exit(FatalIOError);
+        if (l[i])
+        {
+            return true;
+        }
     }
-
-    printDictionary print(dict);
-
-    return cstrIter()(dict, interface, allowDisplaced);
+    return false;
 }
 
+template<class BoolList>
+inline bool gAny(const BoolList& l, const label comm = UPstream::worldComm)
+{
+    return returnReduce(any(l), orOp(), Pstream::msgType(), comm);
+}
+
+template<class BoolList>
+inline bool all(const BoolList& l)
+{
+    forAll(l, i)
+    {
+        if (!l[i])
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+template<class BoolList>
+inline bool gAll(const BoolList& l, const label comm = UPstream::worldComm)
+{
+    return returnReduce(all(l), andOp(), Pstream::msgType(), comm);
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //
