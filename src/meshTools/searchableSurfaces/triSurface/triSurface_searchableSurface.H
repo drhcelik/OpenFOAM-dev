@@ -363,7 +363,7 @@ public:
                 IOstream::streamFormat fmt,
                 IOstream::versionNumber ver,
                 IOstream::compressionType cmp,
-                const bool write
+                const bool updateInstance
             ) const;
 
             //- Is object global

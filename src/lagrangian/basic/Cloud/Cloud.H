@@ -318,7 +318,7 @@ public:
                 IOstream::streamFormat fmt,
                 IOstream::versionNumber ver,
                 IOstream::compressionType cmp,
-                const bool write
+                const bool updateInstance
             ) const;
 
             //- Write positions to \<cloudName\>_positions.obj file

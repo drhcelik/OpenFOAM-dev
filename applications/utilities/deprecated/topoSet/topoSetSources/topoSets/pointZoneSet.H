@@ -145,7 +145,7 @@ public:
             IOstream::streamFormat,
             IOstream::versionNumber,
             IOstream::compressionType,
-            const bool write
+            const bool updateInstance
         ) const;
 
         //- Update any stored data for new labels
